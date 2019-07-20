@@ -11,6 +11,7 @@
   "author": "Adam Bibby",
   "license": "MIT",
   "devDependencies": {
+    "@types/dexie": "^1.3.1",
     "html-webpack-plugin": "^3.2.0",
     "http-server": "^0.11.1",
     "mini-css-extract-plugin": "^0.8.0",
@@ -23,7 +24,7 @@
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {
-    "idb": "^4.0.4",
+    "dexie": "^2.0.4",
     "preact": "^8.4.2"
   }
 }

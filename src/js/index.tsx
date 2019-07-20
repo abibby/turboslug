@@ -1,18 +1,11 @@
+import Home from 'js/views/home'
 import { h, render } from 'preact'
-import Home from './views/home';
-import { search, allCards, Card } from './scryfall';
-import { database } from './database';
+import { allCards, Card, search } from './scryfall'
 
-database().then(async db => {
-    // const cards = await allCards()
-    // for (const card of cards) {
-    //     await db.add('cards', card)
-    // }
-    // console.log("added all cards")
-
-    const tx = db.transaction('tx-name')
-    tx.store.
-
-})
+//     const cards = await allCards()
+//     for (const card of cards) {
+//         await db.cards.add(card)
+//     }
+//     console.log('added all cards')
 
 render(<Home />, document.getElementById('app')!)

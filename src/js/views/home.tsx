@@ -1,10 +1,12 @@
+import Search from 'js/components/search'
+import Layout from 'js/views/layout'
 import { Component, h } from 'preact'
-import Layout from './layout'
 
 export default class Home extends Component {
     public render() {
         return <Layout>
             <h1>Home</h1>
+            <Search />
         </Layout>
     }
 }

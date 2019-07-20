@@ -1,7 +1,8 @@
-import { DBSchema, openDB } from 'idb'
+
+import Dexie from 'dexie'
 import { Card } from 'js/scryfall'
 
-interface MyDB extends DBSchema {
+interface MyDB extends Dexie {
     'cards': {
         value: Card,
         key: string,
@@ -12,12 +13,15 @@ interface MyDB extends DBSchema {
     }
 }
 
-export async function database() {
-    return await openDB('cards', 1, {
-        upgrade: db => {
-            const cards = db.createObjectStore('cards', { keyPath: 'id' })
-            cards.createIndex('by-name', 'name')
-            cards.createIndex('by-oracle_text', 'oracle_text')
-        },
-    })
+class CardDatabase extends Dexie {
+    public cards: Dexie.Table<Card, number>
+
+    constructor() {
+        super('CardDatabase')
+        this.version(1).stores({
+            cards: '++id,name,oracle_text',
+        })
+    }
 }
+
+export const DB = new CardDatabase()
