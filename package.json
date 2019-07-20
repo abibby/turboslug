@@ -1,0 +1,29 @@
+{
+  "name": "turboslug",
+  "version": "1.0.0",
+  "description": "A fast offline first magic the gathering deck builder",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "serve": "http-server dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Adam Bibby",
+  "license": "MIT",
+  "devDependencies": {
+    "html-webpack-plugin": "^3.2.0",
+    "http-server": "^0.11.1",
+    "mini-css-extract-plugin": "^0.8.0",
+    "ts-loader": "^6.0.4",
+    "tslint": "^5.18.0",
+    "tslint-loader": "^3.5.4",
+    "tslint-react": "^4.0.0",
+    "typescript": "^3.5.3",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "idb": "^4.0.4",
+    "preact": "^8.4.2"
+  }
+}

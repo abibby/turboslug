@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "moduleResolution": "node",
+        "target": "esnext",
+        "baseUrl": "./",
+        // "jsx": "preserve",
+        "jsx": "react",
+        "jsxFactory": "h",
+        "paths": {
+            "*": [
+                "types/*",
+                "src/*"
+            ]
+        },
+        "experimentalDecorators": true,
+        "pretty": true,
+        "strictNullChecks": true
+    },
+    "exclude": [
+        "node_modules",
+    ]
+}
