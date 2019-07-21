@@ -9,7 +9,9 @@ export interface CardResponse extends Response<Card> {
     next_page: string
 }
 
-export interface Card {
+export type Card = NormalCard | TransformCard
+
+export interface BaseCard {
     object: 'card'
     id: string
     oracle_id: string
@@ -20,16 +22,9 @@ export interface Card {
     released_at: string
     uri: string
     scryfall_uri: string
-    layout: string
     highres_image: boolean
-    image_uris: { [size: string]: string }
-    mana_cost: string
     cmc: number
     type_line: string
-    oracle_text: string
-    power: string
-    toughness: string
-    colors: string[]
     color_indicator: string[]
     color_identity: string[]
     legalities: { [format: string]: string }
@@ -52,7 +47,6 @@ export interface Card {
     collector_number: string
     digital: boolean
     rarity: string
-    illustration_id: string
     card_back_id: string
     artist: string
     border_color: string
@@ -64,6 +58,47 @@ export interface Card {
     prices: { [type: string]: string }
     related_uris: { [service: string]: string }
     purchase_uris: { [service: string]: string }
+}
+
+interface NormalCard extends BaseCard {
+    layout: 'normal'
+
+    artist: string
+    colors: string[]
+    illustration_id: string
+    image_uris: ImageURIs
+    mana_cost: string
+    name: string
+    oracle_text: string
+    power?: string
+    toughness?: string
+    type_line: string,
+}
+interface TransformCard extends BaseCard {
+    layout: 'transform'
+
+    card_faces: Array<{
+        object: 'card_face'
+        artist: string
+        colors: string[]
+        illustration_id: string
+        image_uris: ImageURIs
+        mana_cost: string
+        name: string
+        oracle_text: string
+        power: string
+        toughness: string
+        type_line: string,
+    }>
+}
+
+interface ImageURIs {
+    art_crop: string
+    border_crop: string
+    large: string
+    normal: string
+    png: string
+    small: string,
 }
 
 interface Set {
@@ -83,6 +118,20 @@ interface Set {
     block_code: string
     block: string
     icon_svg_uri: string
+}
+
+export interface CardSymbol {
+    object: 'card_symbol',
+    symbol: string,
+    loose_variant: null,
+    english: string,
+    transposable: boolean,
+    represents_mana: boolean,
+    appears_in_mana_costs: boolean,
+    cmc: number,
+    funny: boolean,
+    colors: string[],
+    gatherer_alternates: string[],
 }
 
 function serialize(obj: object, prefix?: string) {

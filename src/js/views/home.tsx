@@ -7,6 +7,7 @@ export default class Home extends Component {
         return <Layout>
             <h1>Home</h1>
             <Search />
+            <p>some text</p>
         </Layout>
     }
 }

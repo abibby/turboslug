@@ -1,0 +1,45 @@
+.search {
+    input {
+        // padding: 0;
+        // margin: 0;
+        // border: none;
+        width: 100%;
+    }
+
+    .popup {
+        display: none;
+    }
+
+    input:focus+.popup {
+        position: absolute;
+        display: grid;
+        grid-template-columns: 340px 225px;
+        grid-column-gap: 10px;
+
+        border: solid 1px;
+        background-color: white;
+
+        .names {
+            .row {
+                padding: 2px 8px;
+
+                &.selected {
+                    background-color: #aaa
+                }
+
+                .name {}
+
+                .mana-cost {
+                    float: right;
+                }
+            }
+
+        }
+
+        img.selected-card {
+            width: 225px;
+            border-radius: 10px
+        }
+
+    }
+}
