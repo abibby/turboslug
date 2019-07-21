@@ -26,23 +26,25 @@ export const DB = (() => {
     const db = new CardDatabase()
 
     db.cards.hook('creating', (primKey, card, trans) => {
-        if (typeof card.oracle_text === 'string') { card.oracle_text_words = getAllWords(card.oracle_text) }
+        if (card.layout === 'normal') {
+            card.oracle_text_words = getAllWords(card.oracle_text)
+        } else if (card.layout === 'transform') {
+            card.oracle_text_words = getAllWords(card.card_faces.map(face => face.oracle_text).join(' '))
+        }
         if (typeof card.name === 'string') { card.name_words = getAllWords(card.name) }
     })
 
     db.cards.hook('updating', (mods: Partial<DBCard>, primKey, obj, trans) => {
-        if (mods.hasOwnProperty('name')) {
-            if (typeof mods.name === 'string') {
-                return { name_words: getAllWords(mods.name) }
-            } else {
-                return { name_words: [] }
-            }
+        if (mods.name !== undefined) {
+            return { name_words: getAllWords(mods.name) }
         }
-        if (mods.hasOwnProperty('oracle_text')) {
-            if (typeof mods.oracle_text === 'string') {
-                return { oracle_text_words: getAllWords(mods.oracle_text) }
-            } else {
-                return { oracle_text_words: [] }
+        if (mods.layout === 'normal') {
+            if (mods.oracle_text !== undefined) {
+                return getAllWords(mods.oracle_text)
+            }
+        } else if (mods.layout === 'transform') {
+            if (mods.card_faces !== undefined) {
+                return getAllWords(mods.card_faces.map(face => face.oracle_text).join(' '))
             }
         }
     })

@@ -1,8 +1,8 @@
 import 'css/search.scss'
 import ManaCost from 'js/components/mana-cost'
 import { DB } from 'js/database'
-import { Card } from 'js/scryfall'
-import { Component, h } from 'preact'
+import { Card, search } from 'js/scryfall'
+import { Component, FunctionalComponent, h } from 'preact'
 
 interface Props {
     value?: string
@@ -50,17 +50,13 @@ export default class Search extends Component<Props, State> {
             />
             <div class='popup'>
                 <div className='names'>
-                    {this.state.suggestion.map((card, i) => (
-                        <div
-                            key={card.id}
-                            class={'row ' + (i === this.state.selected ? 'selected' : '')}
-                            onMouseMove={this.changeSelection(i)}
-                            onClick={this.selectCard(i)}
-                        >
-                            <span class='name'>{card.name}</span>
-                            <ManaCost class='mana-cost' cost={card.mana_cost || (card.card_faces && card.card_faces[0].mana_cost)} />
-                        </div>
-                    ))}
+                    {this.state.suggestion.map((card, i) => <CardRow
+                        key={card.id}
+                        card={card}
+                        selected={i === this.state.selected}
+                        onMouseMove={this.changeSelection(i)}
+                        onClick={this.selectCard(i)}
+                    />)}
                 </div>
                 <img class='selected-card' src={img} />
             </div>
@@ -82,12 +78,12 @@ export default class Search extends Component<Props, State> {
         }
 
         const cards = await DB.cards
-            .where('name_words').startsWithAnyOfIgnoreCase(value.split(' '))
+            .where('name').startsWithIgnoreCase(value)
+            // .where('name_words').startsWithAnyOfIgnoreCase(value.split(' '))
+            // .or('oracle_text_words').startsWithAnyOfIgnoreCase(value.split(' '))
             .filter(card => ['normal', 'transform'].includes(card.layout))
             .limit(15)
             .toArray()
-
-        console.log(cards)
 
         this.setState({
             suggestion: cards,
@@ -135,4 +131,36 @@ export default class Search extends Component<Props, State> {
         }
     }
 
+}
+
+interface CardRowProps {
+    card: Card
+    selected: boolean
+    onMouseMove?: (e: MouseEvent) => void
+    onClick?: (e: MouseEvent) => void
+}
+
+const CardRow: FunctionalComponent<CardRowProps> = props => {
+    let classes = 'row'
+    if (props.selected) {
+        classes += ' selected'
+    }
+
+    let manaCost: string = ''
+    if (props.card.layout === 'normal') {
+        manaCost = props.card.mana_cost
+    } else if (props.card.layout === 'transform') {
+        manaCost = props.card.card_faces[0].mana_cost
+    }
+
+    {
+        return <div
+            class={classes}
+            onMouseMove={props.onMouseMove}
+            onClick={props.onClick}
+        >
+            <span class='name'>{props.card.name}</span>
+            <ManaCost class='mana-cost' cost={manaCost} />
+        </div>
+    }
 }
