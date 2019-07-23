@@ -1,7 +1,7 @@
 import 'css/search.scss'
 import ManaCost from 'js/components/mana-cost'
 import { DB } from 'js/database'
-import { Card, search } from 'js/scryfall'
+import { Card } from 'js/scryfall'
 import { Component, FunctionalComponent, h } from 'preact'
 
 interface Props {

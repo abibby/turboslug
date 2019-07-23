@@ -1,19 +1,27 @@
 
 import Dexie from 'dexie'
-import { Card } from 'js/scryfall'
+import { allSets, Card, ScryfallResponse, searchCards, Set } from 'js/scryfall'
 
 type DBCard = Card & {
     name_words?: string[]
     oracle_text_words?: string[],
 }
 
+export interface Chunk {
+    index: number
+    hash: string
+    path: string
+}
+
 class CardDatabase extends Dexie {
     public cards: Dexie.Table<DBCard, number>
+    public chunks: Dexie.Table<Chunk, number>
 
     constructor() {
         super('CardDatabase')
         this.version(1).stores({
-            cards: '++id,name,*name_words,oracle_text,*oracle_text_words',
+            cards: 'id,name,*name_words,oracle_text,*oracle_text_words',
+            chunks: 'index',
         })
     }
 }
@@ -48,5 +56,25 @@ export const DB = (() => {
             }
         }
     })
+
     return db
 })()
+
+export async function loadDB() {
+    const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
+    for (const chunk of chunks) {
+        const localChunk = await DB.chunks.get(chunk.index)
+        if (localChunk !== undefined) {
+            if (localChunk.hash === chunk.hash) {
+                continue
+            } else {
+                await DB.chunks.delete(chunk.index)
+            }
+        }
+        const cards: Card[] = await fetch(chunk.path).then(r => r.json())
+        await DB.cards.bulkAdd(cards)
+        await DB.chunks.add(chunk)
+        console.log(`downloaded chunk ${chunk.index}`)
+
+    }
+}

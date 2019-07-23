@@ -1,10 +1,10 @@
-export interface Response<T> {
+export interface ScryfallResponse<T> {
     object: 'list'
-    has_mode: boolean
+    has_more: boolean
     data: T[]
 }
 
-export interface CardResponse extends Response<Card> {
+export interface CardResponse extends ScryfallResponse<Card> {
     total_cards: number
     next_page: string
 }
@@ -60,7 +60,7 @@ export interface BaseCard {
     purchase_uris: { [service: string]: string }
 }
 
-interface NormalCard extends BaseCard {
+export interface NormalCard extends BaseCard {
     layout: 'normal'
 
     artist: string
@@ -74,7 +74,7 @@ interface NormalCard extends BaseCard {
     toughness?: string
     type_line: string,
 }
-interface TransformCard extends BaseCard {
+export interface TransformCard extends BaseCard {
     layout: 'transform'
 
     card_faces: Array<{
@@ -92,7 +92,7 @@ interface TransformCard extends BaseCard {
     }>
 }
 
-interface ImageURIs {
+export interface ImageURIs {
     art_crop: string
     border_crop: string
     large: string
@@ -101,7 +101,7 @@ interface ImageURIs {
     small: string,
 }
 
-interface Set {
+export interface Set {
     object: 'set'
     id: string
     code: string
@@ -149,10 +149,16 @@ function serialize(obj: object, prefix?: string) {
     return str.join('&')
 }
 
-export async function search(query: string): Promise<CardResponse> {
+export async function searchCards(query: string, page: number = 0): Promise<CardResponse> {
     const uri = 'https://api.scryfall.com/cards/search?' + serialize({
-        order: 'cmc',
         q: query,
+        page: page,
+
+        order: 'cmc',
+        unique: 'prints',
+        format: 'json',
+        include_extras: false,
+        include_multilingual: false,
     })
     return fetch(uri).then(r => r.json())
 
@@ -162,10 +168,11 @@ export async function allCards(): Promise<Card[]> {
 
 }
 
-export async function sets(): Promise<Response<Set>> {
-    return fetch('https://api.scryfall.com/sets').then(r => r.json())
+export async function allSets(): Promise<Set[]> {
+    const response = await fetch('https://api.scryfall.com/sets').then(r => r.json())
+    return response.data
 }
 
-export async function set(code: string): Promise<Set> {
+export async function getSet(code: string): Promise<Set> {
     return fetch('https://api.scryfall.com/sets/' + encodeURIComponent(code)).then(r => r.json())
 }
