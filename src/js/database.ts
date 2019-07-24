@@ -7,6 +7,10 @@ type DBCard = Card & {
     oracle_text_words?: string[],
 }
 
+interface QueryArgs {
+    default: string[]
+    [key: string]: string[]
+}
 export interface Chunk {
     index: number
     hash: string
@@ -24,6 +28,80 @@ class CardDatabase extends Dexie {
             chunks: 'index',
         })
     }
+
+    public async searchCards(query: string): Promise<Card[]> {
+        let filtered = 0
+
+        // // .where('name').startsWithIgnoreCase(query)
+        // // .or('oracle_text_words').startsWithAnyOfIgnoreCase(query.split(' '))
+        //
+        const qa = parseQuery(query)
+        const defaultWords: string[] = []
+        // for (const words of qa.default) {
+        //     defaultWords.push(...getAllWords(words))
+        // }
+        console.log(qa.default.join(' '))
+
+        const cards = await DB.cards
+            .where('name').startsWithIgnoreCase(qa.default.join(' '))
+            .filter(card => {
+                filtered++
+                if (!['normal', 'transform'].includes(card.layout)) {
+                    return false
+                }
+
+                // for (const words of qa.default) {
+                //     if (!card.name.toLowerCase().includes(words.toLowerCase())) {
+                //         return false
+                //     }
+                // }
+                return true
+            }).limit(15).toArray()
+
+        console.log(filtered)
+        return cards
+    }
+}
+
+function* tokens(q: string) {
+    let current: string = ''
+    let inQuote = false
+    for (const c of q.trim()) {
+        if (inQuote && c !== '"') {
+            current += c
+            continue
+        }
+        switch (c) {
+            case '"':
+                inQuote = !inQuote
+                break
+            case ' ':
+                yield current
+                current = ''
+                break
+            case ':':
+                yield current + ':'
+                current = ''
+                break
+            default:
+                current += c
+        }
+    }
+    yield current
+}
+function parseQuery(q: string): QueryArgs {
+    const query: QueryArgs = { default: [] }
+    let section = 'default'
+    for (const token of tokens(q)) {
+        if (token.endsWith(':')) {
+            section = token.slice(0, -1)
+            continue
+        }
+        query[section] = (query[section] || []).concat([token])
+        section = 'default'
+    }
+
+    return query
 }
 
 function getAllWords(text: string): string[] {

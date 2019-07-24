@@ -77,13 +77,7 @@ export default class Search extends Component<Props, State> {
             return
         }
 
-        const cards = await DB.cards
-            .where('name').startsWithIgnoreCase(value)
-            // .where('name_words').startsWithAnyOfIgnoreCase(value.split(' '))
-            // .or('oracle_text_words').startsWithAnyOfIgnoreCase(value.split(' '))
-            .filter(card => ['normal', 'transform'].includes(card.layout))
-            .limit(15)
-            .toArray()
+        const cards = await DB.searchCards(value)
 
         this.setState({
             suggestion: cards,
