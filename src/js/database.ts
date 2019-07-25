@@ -2,6 +2,8 @@
 import Dexie from 'dexie'
 import { Card } from 'js/scryfall'
 
+// TODO: Move to worker and use comlink https://www.npmjs.com/package/comlink
+
 type DBCard = Card & {
     name_words?: string[]
     oracle_text_words?: string[],
