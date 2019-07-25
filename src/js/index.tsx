@@ -1,7 +1,6 @@
 import Home from 'js/views/home'
 import { h, render } from 'preact'
-import { DB } from './database'
-import { allCards, Card, search } from './scryfall'
+import { DB, loadDB } from './database'
 
 // (async () => {
 //     const cards = await allCards()
@@ -19,5 +18,7 @@ import { allCards, Card, search } from './scryfall'
 //     }
 //     console.log('added all cards')
 // })()
+
+loadDB()
 
 render(<Home />, document.getElementById('app')!)

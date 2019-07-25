@@ -1,6 +1,6 @@
 
 import Dexie from 'dexie'
-import { Card } from 'js/scryfall'
+import { allSets, Card, ScryfallResponse, searchCards, Set } from 'js/scryfall'
 
 // TODO: Move to worker and use comlink https://www.npmjs.com/package/comlink
 
@@ -9,15 +9,101 @@ type DBCard = Card & {
     oracle_text_words?: string[],
 }
 
+interface QueryArgs {
+    default: string[]
+    [key: string]: string[]
+}
+export interface Chunk {
+    index: number
+    hash: string
+    path: string
+}
+
 class CardDatabase extends Dexie {
     public cards: Dexie.Table<DBCard, number>
+    public chunks: Dexie.Table<Chunk, number>
 
     constructor() {
         super('CardDatabase')
         this.version(1).stores({
-            cards: '++id,name,*name_words,oracle_text,*oracle_text_words',
+            cards: 'id,name,*name_words,oracle_text,*oracle_text_words',
+            chunks: 'index',
         })
     }
+
+    public async searchCards(query: string): Promise<Card[]> {
+        let filtered = 0
+
+        // // .where('name').startsWithIgnoreCase(query)
+        // // .or('oracle_text_words').startsWithAnyOfIgnoreCase(query.split(' '))
+        //
+        const qa = parseQuery(query)
+        const defaultWords: string[] = []
+        // for (const words of qa.default) {
+        //     defaultWords.push(...getAllWords(words))
+        // }
+        console.log(qa.default.join(' '))
+
+        const cards = await DB.cards
+            .where('name').startsWithIgnoreCase(qa.default.join(' '))
+            .filter(card => {
+                filtered++
+                if (!['normal', 'transform'].includes(card.layout)) {
+                    return false
+                }
+
+                // for (const words of qa.default) {
+                //     if (!card.name.toLowerCase().includes(words.toLowerCase())) {
+                //         return false
+                //     }
+                // }
+                return true
+            }).limit(15).toArray()
+
+        console.log(filtered)
+        return cards
+    }
+}
+
+function* tokens(q: string) {
+    let current: string = ''
+    let inQuote = false
+    for (const c of q.trim()) {
+        if (inQuote && c !== '"') {
+            current += c
+            continue
+        }
+        switch (c) {
+            case '"':
+                inQuote = !inQuote
+                break
+            case ' ':
+                yield current
+                current = ''
+                break
+            case ':':
+                yield current + ':'
+                current = ''
+                break
+            default:
+                current += c
+        }
+    }
+    yield current
+}
+function parseQuery(q: string): QueryArgs {
+    const query: QueryArgs = { default: [] }
+    let section = 'default'
+    for (const token of tokens(q)) {
+        if (token.endsWith(':')) {
+            section = token.slice(0, -1)
+            continue
+        }
+        query[section] = (query[section] || []).concat([token])
+        section = 'default'
+    }
+
+    return query
 }
 
 function getAllWords(text: string): string[] {
@@ -50,5 +136,25 @@ export const DB = (() => {
             }
         }
     })
+
     return db
 })()
+
+export async function loadDB() {
+    const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
+    for (const chunk of chunks) {
+        const localChunk = await DB.chunks.get(chunk.index)
+        if (localChunk !== undefined) {
+            if (localChunk.hash === chunk.hash) {
+                continue
+            } else {
+                await DB.chunks.delete(chunk.index)
+            }
+        }
+        const cards: Card[] = await fetch(chunk.path).then(r => r.json())
+        await DB.cards.bulkAdd(cards)
+        await DB.chunks.add(chunk)
+        console.log(`downloaded chunk ${chunk.index}`)
+
+    }
+}
