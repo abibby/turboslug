@@ -4,9 +4,15 @@ import { allSets, Card, ScryfallResponse, searchCards, Set } from 'js/scryfall'
 
 // TODO: Move to worker and use comlink https://www.npmjs.com/package/comlink
 
-type DBCard = Card & {
+export interface DBCard {
+    id: string
+    name: string
     name_words?: string[]
+    oracle_text: string,
     oracle_text_words?: string[],
+    mana_cost: string
+    set: string
+    image_url: string
 }
 
 interface QueryArgs {
@@ -31,36 +37,18 @@ class CardDatabase extends Dexie {
         })
     }
 
-    public async searchCards(query: string): Promise<Card[]> {
-        let filtered = 0
-
+    public async searchCards(query: string): Promise<DBCard[]> {
         // // .where('name').startsWithIgnoreCase(query)
         // // .or('oracle_text_words').startsWithAnyOfIgnoreCase(query.split(' '))
         //
         const qa = parseQuery(query)
-        const defaultWords: string[] = []
-        // for (const words of qa.default) {
-        //     defaultWords.push(...getAllWords(words))
-        // }
-        console.log(qa.default.join(' '))
 
         const cards = await DB.cards
             .where('name').startsWithIgnoreCase(qa.default.join(' '))
-            .filter(card => {
-                filtered++
-                if (!['normal', 'transform'].includes(card.layout)) {
-                    return false
-                }
+            .filter(queryFilter(qa))
+            .limit(15)
+            .toArray()
 
-                // for (const words of qa.default) {
-                //     if (!card.name.toLowerCase().includes(words.toLowerCase())) {
-                //         return false
-                //     }
-                // }
-                return true
-            }).limit(15).toArray()
-
-        console.log(filtered)
         return cards
     }
 }
@@ -78,11 +66,15 @@ function* tokens(q: string) {
                 inQuote = !inQuote
                 break
             case ' ':
-                yield current
+                if (current !== '') {
+                    yield current
+                }
                 current = ''
                 break
             case ':':
-                yield current + ':'
+                if (current !== '') {
+                    yield current + ':'
+                }
                 current = ''
                 break
             default:
@@ -106,6 +98,18 @@ function parseQuery(q: string): QueryArgs {
     return query
 }
 
+function queryFilter(args: QueryArgs): (card: DBCard) => boolean {
+    return card => {
+        for (const words of args.default) {
+            if (!card.name.toLowerCase().includes(words.toLowerCase())) {
+                return false
+            }
+        }
+
+        return true
+    }
+}
+
 function getAllWords(text: string): string[] {
     return Array.from(new Set(text.split(' ')))
 }
@@ -114,27 +118,18 @@ export const DB = (() => {
     const db = new CardDatabase()
 
     db.cards.hook('creating', (primKey, card, trans) => {
-        if (card.layout === 'normal') {
-            card.oracle_text_words = getAllWords(card.oracle_text)
-        } else if (card.layout === 'transform') {
-            card.oracle_text_words = getAllWords(card.card_faces.map(face => face.oracle_text).join(' '))
-        }
-        if (typeof card.name === 'string') { card.name_words = getAllWords(card.name) }
+        card.oracle_text_words = getAllWords(card.oracle_text)
+        card.name_words = getAllWords(card.name)
     })
 
     db.cards.hook('updating', (mods: Partial<DBCard>, primKey, obj, trans) => {
         if (mods.name !== undefined) {
-            return { name_words: getAllWords(mods.name) }
+            mods.name_words = getAllWords(mods.name)
         }
-        if (mods.layout === 'normal') {
-            if (mods.oracle_text !== undefined) {
-                return getAllWords(mods.oracle_text)
-            }
-        } else if (mods.layout === 'transform') {
-            if (mods.card_faces !== undefined) {
-                return getAllWords(mods.card_faces.map(face => face.oracle_text).join(' '))
-            }
+        if (mods.oracle_text !== undefined) {
+            mods.oracle_text_words = getAllWords(mods.oracle_text)
         }
+        return mods
     })
 
     return db
@@ -152,9 +147,32 @@ export async function loadDB() {
             }
         }
         const cards: Card[] = await fetch(chunk.path).then(r => r.json())
-        await DB.cards.bulkAdd(cards)
+        await DB.cards.bulkAdd(cards.filter(c => ['normal', 'transform'].includes(c.layout)).map(toDBCard))
         await DB.chunks.add(chunk)
         console.log(`downloaded chunk ${chunk.index}`)
 
+    }
+}
+
+function toDBCard(c: Card): DBCard {
+    const base = {
+        id: c.id,
+        name: c.name,
+        set: c.set,
+    }
+    if (c.layout === 'transform') {
+        return {
+            ...base,
+            oracle_text: c.card_faces[0].oracle_text,
+            mana_cost: c.card_faces[0].mana_cost,
+            image_url: c.card_faces[0].image_uris.normal,
+        }
+    }
+
+    return {
+        ...base,
+        oracle_text: c.oracle_text,
+        mana_cost: c.mana_cost,
+        image_url: c.image_uris.normal,
     }
 }

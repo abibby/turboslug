@@ -1,6 +1,6 @@
 import 'css/search.scss'
 import ManaCost from 'js/components/mana-cost'
-import { DB } from 'js/database'
+import { DB, DBCard } from 'js/database'
 import { Card } from 'js/scryfall'
 import { Component, FunctionalComponent, h } from 'preact'
 
@@ -10,7 +10,7 @@ interface Props {
 
 interface State {
     value: string
-    suggestion: Card[]
+    suggestion: DBCard[]
     selected: number
 }
 
@@ -31,14 +31,7 @@ export default class Search extends Component<Props, State> {
         let img: string | undefined
         const selected = this.state.suggestion[this.state.selected]
         if (selected !== undefined) {
-            switch (selected.layout) {
-                case 'normal':
-                    img = selected.image_uris.normal
-                    break
-                case 'transform':
-                    img = selected.card_faces[0].image_uris.normal
-                    break
-            }
+            img = selected.image_url
         }
 
         return <div class='search'>
@@ -128,7 +121,7 @@ export default class Search extends Component<Props, State> {
 }
 
 interface CardRowProps {
-    card: Card
+    card: DBCard
     selected: boolean
     onMouseMove?: (e: MouseEvent) => void
     onClick?: (e: MouseEvent) => void
@@ -140,21 +133,13 @@ const CardRow: FunctionalComponent<CardRowProps> = props => {
         classes += ' selected'
     }
 
-    let manaCost: string = ''
-    if (props.card.layout === 'normal') {
-        manaCost = props.card.mana_cost
-    } else if (props.card.layout === 'transform') {
-        manaCost = props.card.card_faces[0].mana_cost
-    }
+    return <div
+        class={classes}
+        onMouseMove={props.onMouseMove}
+        onClick={props.onClick}
+    >
+        <span class='name'>{props.card.name}</span>
+        <ManaCost class='mana-cost' cost={props.card.mana_cost} />
+    </div>
 
-    {
-        return <div
-            class={classes}
-            onMouseMove={props.onMouseMove}
-            onClick={props.onClick}
-        >
-            <span class='name'>{props.card.name}</span>
-            <ManaCost class='mana-cost' cost={manaCost} />
-        </div>
-    }
 }
