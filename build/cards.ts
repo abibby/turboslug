@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
-import { Chunk } from 'js/database';
+import { Chunk } from 'js/database'
 import { Card } from 'js/scryfall'
 import fetch from 'node-fetch'
 
