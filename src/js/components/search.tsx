@@ -1,7 +1,6 @@
 import 'css/search.scss'
 import ManaCost from 'js/components/mana-cost'
-import { DB, DBCard } from 'js/database'
-import { Card } from 'js/scryfall'
+import { DBCard, searchCards } from 'js/database'
 import { Component, FunctionalComponent, h } from 'preact'
 
 interface Props {
@@ -70,7 +69,7 @@ export default class Search extends Component<Props, State> {
             return
         }
 
-        const cards = await DB.searchCards(value)
+        const cards = await searchCards(value)
 
         this.setState({
             suggestion: cards,

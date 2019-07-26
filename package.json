@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A fast offline first magic the gathering deck builder",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode production",
     "watch": "webpack --watch",
     "serve": "http-server dist",
     "cards": "ts-node build/cards.ts",
@@ -35,7 +35,7 @@
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {
-    "dexie": "^2.0.4",
+    "idb-keyval": "^3.2.0",
     "node-fetch": "^2.6.0",
     "preact": "^8.4.2"
   }
