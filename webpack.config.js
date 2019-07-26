@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const paths = {
     src: path.resolve(__dirname, 'src'),
@@ -17,41 +18,41 @@ module.exports = (env, argv) => {
         devtool: devMode ? 'source-map' : '',
         module: {
             rules: [{
-                    test: /\.tsx?$/,
-                    exclude: /node_modules/,
-                    loader: [
-                        'ts-loader',
-                        'tslint-loader',
-                    ],
-                },
-                {
-                    test: /\.scss$/,
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        'css-loader',
-                        {
-                            loader: 'postcss-loader',
-                            options: {
-                                ident: 'postcss',
-                                plugins: [
-                                    require("css-mqpacker")({
-                                        sort: true
-                                    }),
-                                    require('autoprefixer'),
-                                ]
-                            },
+                test: /\.tsx?$/,
+                exclude: /node_modules/,
+                loader: [
+                    'ts-loader',
+                    'tslint-loader',
+                ],
+            },
+            {
+                test: /\.scss$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            plugins: [
+                                require("css-mqpacker")({
+                                    sort: true
+                                }),
+                                require('autoprefixer'),
+                            ]
                         },
-                        {
-                            loader: "sass-loader",
-                            options: {
-                                sourceMap: true,
-                                includePaths: [
-                                    'node_modules', 'src', '.'
-                                ]
-                            }
-                        },
-                    ],
-                },
+                    },
+                    {
+                        loader: "sass-loader",
+                        options: {
+                            sourceMap: true,
+                            includePaths: [
+                                'node_modules', 'src', '.'
+                            ]
+                        }
+                    },
+                ],
+            },
             ]
         },
         output: {
@@ -78,5 +79,8 @@ module.exports = (env, argv) => {
                 chunkFilename: './' + (devMode ? '[id].css' : '[id].[hash].css'),
             }),
         ],
+        optimization: {
+            minimizer: [new UglifyJsPlugin()],
+        },
     }
 }

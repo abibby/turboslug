@@ -5,9 +5,7 @@ import { Card } from 'js/scryfall'
 export interface DBCard {
     id: string
     name: string
-    name_words?: string[]
     oracle_text: string,
-    oracle_text_words?: string[],
     mana_cost: string
     set: string
     type: string
@@ -26,25 +24,8 @@ export interface Chunk {
 
 const allCards: DBCard[] = []
 
-// class CardDatabase extends Dexie {
-//     public cards: Dexie.Table<Card, number>
-//     public chunks: Dexie.Table<Chunk, number>
-
-//     constructor() {
-//         super('CardDatabase')
-//         this.version(1).stores({
-//             cards: 'id',
-//             chunks: 'index',
-//         })
-//     }
-
-// }
-
-// const DB = new CardDatabase()
-
 export async function searchCards(query: string): Promise<DBCard[]> {
     const qa = parseQuery(query)
-    const start = performance.now()
 
     const filter = queryFilter<DBCard>(qa, {
         default: 'name',
@@ -66,9 +47,6 @@ export async function searchCards(query: string): Promise<DBCard[]> {
             break
         }
     }
-
-    const end = performance.now()
-    console.log(end - start)
 
     return cards
 }
@@ -142,11 +120,11 @@ function queryFilter<T extends object>(
 async function setChunks(chunks: Chunk[]) {
     await set('chunks', chunks)
 }
-async function setCards(index: number, cards: Card[]) {
-    await set(`chunk-${index}`, cards)
-}
 async function getChunks(): Promise<Chunk[]> {
     return await get('chunks') || []
+}
+async function setCards(index: number, cards: Card[]) {
+    await set(`chunk-${index}`, cards)
 }
 async function getCards(index: number): Promise<Card[]> {
     return await get(`chunk-${index}`) || []

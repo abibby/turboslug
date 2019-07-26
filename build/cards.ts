@@ -15,23 +15,28 @@ function* chunk<T>(arr: T[], size: number): Iterable<T[]> {
     }
 }
 
-fetch('https://archive.scryfall.com/json/scryfall-oracle-cards.json').then(r => r.json())
-    .then(async (cards: Card[]) => {
-        cards.sort((a, b) => Math.min(...a.multiverse_ids) - Math.min(...b.multiverse_ids))
-        const chunks: Chunk[] = []
-        let i = 0
-        await fs.mkdir('dist/cards', { recursive: true })
-        for (const cs of chunk(cards, 100)) {
-            const path = `cards/${i}.json`
-            const content = JSON.stringify(cs)
-            await fs.writeFile('dist/' + path, content)
+export async function downloadCards() {
+    await fetch('https://archive.scryfall.com/json/scryfall-oracle-cards.json').then(r => r.json())
+        .then(async (cards: Card[]) => {
+            cards.sort((a, b) => Math.min(...a.multiverse_ids) - Math.min(...b.multiverse_ids))
+            const chunks: Chunk[] = []
+            let i = 0
+            await fs.mkdir('dist/cards', { recursive: true })
+            for (const cs of chunk(cards, 100)) {
+                const path = `cards/${i}.json`
+                const content = JSON.stringify(cs)
+                await fs.writeFile('dist/' + path, content)
 
-            chunks.push({
-                hash: createHash('sha256').update(content).digest('hex'),
-                path: path,
-                index: i,
-            })
-            i++
-        }
-        await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
-    })
+                chunks.push({
+                    hash: createHash('sha256').update(content).digest('hex'),
+                    path: path,
+                    index: i,
+                })
+                i++
+            }
+            await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
+        })
+}
+if (typeof require != 'undefined' && require.main == module) {
+    downloadCards()
+}
