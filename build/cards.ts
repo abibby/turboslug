@@ -15,15 +15,39 @@ function* chunk<T>(arr: T[], size: number): Iterable<T[]> {
     }
 }
 
+function prepareCard(card: Card & { edhrec_rank: number }): Card {
+    delete card.edhrec_rank
+    const formats = [
+        'standard',
+        'future',
+        'frontier',
+        'modern',
+        'legacy',
+        'pauper',
+        'vintage',
+        'penny',
+        'commander',
+        'brawl',
+        'duel',
+        'oldschool',
+    ]
+    const legalities = card.legalities
+    card.legalities = {}
+    for (const format of formats) {
+        card.legalities[format] = legalities[format] || 'not_legal'
+    }
+    return card
+}
+
 fetch('https://archive.scryfall.com/json/scryfall-oracle-cards.json').then(r => r.json())
-    .then(async (cards: Card[]) => {
-        cards.sort((a, b) => Math.min(...a.multiverse_ids) - Math.min(...b.multiverse_ids))
+    .then(async (allCards: Array<Card & { edhrec_rank: number }>) => {
+        allCards.sort((a, b) => Math.min(...a.multiverse_ids) - Math.min(...b.multiverse_ids))
         const chunks: Chunk[] = []
         let i = 0
         await fs.mkdir('dist/cards', { recursive: true })
-        for (const cs of chunk(cards, 100)) {
+        for (const cards of chunk(allCards, 100)) {
             const path = `cards/${i}.json`
-            const content = JSON.stringify(cs)
+            const content = JSON.stringify(cards.map(prepareCard))
             await fs.writeFile('dist/' + path, content)
 
             chunks.push({
