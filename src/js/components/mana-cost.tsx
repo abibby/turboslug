@@ -23,7 +23,12 @@ interface Props {
 }
 export default class ManaCost extends Component<Props & JSX.HTMLAttributes> {
     public render() {
-        const matches = this.props.cost.match(/{[^}]+}/g) || []
-        return <span {...this.props}>{matches.map((cost, i) => <ManaSymbol key={i} symbol={cost} />)}</span>
+        return <span {...this.props}>
+            {splitSymbols(this.props.cost).map((cost, i) => <ManaSymbol key={i} symbol={cost} />)}
+        </span>
     }
+}
+
+export function splitSymbols(cost: string): string[] {
+    return cost.match(/{[^}]+}/g) || []
 }

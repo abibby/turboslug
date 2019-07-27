@@ -4,16 +4,18 @@ import { DBCard } from 'js/database'
 import { Component, h } from 'preact'
 import CardRow from './card-row'
 
-interface Card {
+export interface Slot {
     quantity: number
     card: DBCard
+    tags?: string[]
 }
 
 interface Props {
-    cards?: Card[]
+    cards?: Slot[]
+    onChange?: (deck: Slot[]) => void
 }
 interface State {
-    cards: Card[]
+    cards: Slot[]
     searchValue: string
 }
 export default class DeckBuilder extends Component<Props, State> {
@@ -42,11 +44,15 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     private addCard = (quantity: number, card: DBCard) => {
+        const cards = this.state.cards.concat([{ quantity: quantity, card: card }])
         this.setState({
-            cards: this.state.cards.concat([{ quantity: quantity, card: card }]),
+            cards: cards,
             searchValue: '',
         })
         this.search.focus()
+        if (this.props.onChange) {
+            this.props.onChange(cards)
+        }
     }
     private searchChange = (quantity: number, value: string) => {
         this.setState({

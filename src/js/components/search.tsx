@@ -41,12 +41,14 @@ export default class Search extends Component<Props, State> {
 
     public render() {
         let img: string | undefined
+        let cost: JSX.Element | undefined
         const selected = this.state.suggestion[this.state.selected]
         if (selected !== undefined) {
             img = selected.image_url
+            cost = <ManaCost style={{ float: 'right' }} cost={selected.mana_cost} />
         }
-
         return <div class='search'>
+            {cost}
             <input
                 ref={e => this._input = e}
                 value={this.state.value}
