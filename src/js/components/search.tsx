@@ -18,7 +18,11 @@ interface State {
 }
 
 export default class Search extends Component<Props, State> {
-    public readonly input: HTMLInputElement
+
+    private _input: HTMLInputElement
+    public get input(): HTMLInputElement {
+        return this._input
+    }
 
     constructor(props: Props) {
         super(props)
@@ -43,7 +47,7 @@ export default class Search extends Component<Props, State> {
 
         return <div class='search'>
             <input
-                ref={e => this.input = e}
+                ref={e => this._input = e}
                 value={this.state.value}
                 onInput={this.onChange}
                 onKeyDown={this.onKeyDown}
