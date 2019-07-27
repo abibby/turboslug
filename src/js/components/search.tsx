@@ -70,6 +70,10 @@ export default class Search extends Component<Props, State> {
     public componentDidUpdate(previousProps: Props) {
         if (this.props.value !== undefined && this.props.value !== previousProps.value) {
             this.setState({ value: this.props.value })
+            searchCards(this.props.value)
+                .then(cards => this.setState({
+                    suggestion: cards,
+                }))
         }
     }
 
