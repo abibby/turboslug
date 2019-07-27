@@ -27,15 +27,19 @@ export default class CardRow extends Component<Props, State> {
     }
     public render() {
         return <div class='card-row'>
+            <div class='quantity-change remove' onClick={this.removeCard}>-</div>
+            <div class='quantity-change add' onClick={this.addCard}>+</div>
             <input
                 ref={e => this.quantity = e}
                 class='quantity'
                 value={this.state.quantity}
                 onKeyDown={this.quantityKeyDown}
+                onInput={this.quantityChange}
             />
             <Search
                 ref={e => this.search = e.input}
                 value={this.props.name}
+                placeholder='Enter a card name'
                 onSelect={this.searchSelect}
                 onChange={this.searchChange}
                 onKeyDown={this.searchKeyDown}
@@ -73,6 +77,11 @@ export default class CardRow extends Component<Props, State> {
             e.preventDefault()
         }
     }
+    private quantityChange = (e: Event) => {
+        const input = e.target as HTMLInputElement
+
+        this.setState({ quantity: Number(input.value) })
+    }
 
     private searchSelect = (card: DBCard) => {
         if (this.props.onSelect) {
@@ -95,5 +104,12 @@ export default class CardRow extends Component<Props, State> {
                 }
                 break
         }
+    }
+
+    private addCard = () => {
+        this.setState({ quantity: this.state.quantity + 1 })
+    }
+    private removeCard = () => {
+        this.setState({ quantity: this.state.quantity - 1 })
     }
 }

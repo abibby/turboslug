@@ -5,6 +5,7 @@ import { Component, FunctionalComponent, h } from 'preact'
 
 interface Props {
     value?: string
+    placeholder?: string
 
     onSelect?: (card: DBCard) => void
     onChange?: (card: string) => void
@@ -49,6 +50,7 @@ export default class Search extends Component<Props, State> {
             <input
                 ref={e => this._input = e}
                 value={this.state.value}
+                placeholder={this.props.placeholder}
                 onInput={this.onChange}
                 onKeyDown={this.onKeyDown}
             />
