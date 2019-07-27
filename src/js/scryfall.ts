@@ -27,7 +27,7 @@ export interface BaseCard {
     type_line: string
     color_indicator: string[]
     color_identity: string[]
-    legalities: { [format: string]: 'legal' | 'not_legal' }
+    legalities: { [format: string]: 'legal' | 'not_legal' | 'banned' }
     games: string[]
     reserved: boolean
     foil: boolean
