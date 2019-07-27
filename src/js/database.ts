@@ -1,17 +1,14 @@
-
-import Dexie from 'dexie'
-import { allSets, Card, ScryfallResponse, searchCards, Set } from 'js/scryfall'
-
+import { get, set } from 'idb-keyval'
+import { Card } from 'js/scryfall'
 // TODO: Move to worker and use comlink https://www.npmjs.com/package/comlink
 
 export interface DBCard {
     id: string
     name: string
-    name_words?: string[]
     oracle_text: string,
-    oracle_text_words?: string[],
     mana_cost: string
     set: string
+    type: string
     image_url: string
 }
 
@@ -25,32 +22,33 @@ export interface Chunk {
     path: string
 }
 
-class CardDatabase extends Dexie {
-    public cards: Dexie.Table<DBCard, number>
-    public chunks: Dexie.Table<Chunk, number>
+const allCards: DBCard[] = []
 
-    constructor() {
-        super('CardDatabase')
-        this.version(1).stores({
-            cards: 'id,name,*name_words,oracle_text,*oracle_text_words',
-            chunks: 'index',
-        })
+export async function searchCards(query: string): Promise<DBCard[]> {
+    const qa = parseQuery(query)
+
+    const filter = queryFilter<DBCard>(qa, {
+        default: 'name',
+        o: 'oracle_text',
+        oracle: 'oracle_text',
+        t: 'type',
+        type: 'type',
+        s: 'set',
+        set: 'set',
+    })
+    const cards: DBCard[] = []
+    let count = 0
+    for (const card of allCards) {
+        if (filter(card)) {
+            cards.push(card)
+            count++
+        }
+        if (count >= 15) {
+            break
+        }
     }
 
-    public async searchCards(query: string): Promise<DBCard[]> {
-        // // .where('name').startsWithIgnoreCase(query)
-        // // .or('oracle_text_words').startsWithAnyOfIgnoreCase(query.split(' '))
-        //
-        const qa = parseQuery(query)
-
-        const cards = await DB.cards
-            .where('name').startsWithIgnoreCase(qa.default.join(' '))
-            .filter(queryFilter(qa))
-            .limit(15)
-            .toArray()
-
-        return cards
-    }
+    return cards
 }
 
 function* tokens(q: string) {
@@ -72,8 +70,9 @@ function* tokens(q: string) {
                 current = ''
                 break
             case ':':
+            case '=':
                 if (current !== '') {
-                    yield current + ':'
+                    yield current + c
                 }
                 current = ''
                 break
@@ -98,11 +97,19 @@ function parseQuery(q: string): QueryArgs {
     return query
 }
 
-function queryFilter(args: QueryArgs): (card: DBCard) => boolean {
+function queryFilter<T extends object>(
+    args: QueryArgs,
+    map: { default: keyof T, [key: string]: keyof T },
+): (card: T) => boolean {
     return card => {
-        for (const words of args.default) {
-            if (!card.name.toLowerCase().includes(words.toLowerCase())) {
-                return false
+        for (const [key, value] of Object.entries(map)) {
+            if (args[key] === undefined) {
+                continue
+            }
+            for (const words of args[key]) {
+                if (!String(card[value]).toLowerCase().includes(words.toLowerCase())) {
+                    return false
+                }
             }
         }
 
@@ -110,48 +117,51 @@ function queryFilter(args: QueryArgs): (card: DBCard) => boolean {
     }
 }
 
-function getAllWords(text: string): string[] {
-    return Array.from(new Set(text.split(' ')))
+async function setChunks(chunks: Chunk[]) {
+    await set('chunks', chunks)
+}
+async function getChunks(): Promise<Chunk[]> {
+    return await get('chunks') || []
+}
+async function setCards(index: number, cards: Card[]) {
+    await set(`chunk-${index}`, cards)
+}
+async function getCards(index: number): Promise<Card[]> {
+    return await get(`chunk-${index}`) || []
 }
 
-export const DB = (() => {
-    const db = new CardDatabase()
-
-    db.cards.hook('creating', (primKey, card, trans) => {
-        card.oracle_text_words = getAllWords(card.oracle_text)
-        card.name_words = getAllWords(card.name)
-    })
-
-    db.cards.hook('updating', (mods: Partial<DBCard>, primKey, obj, trans) => {
-        if (mods.name !== undefined) {
-            mods.name_words = getAllWords(mods.name)
-        }
-        if (mods.oracle_text !== undefined) {
-            mods.oracle_text_words = getAllWords(mods.oracle_text)
-        }
-        return mods
-    })
-
-    return db
-})()
-
 export async function loadDB() {
+    await loadNetwork()
+
+    allCards.length = 0
+    for (const chunk of await getChunks()) {
+        const cards = await getCards(chunk.index)
+        allCards.push(...cards.map(toDBCard))
+    }
+    allCards.sort((a, b) => a.name.localeCompare(b.name))
+
+}
+
+async function loadNetwork() {
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
+    let localChunks: Chunk[] = await getChunks()
     for (const chunk of chunks) {
-        const localChunk = await DB.chunks.get(chunk.index)
+        const localChunk = localChunks.find(c => c.index === chunk.index)
+
         if (localChunk !== undefined) {
             if (localChunk.hash === chunk.hash) {
                 continue
             } else {
-                await DB.chunks.delete(chunk.index)
+                localChunks = localChunks.filter(c => c.index !== chunk.index)
             }
         }
-        const cards: Card[] = await fetch(chunk.path).then(r => r.json())
-        await DB.cards.bulkAdd(cards.filter(c => ['normal', 'transform'].includes(c.layout)).map(toDBCard))
-        await DB.chunks.add(chunk)
-        console.log(`downloaded chunk ${chunk.index}`)
 
+        const cards: Card[] = await fetch(chunk.path).then(r => r.json())
+        setCards(chunk.index, cards.filter(card => ['normal', 'transform'].includes(card.layout)))
+        localChunks.push(chunk)
+        console.log(`downloaded chunk ${chunk.index} / ${chunks.length}`)
     }
+    await setChunks(localChunks)
 }
 
 function toDBCard(c: Card): DBCard {
@@ -166,6 +176,7 @@ function toDBCard(c: Card): DBCard {
             oracle_text: c.card_faces[0].oracle_text,
             mana_cost: c.card_faces[0].mana_cost,
             image_url: c.card_faces[0].image_uris.normal,
+            type: c.card_faces[0].type_line,
         }
     }
 
@@ -174,5 +185,6 @@ function toDBCard(c: Card): DBCard {
         oracle_text: c.oracle_text,
         mana_cost: c.mana_cost,
         image_url: c.image_uris.normal,
+        type: c.type_line,
     }
 }
