@@ -1,0 +1,18 @@
+@import './variables';
+
+.card-row {
+    display: grid;
+    grid-template-columns: 40px auto;
+
+    border: solid 1px $border-color;
+    padding: 3px;
+    background-color: $surface-color;
+
+    input {
+        border: none;
+
+        &:focus {
+            outline: none;
+        }
+    }
+}

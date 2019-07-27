@@ -5,6 +5,10 @@ import { Component, FunctionalComponent, h } from 'preact'
 
 interface Props {
     value?: string
+
+    onSelect?: (card: DBCard) => void
+    onChange?: (card: string) => void
+    onKeyDown?: (e: KeyboardEvent) => void
 }
 
 interface State {
@@ -14,7 +18,7 @@ interface State {
 }
 
 export default class Search extends Component<Props, State> {
-    private input: HTMLInputElement
+    public readonly input: HTMLInputElement
 
     constructor(props: Props) {
         super(props)
@@ -24,6 +28,10 @@ export default class Search extends Component<Props, State> {
             suggestion: [],
             selected: 0,
         }
+        searchCards(this.props.value || '')
+            .then(cards => this.setState({
+                suggestion: cards,
+            }))
     }
 
     public render() {
@@ -55,19 +63,17 @@ export default class Search extends Component<Props, State> {
         </div>
     }
 
-    public onChange = async (e: Event) => {
+    public componentDidUpdate(previousProps: Props) {
+        if (this.props.value !== undefined && this.props.value !== previousProps.value) {
+            this.setState({ value: this.props.value })
+        }
+    }
+
+    private onChange = async (e: Event) => {
         const input = e.target as HTMLInputElement
         const value = input.value
 
         this.setState({ value: value })
-
-        if (value === '') {
-            this.setState({
-                suggestion: [],
-                selected: 0,
-            })
-            return
-        }
 
         const cards = await searchCards(value)
 
@@ -75,9 +81,19 @@ export default class Search extends Component<Props, State> {
             suggestion: cards,
             selected: 0,
         })
+
+        if (this.props.onChange) {
+            this.props.onChange(value)
+        }
     }
 
-    public onKeyDown = (e: KeyboardEvent) => {
+    private onKeyDown = (e: KeyboardEvent) => {
+        if (this.props.onKeyDown) {
+            this.props.onKeyDown(e)
+            if (e.defaultPrevented) {
+                return
+            }
+        }
         switch (e.key) {
             case 'ArrowUp':
                 if (this.state.selected > 0) {
@@ -95,10 +111,10 @@ export default class Search extends Component<Props, State> {
         }
     }
 
-    public selectCard(index: number) {
+    private selectCard(index: number) {
         return () => {
             const selected = this.state.suggestion[index]
-            if (selected === null) {
+            if (selected === undefined) {
                 return
             }
             this.setState({
@@ -107,9 +123,13 @@ export default class Search extends Component<Props, State> {
                 suggestion: [selected],
             })
             this.input.blur()
+
+            if (this.props.onSelect) {
+                this.props.onSelect(selected)
+            }
         }
     }
-    public changeSelection(index: number) {
+    private changeSelection(index: number) {
         return () => {
             if (this.state.selected !== index) {
                 this.setState({ selected: index })
