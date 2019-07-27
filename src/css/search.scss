@@ -1,49 +1,57 @@
 @import './variables';
 
 .search {
-    display: inline-block;
+    display: inline-flex;
+    align-items: flex-start;
+    flex-wrap: nowrap;
 
     input {
         // padding: 0;
         // margin: 0;
         // border: none;
         width: 100%;
+        flex-grow: 9999;
+    }
+
+    .mana-cost {
+        display: flex;
+        flex-grow: 1;
     }
 
     .popup {
         display: none;
-    }
 
-    input:focus+.popup {
-        position: absolute;
-        display: grid;
-        grid-template-columns: 340px 225px;
-        grid-column-gap: 10px;
+        &.open {
+            position: absolute;
+            display: grid;
+            grid-template-columns: 340px 225px;
+            grid-column-gap: 10px;
 
-        border: solid 1px $border-color;
-        background-color: $surface-color;
+            border: solid 1px $border-color;
+            background-color: $surface-color;
 
-        .names {
-            .row {
-                padding: 2px 8px;
+            .names {
+                .row {
+                    padding: 2px 8px;
 
-                &.selected {
-                    background-color: #aaa
+                    &.selected {
+                        background-color: #aaa
+                    }
+
+                    .name {}
+
+                    .mana-cost {
+                        float: right;
+                    }
                 }
 
-                .name {}
+            }
 
-                .mana-cost {
-                    float: right;
-                }
+            img.selected-card {
+                width: 225px;
+                border-radius: 10px
             }
 
         }
-
-        img.selected-card {
-            width: 225px;
-            border-radius: 10px
-        }
-
     }
 }

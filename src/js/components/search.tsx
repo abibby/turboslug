@@ -16,6 +16,7 @@ interface State {
     value: string
     suggestion: DBCard[]
     selected: number
+    open: boolean
 }
 
 export default class Search extends Component<Props, State> {
@@ -32,6 +33,7 @@ export default class Search extends Component<Props, State> {
             value: this.props.value || '',
             suggestion: [],
             selected: 0,
+            open: false,
         }
         searchCards(this.props.value || '')
             .then(cards => this.setState({
@@ -45,18 +47,21 @@ export default class Search extends Component<Props, State> {
         const selected = this.state.suggestion[this.state.selected]
         if (selected !== undefined) {
             img = selected.image_url
-            cost = <ManaCost style={{ float: 'right' }} cost={selected.mana_cost} />
+            cost = <ManaCost class='mana-cost' cost={selected.mana_cost} />
         }
+
         return <div class='search'>
-            {cost}
             <input
                 ref={e => this._input = e}
                 value={this.state.value}
                 placeholder={this.props.placeholder}
                 onInput={this.onChange}
                 onKeyDown={this.onKeyDown}
+                onFocus={this.onFocus}
+                onBlur={this.onBlur}
             />
-            <div class='popup'>
+            {cost}
+            <div class={`popup ${this.state.open ? 'open' : ''}`}>
                 <div className='names'>
                     {this.state.suggestion.map((card, i) => <CardRow
                         key={card.id}
@@ -147,6 +152,13 @@ export default class Search extends Component<Props, State> {
                 this.setState({ selected: index })
             }
         }
+    }
+
+    private onFocus = () => {
+        this.setState({ open: true })
+    }
+    private onBlur = () => {
+        this.setState({ open: false })
     }
 
 }
