@@ -29,6 +29,7 @@
 
             border: solid 1px $border-color;
             background-color: $surface-color;
+            z-index: 10;
 
             .names {
                 .row {

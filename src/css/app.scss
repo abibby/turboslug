@@ -5,3 +5,8 @@ body {
     color: $text-color;
     font-family: sans-serif;
 }
+
+::placeholder {
+    color: $light-text-color;
+    opacity: 1;
+}

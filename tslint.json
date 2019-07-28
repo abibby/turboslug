@@ -43,6 +43,7 @@
             "allow-snake-case",
             "allow-pascal-case",
             "allow-leading-underscore"
-        ]
+        ],
+        "no-invalid-this": true
     }
 }

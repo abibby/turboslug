@@ -10,6 +10,7 @@ export interface DBCard {
     set: string
     type: string
     image_url: string
+    color_identity: string[]
 }
 
 interface QueryArgs {
@@ -159,6 +160,8 @@ async function loadNetwork() {
         const cards: Card[] = await fetch(chunk.path).then(r => r.json())
         setCards(chunk.index, cards.filter(card => ['normal', 'transform'].includes(card.layout)))
         localChunks.push(chunk)
+
+        // tslint:disable-next-line: no-console
         console.log(`downloaded chunk ${chunk.index} / ${chunks.length}`)
     }
     await setChunks(localChunks)
@@ -169,6 +172,7 @@ function toDBCard(c: Card): DBCard {
         id: c.id,
         name: c.name,
         set: c.set,
+        color_identity: c.color_identity,
     }
     if (c.layout === 'transform') {
         return {

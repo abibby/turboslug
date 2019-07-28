@@ -9,13 +9,13 @@
     background-color: $surface-color;
 
     .quantity-change {
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        border: solid 2px $border-color;
-        border-radius: 1em;
-        line-height: 1;
-        text-align: center;
+        // display: inline-block;
+        // width: 1em;
+        // height: 1em;
+        // border: solid 2px $border-color;
+        // border-radius: 1em;
+        // line-height: 1;
+        // text-align: center;
         cursor: pointer;
 
         -webkit-touch-callout: none;
@@ -38,5 +38,51 @@
         .popup {
             margin-top: 26px;
         }
+    }
+}
+
+.circle {
+    border: 1px solid $light-text-color;
+    width: 1em;
+    height: 1em;
+    border-radius: 100%;
+    position: relative;
+    margin: 2px;
+    display: inline-block;
+    vertical-align: middle;
+    text-indent: -999em;
+
+    &.plus:before,
+    &.plus:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: $light-text-color;
+    }
+
+    &.plus:before {
+        width: 2px;
+        margin: 3px auto;
+    }
+
+    &.plus:after {
+        margin: auto 3px;
+        height: 2px;
+    }
+
+    /* and a bonus!!! minus :-) */
+    &.minus:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: $light-text-color;
+        margin: auto 3px;
+        height: 2px;
     }
 }

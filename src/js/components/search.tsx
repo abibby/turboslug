@@ -47,7 +47,9 @@ export default class Search extends Component<Props, State> {
         const selected = this.state.suggestion[this.state.selected]
         if (selected !== undefined) {
             img = selected.image_url
-            cost = <ManaCost class='mana-cost' cost={selected.mana_cost} />
+            if (selected.name === this.state.value) {
+                cost = <ManaCost class='mana-cost' cost={selected.mana_cost} />
+            }
         }
 
         return <div class='search'>

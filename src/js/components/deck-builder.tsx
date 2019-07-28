@@ -32,7 +32,13 @@ export default class DeckBuilder extends Component<Props, State> {
     public render() {
         return <div class='deck-builder'>
             <div class='deck'>
-                {this.state.cards.map((card, i) => <CardRow key={i} name={card.card.name} quantity={card.quantity} />)}
+                {this.state.cards.map((card, i) => <CardRow
+                    key={i}
+                    name={card.card.name}
+                    quantity={card.quantity}
+                    onChange={this.cardChange(i)}
+                    onSelect={this.cardSelect(i)}
+                />)}
             </div>
             <CardRow
                 ref={e => this.search = e}
@@ -44,7 +50,12 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     private addCard = (quantity: number, card: DBCard) => {
-        const cards = this.state.cards.concat([{ quantity: quantity, card: card }])
+        const cardInDeck = this.state.cards.find(c => c.card.id === card.id) || { quantity: 0 }
+
+        const cards = this.state.cards
+            .filter(c => c.card.id !== card.id)
+            .concat([{ quantity: quantity + cardInDeck.quantity, card: card }])
+
         this.setState({
             cards: cards,
             searchValue: '',
@@ -58,5 +69,32 @@ export default class DeckBuilder extends Component<Props, State> {
         this.setState({
             searchValue: value,
         })
+    }
+    private cardChange(i: number) {
+        return (quantity: number, value: string) => {
+
+            const cards = [...this.state.cards]
+            cards[i].quantity = quantity
+
+            this.setState({ cards: cards })
+
+            if (this.props.onChange) {
+                this.props.onChange(cards)
+            }
+        }
+    }
+    private cardSelect(i: number) {
+        return (quantity: number, card: DBCard) => {
+
+            const cards = [...this.state.cards]
+            cards[i].quantity = quantity
+            cards[i].card = card
+
+            this.setState({ cards: cards })
+
+            if (this.props.onChange) {
+                this.props.onChange(cards)
+            }
+        }
     }
 }

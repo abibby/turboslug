@@ -27,8 +27,8 @@ export default class CardRow extends Component<Props, State> {
     }
     public render() {
         return <div class='card-row'>
-            <div class='quantity-change remove' onClick={this.removeCard}>-</div>
-            <div class='quantity-change add' onClick={this.addCard}>+</div>
+            <div class='quantity-change circle minus' onClick={this.removeCard}>-</div>
+            <div class='quantity-change circle plus' onClick={this.addCard}>+</div>
             <input
                 ref={e => this.quantity = e}
                 class='quantity'
@@ -47,6 +47,15 @@ export default class CardRow extends Component<Props, State> {
         </div>
     }
 
+    public componentDidUpdate(previousProps: Props) {
+        if (this.props.quantity !== undefined && this.props.quantity !== previousProps.quantity) {
+            this.setState({ quantity: this.props.quantity })
+        }
+        if (this.props.name !== undefined && this.props.name !== previousProps.name) {
+            this.setState({ name: this.props.name })
+        }
+    }
+
     public focus() {
         this.search.focus()
     }
@@ -54,10 +63,10 @@ export default class CardRow extends Component<Props, State> {
     private quantityKeyDown = (e: KeyboardEvent) => {
         switch (e.key) {
             case 'ArrowUp':
-                this.setState({ quantity: this.state.quantity + 1 })
+                this.addCard()
                 break
             case 'ArrowDown':
-                this.setState({ quantity: this.state.quantity - 1 })
+                this.removeCard()
                 break
             case ' ':
                 this.search.focus()
@@ -72,6 +81,7 @@ export default class CardRow extends Component<Props, State> {
         }
         if (!e.key.match(/^\d$/) && e.key.length === 1) {
             this.search.focus()
+            // TODO: find a better way of doing this
             this.search.dispatchEvent(e)
 
             e.preventDefault()
@@ -79,8 +89,11 @@ export default class CardRow extends Component<Props, State> {
     }
     private quantityChange = (e: Event) => {
         const input = e.target as HTMLInputElement
-
-        this.setState({ quantity: Number(input.value) })
+        const quantity = Number(input.value)
+        this.setState({ quantity: quantity })
+        if (this.props.onChange) {
+            this.props.onChange(quantity, this.state.name)
+        }
     }
 
     private searchSelect = (card: DBCard) => {
@@ -107,9 +120,17 @@ export default class CardRow extends Component<Props, State> {
     }
 
     private addCard = () => {
-        this.setState({ quantity: this.state.quantity + 1 })
+        const quantity = this.state.quantity + 1
+        this.setState({ quantity: quantity })
+        if (this.props.onChange) {
+            this.props.onChange(quantity, this.state.name)
+        }
     }
     private removeCard = () => {
-        this.setState({ quantity: this.state.quantity - 1 })
+        const quantity = this.state.quantity - 1
+        this.setState({ quantity: quantity })
+        if (this.props.onChange) {
+            this.props.onChange(quantity, this.state.name)
+        }
     }
 }
