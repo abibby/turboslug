@@ -16,7 +16,7 @@ interface State {
 }
 export default class CardRow extends Component<Props, State> {
     private quantity: HTMLInputElement
-    private search: HTMLInputElement
+    private search: Search
     constructor(props: Props) {
         super(props)
 
@@ -37,7 +37,7 @@ export default class CardRow extends Component<Props, State> {
                 onInput={this.quantityChange}
             />
             <Search
-                ref={e => this.search = e.input}
+                ref={e => this.search = e}
                 value={this.props.name}
                 placeholder='Enter a card name'
                 onSelect={this.searchSelect}
@@ -57,7 +57,7 @@ export default class CardRow extends Component<Props, State> {
     }
 
     public focus() {
-        this.search.focus()
+        this.search.input.focus()
     }
 
     private quantityKeyDown = (e: KeyboardEvent) => {
@@ -69,20 +69,20 @@ export default class CardRow extends Component<Props, State> {
                 this.removeCard()
                 break
             case ' ':
-                this.search.focus()
+                this.search.input.focus()
                 break
             case 'ArrowRight':
                 if (this.quantity.selectionStart === this.quantity.value.length) {
-                    this.search.focus()
+                    this.search.input.focus()
                 }
                 break
             case 'Enter':
                 break
         }
         if (!e.key.match(/^\d$/) && e.key.length === 1) {
-            this.search.focus()
+            this.search.input.focus()
             // TODO: find a better way of doing this
-            this.search.dispatchEvent(e)
+            this.search.input.dispatchEvent(e)
 
             e.preventDefault()
         }
@@ -111,7 +111,7 @@ export default class CardRow extends Component<Props, State> {
     private searchKeyDown = (e: KeyboardEvent) => {
         switch (e.key) {
             case 'ArrowLeft':
-                if (this.search.selectionStart === 0) {
+                if (this.search.input.selectionStart === 0) {
                     this.quantity.focus()
                     e.preventDefault()
                 }

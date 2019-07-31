@@ -45,6 +45,7 @@ export default class Search extends Component<Props, State> {
         let img: string | undefined
         let cost: JSX.Element | undefined
         const selected = this.state.suggestion[this.state.selected]
+
         if (selected !== undefined) {
             img = selected.image_url
             if (selected.name === this.state.value) {

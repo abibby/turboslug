@@ -25,7 +25,7 @@ export default class DeckBuilder extends Component<Props, State> {
         super(props)
 
         this.state = {
-            cards: [],
+            cards: this.props.cards || [],
             searchValue: '',
         }
     }
@@ -33,7 +33,7 @@ export default class DeckBuilder extends Component<Props, State> {
         return <div class='deck-builder'>
             <div class='deck'>
                 {this.state.cards.map((card, i) => <CardRow
-                    key={i}
+                    key={card.card.id}
                     name={card.card.name}
                     quantity={card.quantity}
                     onChange={this.cardChange(i)}
@@ -47,6 +47,23 @@ export default class DeckBuilder extends Component<Props, State> {
                 onChange={this.searchChange}
             />
         </div>
+    }
+
+    public componentDidUpdate(previousProps: Props) {
+        let newCards = this.state.cards
+        let update = false
+        if (this.props.cards !== undefined && previousProps.cards !== this.props.cards) {
+            newCards = this.props.cards
+            update = true
+        }
+        if (newCards.find(c => c.quantity <= 0)) {
+            newCards = newCards.filter(c => c.quantity > 0)
+            update = true
+        }
+        if (update) {
+            this.setState({ cards: newCards })
+
+        }
     }
 
     private addCard = (quantity: number, card: DBCard) => {
