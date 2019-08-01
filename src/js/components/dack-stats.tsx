@@ -7,23 +7,23 @@ interface Props {
     deck: Slot[]
 }
 
-const DeckStats: FunctionalComponent<Props> = props => <table>
-    <tr>
-        <td>Non Land</td>
-        <td>Land</td>
-    </tr>
-    {symbolPercentages(props.deck)
-        .filter(([, nonLand, land]) => nonLand > 0 || land > 0)
-        .map(([symbol, nonLand, land]) => (
-            <tr key={symbol}>
-                {/* <td><ManaSymbol symbol={symbol} /></td>
-            <td>{nonLand}</td>
-            <td>{land}</td> */}
-                <td><ManaBar symbol={symbol} persentage={nonLand} /></td>
-                <td><ManaBar symbol={symbol} persentage={land} /></td>
-            </tr>
-        ))}
-</table>
+const DeckStats: FunctionalComponent<Props> = props => <div>
+    count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
+    <table>
+        <tr>
+            <td>Non Land</td>
+            <td>Land</td>
+        </tr>
+        {symbolPercentages(props.deck)
+            .filter(([, nonLand, land]) => nonLand > 0 || land > 0)
+            .map(([symbol, nonLand, land]) => (
+                <tr key={symbol}>
+                    <td><ManaBar symbol={symbol} persentage={nonLand} /></td>
+                    <td><ManaBar symbol={symbol} persentage={land} /></td>
+                </tr>
+            ))}
+    </table>
+</div>
 
 export default DeckStats
 
