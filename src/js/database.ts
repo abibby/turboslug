@@ -11,12 +11,24 @@ export interface DBCard {
     type: string
     image_url: string
     color_identity: string[]
+    legalities: string[]
 }
 
 interface QueryArgs {
-    default: string[]
     [key: string]: string[]
 }
+
+// type Matcher<T> = (a: T, words: string[]) => boolean
+
+interface QueryField<T> {
+    field: string[]
+    matcher: (a: T, words: string[]) => boolean
+}
+
+type QueryDefinition<T> = {
+    [P in keyof T]?: QueryField<T[P]>
+}
+
 export interface Chunk {
     index: number
     hash: string
@@ -26,16 +38,32 @@ export interface Chunk {
 const allCards: DBCard[] = []
 
 export async function searchCards(query: string): Promise<DBCard[]> {
-    const qa = parseQuery(query)
 
-    const filter = queryFilter<DBCard>(qa, {
-        default: 'name',
-        o: 'oracle_text',
-        oracle: 'oracle_text',
-        t: 'type',
-        type: 'type',
-        s: 'set',
-        set: 'set',
+    const filter = queryFilter<DBCard>(parseQuery(query), {
+        name: {
+            field: ['default'],
+            matcher: stringMatch,
+        },
+        oracle_text: {
+            field: ['oracle', 'o'],
+            matcher: stringMatch,
+        },
+        type: {
+            field: ['type', 't'],
+            matcher: stringMatch,
+        },
+        set: {
+            field: ['set', 's'],
+            matcher: stringMatch,
+        },
+        color_identity: {
+            field: ['color', 'c'],
+            matcher: colorMatch,
+        },
+        legalities: {
+            field: ['legal', 'l'],
+            matcher: arrayExactMatch,
+        },
     })
     const cards: DBCard[] = []
     let count = 0
@@ -52,7 +80,29 @@ export async function searchCards(query: string): Promise<DBCard[]> {
     return cards
 }
 
-function* tokens(q: string) {
+function stringMatch(found: string, search: string[]): boolean {
+    for (const word of search) {
+        if (!found.toLowerCase().includes(word.toLowerCase())) {
+            return false
+        }
+    }
+    return true
+}
+
+function colorMatch(found: string[], search: string[]): boolean {
+    return arrayExactMatch(found, search.flatMap(s => s.split('')))
+}
+
+function arrayExactMatch(found: string[], search: string[]): boolean {
+    for (const sColor of search) {
+        if (found.find(fColor => fColor.toLowerCase() === sColor.toLowerCase()) === undefined) {
+            return false
+        }
+    }
+    return true
+}
+
+function* tokens(q: string): Iterable<string> {
     let current: string = ''
     let inQuote = false
     for (const c of q.trim()) {
@@ -83,6 +133,7 @@ function* tokens(q: string) {
     }
     yield current
 }
+
 function parseQuery(q: string): QueryArgs {
     const query: QueryArgs = { default: [] }
     let section = 'default'
@@ -100,15 +151,17 @@ function parseQuery(q: string): QueryArgs {
 
 function queryFilter<T extends object>(
     args: QueryArgs,
-    map: { default: keyof T, [key: string]: keyof T },
+    map: QueryDefinition<T>,
 ): (card: T) => boolean {
     return card => {
-        for (const [key, value] of Object.entries(map)) {
-            if (args[key] === undefined) {
-                continue
-            }
-            for (const words of args[key]) {
-                if (!String(card[value]).toLowerCase().includes(words.toLowerCase())) {
+        for (const [key, field] of Object.entries(map) as Iterable<[string, QueryField<any>]>) {
+
+            for (const f of field.field) {
+                if (args[f] === undefined) {
+                    continue
+                }
+
+                if (!field.matcher((card as any)[key], args[f])) {
                     return false
                 }
             }
@@ -173,6 +226,9 @@ function toDBCard(c: Card): DBCard {
         name: c.name,
         set: c.set,
         color_identity: c.color_identity,
+        legalities: Object.entries(c.legalities)
+            .filter(([, legal]) => legal === 'legal')
+            .map(([format]) => format),
     }
     if (c.layout === 'transform') {
         return {
