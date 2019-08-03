@@ -1,7 +1,10 @@
 .deck-list {
     $width: 200px;
-    column-count: auto;
-    column-width: $width;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax($width, 1fr));
+    grid-column-gap: 15px;
+    grid-row-gap: 15px;
 
     .card {
 
