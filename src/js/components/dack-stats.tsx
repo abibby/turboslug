@@ -1,10 +1,10 @@
 import 'css/deck-stats.scss'
+import { Deck } from 'js/deck'
 import { FunctionalComponent, h } from 'preact'
-import { Slot } from './deck-builder'
 import { ManaSymbol, splitSymbols } from './mana-cost'
 
 interface Props {
-    deck: Slot[]
+    deck: Deck
 }
 
 const DeckStats: FunctionalComponent<Props> = props => <div>
@@ -50,7 +50,7 @@ const emptySymbols: ReadonlyArray<[string, number]> = [
     ['{G}', 0],
 ]
 
-function symbolPercentages(deck: Slot[]): Array<[string, number, number]> {
+function symbolPercentages(deck: Deck): Array<[string, number, number]> {
     const nonLand = nonLandSymbols(deck)
     const totalNonLand = nonLand.reduce((total: number, [, count]) => total + count, 0)
     const land = landSymbols(deck)
@@ -61,7 +61,7 @@ function symbolPercentages(deck: Slot[]): Array<[string, number, number]> {
             [symbol, (nonLandCount / totalNonLand) || 0, (landCount / totalLand) || 0])
 }
 
-function nonLandSymbols(slots: Slot[]) {
+function nonLandSymbols(slots: Deck) {
     const manaSymbols = new Map<string, number>(emptySymbols)
     for (const slot of slots) {
         for (const symbol of splitSymbols(slot.card.mana_cost)) {
@@ -78,7 +78,7 @@ function nonLandSymbols(slots: Slot[]) {
     return Array.from(manaSymbols)
 }
 
-function landSymbols(slots: Slot[]) {
+function landSymbols(slots: Deck) {
     const manaSymbols = new Map<string, number>(emptySymbols)
     for (const slot of slots) {
         if (slot.card.type.includes('Land')) {

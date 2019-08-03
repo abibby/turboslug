@@ -1,0 +1,21 @@
+.deck-list {
+    $width: 200px;
+    column-count: auto;
+    column-width: $width;
+
+    .card {
+
+        width: $width;
+        height: floor($width / 6.5);
+
+        &:hover {
+            position: relative;
+        }
+
+        img {
+            width: $width;
+            border-radius: floor($width / 22);
+            pointer-events: none;
+        }
+    }
+}

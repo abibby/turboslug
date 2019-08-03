@@ -1,21 +1,16 @@
 import 'css/deck-builder.scss'
 import Search from 'js/components/search'
 import { DBCard } from 'js/database'
+import { Deck } from 'js/deck'
 import { Component, h } from 'preact'
 import CardRow from './card-row'
 
-export interface Slot {
-    quantity: number
-    card: DBCard
-    tags?: string[]
-}
-
 interface Props {
-    cards?: Slot[]
-    onChange?: (deck: Slot[]) => void
+    cards?: Deck
+    onChange?: (deck: Deck) => void
 }
 interface State {
-    cards: Slot[]
+    cards: Deck
     searchValue: string
 }
 export default class DeckBuilder extends Component<Props, State> {

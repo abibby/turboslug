@@ -1,38 +1,33 @@
 import DeckStats from 'js/components/dack-stats'
-import DeckBuilder, { Slot } from 'js/components/deck-builder'
+import DeckBuilder from 'js/components/deck-builder'
+import DeckList from 'js/components/deck-list'
+import { Deck } from 'js/deck'
 import { loadDeck, saveDeck } from 'js/save'
 import Layout from 'js/views/layout'
 import { Component, h } from 'preact'
 
 interface State {
-    cards?: Slot[]
+    deck?: Deck
 }
 
 export default class Home extends Component<{}, State> {
     constructor(props: {}) {
         super(props)
-        loadDeck('default').then(deck => this.setState({ cards: deck }))
+        loadDeck('default').then(deck => this.setState({ deck: deck }))
     }
     public render() {
 
         return <Layout>
             <h1>Home</h1>
-            <table width='100%'>
-                <tr>
-                    <td>
-                        <DeckBuilder onChange={this.deckChange} cards={this.state.cards} />
-                    </td>
-                    <td width='300px'>
-                        <DeckStats deck={this.state.cards || []} />
-                    </td>
-                </tr>
-            </table>
+            <DeckBuilder onChange={this.deckChange} cards={this.state.deck} />
+            <DeckStats deck={this.state.deck || []} />
+            <DeckList deck={this.state.deck || []} />
         </Layout>
     }
 
-    private deckChange = async (cards: Slot[]) => {
-        this.setState({ cards: cards })
-        await saveDeck('default', cards)
+    private deckChange = async (deck: Deck) => {
+        this.setState({ deck: deck })
+        await saveDeck('default', deck)
     }
 
 }
