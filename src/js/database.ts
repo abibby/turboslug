@@ -184,21 +184,29 @@ async function getCards(index: number): Promise<Card[]> {
     return await get(`chunk-${index}`) || []
 }
 
-export async function loadDB() {
-    await loadNetwork()
+export async function loadDB(progress?: (count: number, total: number) => void) {
+    await loadNetwork(progress)
 
     allCards.length = 0
-    for (const chunk of await getChunks()) {
+    const chunks = await getChunks()
+    let i = 0
+    for (const chunk of chunks) {
         const cards = await getCards(chunk.index)
         allCards.push(...cards.map(toDBCard))
+
+        if (progress) {
+            progress(i + 1, chunks.length)
+        }
+        i++
     }
     allCards.sort((a, b) => a.name.localeCompare(b.name))
 
 }
 
-async function loadNetwork() {
+async function loadNetwork(progress?: (count: number, total: number) => void) {
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
     let localChunks: Chunk[] = await getChunks()
+    let i = 0
     for (const chunk of chunks) {
         const localChunk = localChunks.find(c => c.index === chunk.index)
 
@@ -214,8 +222,10 @@ async function loadNetwork() {
         setCards(chunk.index, cards.filter(card => ['normal', 'transform'].includes(card.layout)))
         localChunks.push(chunk)
 
-        // tslint:disable-next-line: no-console
-        console.log(`downloaded chunk ${chunk.index} / ${chunks.length}`)
+        if (progress) {
+            progress(i + 1, chunks.length)
+        }
+        i++
     }
     await setChunks(localChunks)
 }
