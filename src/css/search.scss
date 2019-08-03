@@ -20,39 +20,54 @@
 
     .popup {
         display: none;
+    }
 
-        &.open {
-            position: absolute;
-            display: grid;
-            grid-template-columns: 340px 225px;
-            grid-column-gap: 10px;
+    &.open .popup {
+        position: absolute;
+        display: grid;
+        grid-template-columns: 340px 225px;
+        grid-column-gap: 10px;
 
-            border: solid 1px $border-color;
-            background-color: $surface-color;
-            z-index: 10;
+        border: solid 1px $border-color;
+        background-color: $surface-color;
+        z-index: 10;
 
-            .names {
-                .row {
-                    padding: 2px 8px;
+        .names {
+            .row {
+                padding: 2px 8px;
 
-                    &.selected {
-                        background-color: #aaa
-                    }
-
-                    .name {}
-
-                    .mana-cost {
-                        float: right;
-                    }
+                &.selected {
+                    background-color: #aaa
                 }
 
-            }
+                .name {}
 
-            img.selected-card {
-                width: 225px;
-                border-radius: 10px
+                .mana-cost {
+                    float: right;
+                }
             }
 
         }
+
+        img.selected-card {
+            width: 225px;
+            border-radius: 10px
+        }
+
+    }
+
+
+    .screen {
+        display: none;
+    }
+
+    &.open .screen {
+        display: block;
+        position: fixed;
+        z-index: 9;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
     }
 }

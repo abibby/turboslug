@@ -31,6 +31,7 @@ export default class CardRow extends Component<Props, State> {
             <div class='quantity-change circle plus' onClick={this.addCard}>+</div>
             <input
                 ref={e => this.quantity = e}
+                tabIndex={-1}
                 class='quantity'
                 value={this.state.quantity}
                 onKeyDown={this.quantityKeyDown}

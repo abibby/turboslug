@@ -53,19 +53,19 @@ export default class Search extends Component<Props, State> {
             }
         }
 
-        return <div class='search'>
+        return <div class={`search ${this.state.open ? 'open' : ''}`}>
+            <div class='screen' onClick={this.blur} />
             <input
                 ref={e => this._input = e}
                 value={this.state.value}
                 placeholder={this.props.placeholder}
                 onInput={this.onChange}
                 onKeyDown={this.onKeyDown}
-                onFocus={this.onFocus}
-                onBlur={this.onBlur}
+                onFocus={this.focus}
             />
             {cost}
-            <div class={`popup ${this.state.open ? 'open' : ''}`}>
-                <div className='names'>
+            <div class='popup'>
+                <div class='names'>
                     {this.state.suggestion.map((card, i) => <CardRow
                         key={card.id}
                         card={card}
@@ -128,6 +128,10 @@ export default class Search extends Component<Props, State> {
             case 'Enter':
                 this.selectCard(this.state.selected)()
                 break
+            case 'Escape':
+            case 'Tab':
+                this.blur()
+                break
         }
     }
 
@@ -157,11 +161,12 @@ export default class Search extends Component<Props, State> {
         }
     }
 
-    private onFocus = () => {
+    private focus = () => {
         this.setState({ open: true })
     }
-    private onBlur = () => {
+    private blur = () => {
         this.setState({ open: false })
+        this.input.blur()
     }
 
 }

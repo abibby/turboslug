@@ -16,10 +16,7 @@ class Index extends Component<{}, State> {
             progress: 0,
             loaded: false,
         }
-        loadDB((count, total) => this.setState({ progress: count / total }))
-            .then(() => {
-                this.setState({ loaded: true })
-            })
+        this.loadDB()
     }
     public render() {
         if (!this.state.loaded) {
@@ -31,6 +28,10 @@ class Index extends Component<{}, State> {
             </div>
         }
         return <Home />
+    }
+    private async loadDB() {
+        await loadDB((count, total) => this.setState({ progress: count / total }))
+        this.setState({ loaded: true })
     }
 }
 
