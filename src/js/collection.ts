@@ -19,6 +19,31 @@ export class Collection<T> implements Iterable<T> {
         })
     }
 
+    public concat(itr1: Iterable<T>): Collection<T> {
+        const itr2 = this
+        return build(function* () {
+            for (const element of itr1) {
+                yield element
+            }
+            for (const element of itr2) {
+                yield element
+            }
+        })
+    }
+
+    public groupBy<U>(callback: (element: T) => U): Collection<[U, Collection<T>]> {
+        const m: Map<U, Collection<T>> = new Map()
+        for (const element of this) {
+            const key = callback(element)
+            let sub = m.get(key)
+            if (sub === undefined) {
+                sub = collect([])
+            }
+            m.set(key, sub.concat([element]))
+        }
+        return collect(m)
+    }
+
     public toArray(): T[] {
         return Array.from(this)
     }
