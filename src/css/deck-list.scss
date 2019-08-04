@@ -1,26 +1,30 @@
 .deck-list {
     $width: 200px;
+    $gap: 15px;
 
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax($width, 1fr));
-    grid-column-gap: 15px;
-    grid-row-gap: 15px;
+    grid-column-gap: $gap;
 
-    padding-bottom: $width * 1.24;
+    padding-bottom: ($width * 1.24) - $gap;
 
-    .card {
-
-        width: $width;
-        height: floor($width / 6.5);
+    .slot {
+        align-self: stretch;
+        padding-bottom: $gap;
 
         &:hover {
             position: relative;
         }
 
-        img {
+        .card {
             width: $width;
-            border-radius: floor($width / 22);
-            pointer-events: none;
+            height: floor($width / 6.5);
+
+            img {
+                width: $width;
+                border-radius: floor($width / 22);
+                pointer-events: none;
+            }
         }
     }
 }

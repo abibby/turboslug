@@ -44,6 +44,27 @@ export class Collection<T> implements Iterable<T> {
         return collect(m)
     }
 
+    public sort(callback: (a: T, b: T) => number) {
+        return collect(this.toArray().sort(callback))
+    }
+
+    public sortBy(callback: (element: T) => number | string) {
+        // TODO: make it so it only needs to run the callback once for each
+        // element in the collection
+        return this.sort((a, b) => {
+            const aCmp = callback(a)
+            const bCmp = callback(b)
+
+            if (aCmp < bCmp) {
+                return -1
+            }
+            if (aCmp > bCmp) {
+                return 1
+            }
+            return 0
+        })
+    }
+
     public toArray(): T[] {
         return Array.from(this)
     }

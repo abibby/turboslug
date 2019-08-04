@@ -10,8 +10,9 @@ export interface DBCard {
     set: string
     type: string
     image_url: string
-    color_identity: string[]
+    color_identity: Array<'W' | 'U' | 'B' | 'R' | 'G'>
     legalities: string[]
+    cmc: number
 }
 
 interface QueryArgs {
@@ -236,6 +237,7 @@ function toDBCard(c: Card): DBCard {
         name: c.name,
         set: c.set,
         color_identity: c.color_identity,
+        cmc: c.cmc,
         legalities: Object.entries(c.legalities)
             .filter(([, legal]) => legal === 'legal')
             .map(([format]) => format),

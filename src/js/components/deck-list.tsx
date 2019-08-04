@@ -3,6 +3,14 @@ import { collect, range } from 'js/collection'
 import { Deck, Slot } from 'js/deck'
 import { Component, FunctionalComponent, h, options } from 'preact'
 
+const colorLookup = {
+    W: 'White',
+    U: 'Blue',
+    B: 'Black',
+    R: 'Red',
+    G: 'Green',
+}
+
 interface Props {
     deck: Deck
 }
@@ -17,12 +25,12 @@ export default class DeckList extends Component<Props, State> {
                 case 0:
                     return 'Colorless'
                 case 1:
-                    return slot.card.color_identity[0]
+                    return colorLookup[slot.card.color_identity[0]]
                 default:
                     return 'Gold'
             }
-
         },
+        None: slot => 'Cards',
     }
 
     constructor(props: Props) {
@@ -42,6 +50,7 @@ export default class DeckList extends Component<Props, State> {
             </div>
             {collect(this.props.deck)
                 .groupBy(this.state.groupBy)
+                .sortBy(([name]) => name)
                 .map(([name, deck]) => (
                     <div key={name}>
                         <h2>{name}</h2>

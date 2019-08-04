@@ -26,7 +26,7 @@ export interface BaseCard {
     cmc: number
     type_line: string
     color_indicator: string[]
-    color_identity: string[]
+    color_identity: Array<'W' | 'U' | 'B' | 'R' | 'G'>
     legalities: { [format: string]: 'legal' | 'not_legal' | 'banned' }
     games: string[]
     reserved: boolean
