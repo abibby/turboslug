@@ -7,12 +7,16 @@ import Layout from 'js/views/layout'
 import { Component, h } from 'preact'
 
 interface State {
-    deck?: Deck
+    deck: Deck
 }
 
 export default class Home extends Component<{}, State> {
     constructor(props: {}) {
         super(props)
+
+        this.state = {
+            deck: [],
+        }
         loadDeck('default').then(deck => this.setState({ deck: deck }))
     }
     public render() {
@@ -20,8 +24,11 @@ export default class Home extends Component<{}, State> {
         return <Layout>
             <h1>Home</h1>
             <DeckBuilder onChange={this.deckChange} cards={this.state.deck} />
-            <DeckStats deck={this.state.deck || []} />
-            <DeckList deck={this.state.deck || []} />
+            <DeckStats deck={this.state.deck} />
+            <DeckList deck={this.state.deck} />
+            <pre>
+                {this.state.deck.map(slot => `${slot.quantity} ${slot.card.name} #${slot.card.set}`).join('\n')}
+            </pre>
         </Layout>
     }
 

@@ -30,6 +30,7 @@ export default class DeckList extends Component<Props, State> {
                     return 'Gold'
             }
         },
+        CMC: slot => (console.log(slot), slot.card.cmc + ''),
         None: slot => 'Cards',
     }
 
