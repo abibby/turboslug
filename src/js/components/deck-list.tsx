@@ -19,7 +19,25 @@ interface State {
 }
 export default class DeckList extends Component<Props, State> {
     private readonly groups: { [name: string]: (slot: Slot) => string } = {
-        Type: slot => slot.card.type.split(' — ')[0],
+        Type: slot => {
+            const type = slot.card.type.split(' — ')[0]
+
+            if (type.includes('Creature')) {
+                return 'Creature'
+            } else if (type.includes('Land')) {
+                return 'Land'
+            } else if (type.includes('Artifact')) {
+                return 'Artifact'
+            } else if (type.includes('Enchantment')) {
+                return 'Enchantment'
+            } else if (type.includes('Instant')) {
+                return 'Instant'
+            } else if (type.includes('Sorcery')) {
+                return 'Sorcery'
+            }
+
+            return type
+        },
         Color: slot => {
             switch (slot.card.color_identity.length) {
                 case 0:
@@ -30,7 +48,7 @@ export default class DeckList extends Component<Props, State> {
                     return 'Gold'
             }
         },
-        CMC: slot => (console.log(slot), slot.card.cmc + ''),
+        CMC: slot => slot.card.cmc + '',
         None: slot => 'Cards',
     }
 
@@ -54,7 +72,7 @@ export default class DeckList extends Component<Props, State> {
                 .sortBy(([name]) => name)
                 .map(([name, deck]) => (
                     <div key={name}>
-                        <h2>{name}</h2>
+                        <h2>{name} ({deck.reduce((total, slot) => total + slot.quantity, 0)})</h2>
                         <CardList deck={deck.toArray().sort((a, b) => a.card.name.localeCompare(b.card.name))} />
                     </div>
                 )).toArray()}

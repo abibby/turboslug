@@ -7,6 +7,8 @@ interface Props {
     value?: string
     placeholder?: string
 
+    filter?: string
+
     onSelect?: (card: DBCard) => void
     onChange?: (card: string) => void
     onKeyDown?: (e: KeyboardEvent) => void
@@ -35,7 +37,7 @@ export default class Search extends Component<Props, State> {
             selected: 0,
             open: false,
         }
-        searchCards(this.props.value || '')
+        this.searchCards(this.props.value || '')
             .then(cards => this.setState({
                 suggestion: cards,
             }))
@@ -82,11 +84,21 @@ export default class Search extends Component<Props, State> {
     public componentDidUpdate(previousProps: Props) {
         if (this.props.value !== undefined && this.props.value !== previousProps.value) {
             this.setState({ value: this.props.value })
-            searchCards(this.props.value)
+            this.searchCards(this.props.value)
                 .then(cards => this.setState({
                     suggestion: cards,
                 }))
         }
+    }
+
+    private searchCards = async (query: string): Promise<DBCard[]> => {
+        let filter = ''
+        if (this.props.filter !== undefined) {
+            filter = this.props.filter + ' '
+        }
+        console.log(filter);
+
+        return await searchCards(filter + query)
     }
 
     private onChange = async (e: Event) => {
@@ -95,7 +107,7 @@ export default class Search extends Component<Props, State> {
 
         this.setState({ value: value })
 
-        const cards = await searchCards(value)
+        const cards = await this.searchCards(value)
 
         this.setState({
             suggestion: cards,

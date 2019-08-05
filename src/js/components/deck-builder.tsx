@@ -12,6 +12,7 @@ interface Props {
 interface State {
     cards: Deck
     searchValue: string
+    filter: string
 }
 export default class DeckBuilder extends Component<Props, State> {
     private search: CardRow
@@ -22,15 +23,26 @@ export default class DeckBuilder extends Component<Props, State> {
         this.state = {
             cards: this.props.cards || [],
             searchValue: '',
+            filter: '',
         }
     }
     public render() {
         return <div class='deck-builder'>
+            <div class='card-row'>
+                <div />
+                <div />
+                <div />
+                <Search
+                    onChange={this.filterChange}
+                    placeholder='Enter a filter'
+                />
+            </div>
             <div class='deck'>
                 {this.state.cards.map((card, i) => <CardRow
                     key={card.card.id}
                     name={card.card.name}
                     quantity={card.quantity}
+                    filter={this.state.filter}
                     onChange={this.cardChange(i)}
                     onSelect={this.cardSelect(i)}
                 />)}
@@ -38,6 +50,7 @@ export default class DeckBuilder extends Component<Props, State> {
             <CardRow
                 ref={e => this.search = e}
                 name={this.state.searchValue}
+                filter={this.state.filter}
                 onSelect={this.addCard}
                 onChange={this.searchChange}
             />
@@ -59,6 +72,11 @@ export default class DeckBuilder extends Component<Props, State> {
             this.setState({ cards: newCards })
 
         }
+    }
+
+    private filterChange = (value: string): void => {
+        this.setState({ filter: value })
+
     }
 
     private addCard = (quantity: number, card: DBCard) => {

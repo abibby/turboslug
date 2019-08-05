@@ -31,6 +31,13 @@ export class Collection<T> implements Iterable<T> {
         })
     }
 
+    public reduce<U>(
+        callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U,
+        initialValue: U,
+    ): U {
+        return Array.from(this).reduce<U>(callbackfn, initialValue)
+    }
+
     public groupBy<U>(callback: (element: T) => U): Collection<[U, Collection<T>]> {
         const m: Map<U, Collection<T>> = new Map()
         for (const element of this) {

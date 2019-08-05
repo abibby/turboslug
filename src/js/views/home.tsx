@@ -27,7 +27,7 @@ export default class Home extends Component<{}, State> {
             <DeckStats deck={this.state.deck} />
             <DeckList deck={this.state.deck} />
             <pre>
-                {this.state.deck.map(slot => `${slot.quantity} ${slot.card.name} #${slot.card.set}`).join('\n')}
+                {this.state.deck.map(slot => `${slot.quantity} ${slot.card.name}`).join('\n')}
             </pre>
         </Layout>
     }

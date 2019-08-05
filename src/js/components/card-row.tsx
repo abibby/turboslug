@@ -7,6 +7,8 @@ interface Props {
     name?: string
     quantity?: number
 
+    filter?: string
+
     onSelect?: (quantity: number, card: DBCard) => void
     onChange?: (quantity: number, card: string) => void
 }
@@ -32,7 +34,6 @@ export default class CardRow extends Component<Props, State> {
             <input
                 ref={e => this.quantity = e}
                 tabIndex={-1}
-                class='quantity'
                 value={this.state.quantity}
                 onKeyDown={this.quantityKeyDown}
                 onInput={this.quantityChange}
@@ -41,6 +42,7 @@ export default class CardRow extends Component<Props, State> {
                 ref={e => this.search = e}
                 value={this.props.name}
                 placeholder='Enter a card name'
+                filter={this.props.filter}
                 onSelect={this.searchSelect}
                 onChange={this.searchChange}
                 onKeyDown={this.searchKeyDown}
