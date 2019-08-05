@@ -30,6 +30,8 @@ export default class DeckList extends Component<Props, State> {
                 return 'Artifact'
             } else if (type.includes('Enchantment')) {
                 return 'Enchantment'
+            } else if (type.includes('Planeswalker')) {
+                return 'Planeswalker'
             } else if (type.includes('Instant')) {
                 return 'Instant'
             } else if (type.includes('Sorcery')) {
