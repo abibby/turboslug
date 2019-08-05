@@ -5,6 +5,7 @@ import { Link } from 'preact-router'
 
 interface State {
     decks: string[]
+    newDeckName: string
 }
 
 export default class Home extends Component<{}, State> {
@@ -13,6 +14,7 @@ export default class Home extends Component<{}, State> {
 
         this.state = {
             decks: [],
+            newDeckName: '',
         }
 
         store('local').list().then(decks => this.setState({ decks: decks }))
@@ -20,6 +22,13 @@ export default class Home extends Component<{}, State> {
     public render() {
         return <Layout>
             <h1>Home</h1>
+
+            <h2>New Deck</h2>
+
+            Name: <input type='text' onInput={this.newDeckNameChange} />
+            <Link href={`/edit/${this.state.newDeckName}`}>Create</Link>
+
+            <h2>Decks</h2>
             <ul>
                 {this.state.decks.map(deck => (
                     <li key={deck} >
@@ -30,4 +39,8 @@ export default class Home extends Component<{}, State> {
         </Layout>
     }
 
+    private newDeckNameChange = (e: Event) => {
+        const input = e.target as HTMLInputElement
+        this.setState({ newDeckName: input.value })
+    }
 }
