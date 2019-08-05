@@ -96,7 +96,6 @@ export default class Search extends Component<Props, State> {
         if (this.props.filter !== undefined) {
             filter = this.props.filter + ' '
         }
-        console.log(filter);
 
         return await searchCards(filter + query)
     }

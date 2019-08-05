@@ -1,8 +1,11 @@
 import 'css/app.scss'
+import { createHashHistory } from 'history'
 import { loadDB } from 'js/database'
 import Home from 'js/views/home'
 import { Component, h, render } from 'preact'
+import Router from 'preact-router'
 import Loader from './components/loader'
+import EditDeck from './views/edit-deck'
 
 interface State {
     progress: number
@@ -27,7 +30,10 @@ class Index extends Component<{}, State> {
                 <Loader progress={this.state.progress} />
             </div>
         }
-        return <Home />
+        return <Router history={createHashHistory()}>
+            <Home path='/' />
+            <EditDeck path='/edit/:name' />
+        </Router>
     }
     private async loadDB() {
         await loadDB((count, total) => this.setState({ progress: count / total }))

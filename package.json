@@ -40,8 +40,11 @@
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {
+    "@types/history": "^4.7.2",
+    "history": "^4.9.0",
     "idb-keyval": "^3.2.0",
     "node-fetch": "^2.6.0",
-    "preact": "^8.4.2"
+    "preact": "^8.4.2",
+    "preact-router": "^2.6.1"
   }
 }
