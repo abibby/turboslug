@@ -186,7 +186,12 @@ async function getCards(index: number): Promise<Card[]> {
 }
 
 export async function loadDB(progress?: (count: number, total: number) => void) {
-    await loadNetwork(progress)
+    try {
+        await loadNetwork(progress)
+    } catch (e) {
+        // tslint:disable-next-line: no-console
+        console.warn(`failed to load cards from network ${e}`)
+    }
 
     allCards.length = 0
     const chunks = await getChunks()

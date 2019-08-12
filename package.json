@@ -37,7 +37,8 @@
     "typings-for-css-modules-loader": "^1.7.0",
     "uglifyjs-webpack-plugin": "^1.0.0-rc.0",
     "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "webpack-cli": "^3.3.6",
+    "workbox-webpack-plugin": "^4.3.1"
   },
   "dependencies": {
     "@types/history": "^4.7.2",
