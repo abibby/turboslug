@@ -19,6 +19,7 @@ interface State {
 export default class CardRow extends Component<Props, State> {
     private quantity: HTMLInputElement
     private search: Search
+
     constructor(props: Props) {
         super(props)
 

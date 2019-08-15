@@ -1,0 +1,46 @@
+.new-deck-builder {
+
+    padding-bottom: 10px;
+
+    .deck {
+        width: 100%;
+        background: lightgray;
+        font-family: monospace;
+        white-space: pre;
+
+        .row {
+            display: block;
+            height: 1.5em;
+
+            .quantity {
+                color: red;
+            }
+
+            .card {
+                position: relative;
+                color: blue;
+
+                .popup {
+                    display: none;
+                }
+
+                &:hover .popup {
+                    display: block;
+                    position: absolute;
+
+                    border: solid 1px #333;
+                    width: 200px;
+
+                    img {
+                        width: 100%;
+                    }
+                }
+            }
+
+            .tag {
+                background-color: cornflowerblue;
+                border-radius: 3px
+            }
+        }
+    }
+}
