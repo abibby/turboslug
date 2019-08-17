@@ -39,7 +39,22 @@
 
             .tag {
                 background-color: cornflowerblue;
-                border-radius: 3px
+                border-radius: 3px;
+                color: white;
+            }
+        }
+    }
+
+    .autocomplete {
+        position: absolute;
+
+        background-color: white;
+        transform: translateY(1.5em);
+        z-index: 10;
+
+        .options {
+            .selected {
+                background-color: lightblue;
             }
         }
     }

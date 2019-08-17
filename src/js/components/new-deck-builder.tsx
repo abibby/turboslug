@@ -1,5 +1,6 @@
 import 'css/new-deck-builder.scss'
-import { searchCards } from 'js/database'
+import { DBCard, searchCards } from 'js/database'
+import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
 import { Component, FunctionalComponent, h } from 'preact'
 import Async from './async'
 
@@ -8,133 +9,133 @@ interface Props {
 }
 interface State {
     deck: string
+    autocomplete: Pick<AutocompleteProps, 'name' | 'x' | 'y' | 'selected'>
+    autocompleteOpen: boolean
+    currentNode?: Node
 }
 export default class NewDeckBuilder extends Component<Props, State> {
     public div: HTMLDivElement
+    private results: DBCard[] = []
 
     constructor(props: Props) {
         super(props)
 
         this.state = {
             deck: '',
+            autocomplete: {
+                name: '',
+                x: 0,
+                y: 0,
+                selected: 0,
+            },
+            autocompleteOpen: false,
         }
 
-        document.execCommand('defaultParagraphSeparator', false, 'div')
     }
-
     public render() {
-        return <div
-            ref={e => this.div = e}
-            class='new-deck-builder'
-            for='deck-editor'
-        // onKeyDown={this.keyDown}
-        >
-            <Deck deck={this.state.deck} />
-            <textarea onInput={this.input} />
+
+        let autocomplete: JSX.Element | undefined
+
+        if (this.state.autocompleteOpen) {
+            autocomplete = <Autocomplete
+                {...this.state.autocomplete}
+                onNewResults={this.newResults}
+            />
+        }
+        return <div class='new-deck-builder' >
+            <div
+                ref={e => this.div = e}
+                class='deck'
+                onKeyDown={this.keydown}
+                onInput={this.updateDeck}
+                contentEditable
+            />
+            {autocomplete}
         </div>
     }
-
-    private input = (e: Event) => {
-        const input = e.target as HTMLTextAreaElement
-
-        this.setState({ deck: input.value })
+    private newResults = (cards: DBCard[]) => {
+        this.results = cards
     }
+    private keydown = (e: KeyboardEvent) => {
+        if (this.state.autocompleteOpen) {
+            if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+                e.preventDefault()
 
-    private keyDown = (e: KeyboardEvent) => {
-        e.preventDefault()
-
-        if (e.key.length === 1 && !e.ctrlKey) {
-            this.setState({ deck: this.state.deck + e.key })
-            return
+                const autocomplete = { ...this.state.autocomplete }
+                let open = true
+                switch (e.key) {
+                    case 'ArrowDown':
+                        autocomplete.selected += 1
+                        break
+                    case 'ArrowUp':
+                        autocomplete.selected -= 1
+                        break
+                    case 'Enter':
+                    case 'Tab':
+                        const r = relativeRange(this.div)
+                        const oldLen = this.state.currentNode!.textContent!.length
+                        this.state.currentNode!.textContent = this.results[this.state.autocomplete.selected].name
+                        if (r !== undefined) {
+                            const dif = this.results[this.state.autocomplete.selected].name.length - oldLen
+                            r.start += dif
+                            r.end += dif
+                            setRange(this.div, r)
+                        }
+                        autocomplete.selected = 0
+                        open = false
+                        break
+                    case 'Escape':
+                        open = false
+                        break
+                }
+                this.setState({
+                    autocomplete: autocomplete,
+                    autocompleteOpen: open,
+                })
+            }
         }
+    }
+    private updateDeck = () => {
+        const r = relativeRange(this.div)
 
-        const effects = bindings
-            .filter(b => b.key === e.key)
-            .map(b => commands.find(cmd => cmd.name === b.command))
-            .filter((b): b is Command => b !== undefined)
-            .map(c => c.effect)
+        const deck = this.div.innerText
+        this.setState({ deck: deck })
 
-        const selection = window.getSelection()
-        if (selection === null) {
-            throw new Error('no selection')
-        }
+        this.div.innerHTML = deck.split('\n')
+            .map(row => quantity(card(tags(row))))
+            .map(row => `<div class="row">${row}</div>`)
+            .join('')
 
-        let state: DeckState = {
-            text: this.state.deck,
-            selectionStart: selection.anchorOffset,
-            selectionEnd: selection.focusOffset,
+        if (r !== undefined) {
+            setRange(this.div, r)
+            const o = relativeOffset(this.div, r.start)
+            if (o !== undefined) {
+                const node = o.node.parentElement!
+                const rect = node.getBoundingClientRect()
+                // console.log(rect)
+
+                this.setState({
+                    autocomplete: {
+                        name: o.node.textContent || '',
+                        x: rect.left,
+                        y: rect.top,
+                        selected: 0,
+                    },
+                    autocompleteOpen: node.classList.contains('card'),
+                    currentNode: o.node,
+                })
+            }
         }
-        for (const effect of effects) {
-            state = effect(state)
-        }
-        this.setState({ deck: state.text })
     }
 }
 
-interface Binding {
-    key: string
-    command: string
-}
+const quantity = (row: string) => row.replace(/^\d*/, num => `<span class="quantity">${num}</span>`)
+const card = (row: string) => row.replace(
+    /(\d*\s*)(.*[^\s#])/, (_, start, name) => `${start}<span class="card">${name}</span>`,
+)
+const tags = (row: string) => row.replace(/#[^\s]*/g, t => `<span class="tag">${t}</span>`)
 
-interface DeckState {
-    text: string
-    selectionStart: number
-    selectionEnd: number
-}
-
-interface Command {
-    name: string
-    effect: (state: DeckState) => DeckState
-}
-
-const commands: Command[] = [
-    {
-        name: 'backspace',
-        effect: state => ({
-            ...state,
-            text: state.text.slice(0, -1),
-        }),
-    },
-    {
-        name: 'right',
-        effect: state => ({
-            ...state,
-            selectionStart: state.selectionStart + 1,
-            selectionEnd: state.selectionStart + 1,
-        }),
-    },
-    {
-        name: 'left',
-        effect: state => ({
-            ...state,
-            selectionStart: state.selectionStart - 1,
-            selectionEnd: state.selectionStart - 1,
-        }),
-    },
-]
-
-const bindings: Binding[] = [
-    {
-        key: 'Backspace',
-        command: 'backspace',
-    },
-    {
-        key: 'ArrowRight',
-        command: 'right',
-    },
-    {
-        key: 'ArrowLeft',
-        command: 'left',
-    },
-]
-
-interface Row {
-    quantity: string
-    card: string
-    tags: string
-}
-
-const rows = (deck: string): Row[] =>
+const rows = (deck: string) =>
     deck
         .split('\n')
         .map(row => row.match(/^(\d+x?)?([^#]*)(.*)$/i))
@@ -145,40 +146,28 @@ const rows = (deck: string): Row[] =>
             tags: matches[3] || '',
         }))
 
-const extractWhitespace = (str: string): [string, string, string] =>
-    [
-        (str.match(/^\s*/) || [''])[0],
-        str.trim(),
-        (str.match(/\s*$/) || [''])[0],
-    ]
-
-interface DeckProps {
-    deck: string
+interface AutocompleteProps {
+    name: string
+    x: number
+    y: number
+    selected: number
+    onNewResults: (results: DBCard[]) => void
 }
 
-const Deck: FunctionalComponent<DeckProps> = props => (
-    <div class='deck' >
-        {rows(props.deck).map((row, i) => (
-            <div key={i} class='row'>
-                <span class='quantity'>{row.quantity}</span>
-                <Card card={row.card} />
-                <Tags tags={row.tags} />
-            </div>
-        ))}
-    </div>
-)
-
-const Card: FunctionalComponent<{ card: string }> = props => <span class='card'>
-    {props.card}
-    <div class='popup'>
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
+    <div
+        class='autocomplete'
+        style={{
+            left: props.x + 'px',
+            top: props.y + 'px',
+        }}
+    >
         <Async
-            promise={searchCards(props.card)}
+            promise={searchCards(props.name)}
             // tslint:disable-next-line: jsx-no-lambda
             result={result => {
-                console.log(props.card)
-
                 if (result.loading) {
-                    return ''
+                    return 'Loading...'
                 }
                 if (result.error) {
                     return result.error.toString()
@@ -187,24 +176,15 @@ const Card: FunctionalComponent<{ card: string }> = props => <span class='card'>
                 if (result.result.length === 0) {
                     return 'no cards'
                 }
-                return <img src={result.result[0].image_url} alt='' />
+                props.onNewResults(result.result)
+                return <div class='options'>
+                    {result.result.map((c, i) => <div
+                        key={c.id}
+                        class={i === props.selected ? 'selected' : ''}
+                    >
+                        {c.name}
+                    </div>)}
+                </div>
             }}
         />
     </div>
-</span>
-
-const Tags: FunctionalComponent<{ tags: string }> = props => <span>
-    {props.tags
-        .split('#')
-        .slice(1)
-        // .filter(tag => tag.length > 0)
-        .map(tag => `#${tag}`)
-        .map(extractWhitespace)
-        .flatMap(([before, tag, after]) => [
-            before,
-            <span key={tag} class='tag'>{tag}</span>,
-            after,
-        ])}
-</span>
-
-console.log(extractWhitespace('  test '))
