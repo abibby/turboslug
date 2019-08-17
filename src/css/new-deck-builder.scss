@@ -1,16 +1,17 @@
 .new-deck-builder {
+    $line-height: 1.5em;
 
+    font-family: monospace;
     padding-bottom: 10px;
 
     .deck {
         width: 100%;
         background: lightgray;
-        font-family: monospace;
         white-space: pre;
 
         .row {
             display: block;
-            height: 1.5em;
+            height: $line-height;
 
             .quantity {
                 color: red;
@@ -48,8 +49,9 @@
     .autocomplete {
         position: absolute;
 
+        border: solid #ccc 1px;
         background-color: white;
-        transform: translateY(1.5em);
+        transform: translateY($line-height);
         z-index: 10;
 
         .options {

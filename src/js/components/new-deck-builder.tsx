@@ -1,4 +1,5 @@
 import 'css/new-deck-builder.scss'
+import { keys } from 'idb-keyval'
 import { DBCard, searchCards } from 'js/database'
 import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
 import { Component, FunctionalComponent, h } from 'preact'
@@ -82,6 +83,7 @@ export default class NewDeckBuilder extends Component<Props, State> {
                             setRange(this.div, r)
                         }
                         autocomplete.selected = 0
+
                         open = false
                         break
                     case 'Escape':
@@ -102,7 +104,11 @@ export default class NewDeckBuilder extends Component<Props, State> {
         this.setState({ deck: deck })
 
         this.div.innerHTML = deck.split('\n')
-            .map(row => quantity(card(tags(row))))
+            .map(row => row
+                .replace(/(\d*\s*)(.*[^\s#])/, (_, start, name) => `${start}<span class="card">${name}</span>`)
+                .replace(/^\d*/, num => `<span class="quantity">${num}</span>`)
+                .replace(/#[^\s]*/g, t => `<span class="tag">${t}</span>`),
+            )
             .map(row => `<div class="row">${row}</div>`)
             .join('')
 
@@ -128,12 +134,6 @@ export default class NewDeckBuilder extends Component<Props, State> {
         }
     }
 }
-
-const quantity = (row: string) => row.replace(/^\d*/, num => `<span class="quantity">${num}</span>`)
-const card = (row: string) => row.replace(
-    /(\d*\s*)(.*[^\s#])/, (_, start, name) => `${start}<span class="card">${name}</span>`,
-)
-const tags = (row: string) => row.replace(/#[^\s]*/g, t => `<span class="tag">${t}</span>`)
 
 const rows = (deck: string) =>
     deck
