@@ -38,6 +38,9 @@ export interface Chunk {
 
 const allCards: DBCard[] = []
 
+export async function findCard(name: string): Promise<DBCard | undefined> {
+    return allCards.find(card => card.name === name)
+}
 export async function searchCards(query: string): Promise<DBCard[]> {
 
     const filter = queryFilter<DBCard>(parseQuery(query), {

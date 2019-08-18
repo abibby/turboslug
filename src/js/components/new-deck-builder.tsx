@@ -1,6 +1,6 @@
 import 'css/new-deck-builder.scss'
 import { keys } from 'idb-keyval'
-import { DBCard, searchCards } from 'js/database'
+import { DBCard, findCard, searchCards } from 'js/database'
 import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
 import { Component, FunctionalComponent, h } from 'preact'
 import Async from './async'
@@ -98,14 +98,14 @@ export default class NewDeckBuilder extends Component<Props, State> {
         } else {
             switch (e.key) {
                 case 'Enter':
-                    e.preventDefault()
-                    const r = relativeRange(this.div)
-                    if (r !== undefined) {
-                        this.div.appendChild(document.createTextNode('\n'))
-                        r.start++
-                        r.end++
-                        setRange(this.div, r)
-                    }
+                    // e.preventDefault()
+                    // const r = relativeRange(this.div)
+                    // if (r !== undefined) {
+                    //     this.div.appendChild(document.createTextNode('\n'))
+                    //     r.start++
+                    //     r.end++
+                    //     setRange(this.div, r)
+                    // }
                     break
             }
         }
@@ -148,16 +148,24 @@ export default class NewDeckBuilder extends Component<Props, State> {
     }
 }
 
-const rows = (deck: string) =>
-    deck
+async function cards(deck: string) {
+    const c = deck
         .split('\n')
-        .map(row => row.match(/^(\d+x?)?([^#]*)(.*)$/i))
+        .map(row => row.match(/^(?:(\d+)x?)?([^#]*)(.*)$/i))
         .map(matches => matches || [])
         .map(matches => ({
-            quantity: matches[1] || '',
-            card: matches[2] || '',
-            tags: matches[3] || '',
+            quantity: Number(matches[1] || 1),
+            card: (matches[2] || '').trim(),
+            tags: ((matches[3] || '').match(/#[^\s]*/g) || []),
         }))
+
+    const dbCards = await Promise.all(c.map(card => findCard(card.card)))
+
+    return c.map((card, i) => ({
+        ...card,
+        card: dbCards[i],
+    }))
+}
 
 interface AutocompleteProps {
     name: string
