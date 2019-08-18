@@ -95,6 +95,19 @@ export default class NewDeckBuilder extends Component<Props, State> {
                     autocompleteOpen: open,
                 })
             }
+        } else {
+            switch (e.key) {
+                case 'Enter':
+                    e.preventDefault()
+                    const r = relativeRange(this.div)
+                    if (r !== undefined) {
+                        this.div.appendChild(document.createTextNode('\n'))
+                        r.start++
+                        r.end++
+                        setRange(this.div, r)
+                    }
+                    break
+            }
         }
     }
     private updateDeck = () => {
