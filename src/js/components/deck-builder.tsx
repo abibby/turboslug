@@ -1,130 +1,175 @@
 import 'css/deck-builder.scss'
-import Search from 'js/components/search'
-import { DBCard } from 'js/database'
-import { Deck } from 'js/deck'
-import { Component, h } from 'preact'
-import CardRow from './card-row'
+import { keys } from 'idb-keyval'
+import { DBCard, findCard, searchCards } from 'js/database'
+import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
+import { Component, FunctionalComponent, h } from 'preact'
+import Async from './async'
 
 interface Props {
-    cards?: Deck
-    onChange?: (deck: Deck) => void
+    // deck?: string
 }
 interface State {
-    cards: Deck
-    searchValue: string
-    filter: string
+    deck: string
+    autocomplete: Pick<AutocompleteProps, 'name' | 'selected'>
+    autocompleteOpen: boolean
 }
 export default class DeckBuilder extends Component<Props, State> {
-    private search: CardRow
 
     constructor(props: Props) {
         super(props)
 
         this.state = {
-            cards: this.props.cards || [],
-            searchValue: '',
-            filter: '',
+            deck: '',
+            autocomplete: {
+                name: '',
+                selected: 0,
+            },
+            autocompleteOpen: true,
         }
+
     }
     public render() {
-        return <div class='deck-builder'>
-            <div class='card-row'>
-                <div />
-                <div />
-                <div />
-                <Search
-                    onChange={this.filterChange}
-                    placeholder='Enter a filter'
-                />
-            </div>
-            <div class='deck'>
-                {this.state.cards.map((card, i) => <CardRow
-                    key={card.card.id}
-                    name={card.card.name}
-                    quantity={card.quantity}
-                    filter={this.state.filter}
-                    onChange={this.cardChange(i)}
-                    onSelect={this.cardSelect(i)}
-                />)}
-            </div>
-            <CardRow
-                ref={e => this.search = e}
-                name={this.state.searchValue}
-                filter={this.state.filter}
-                onSelect={this.addCard}
-                onChange={this.searchChange}
+        let autocomplete
+        if (this.state.autocompleteOpen) {
+            autocomplete = <Autocomplete
+                {...this.state.autocomplete}
+                name={this.state.deck}
             />
+        }
+        return <div class='deck-builder' >
+            <div className='editor'>
+                <textarea class='text' onInput={this.input} onKeyDown={this.keydown} />
+                <Deck deck={this.state.deck} />
+            </div>
+            {autocomplete}
         </div>
     }
 
-    public componentDidUpdate(previousProps: Props) {
-        let newCards = this.state.cards
-        let update = false
-        if (this.props.cards !== undefined && previousProps.cards !== this.props.cards) {
-            newCards = this.props.cards
-            update = true
-        }
-        if (newCards.find(c => c.quantity <= 0)) {
-            newCards = newCards.filter(c => c.quantity > 0)
-            update = true
-        }
-        if (update) {
-            this.setState({ cards: newCards })
-
-        }
-    }
-
-    private filterChange = (value: string): void => {
-        this.setState({ filter: value })
-
-    }
-
-    private addCard = (quantity: number, card: DBCard) => {
-        const cardInDeck = this.state.cards.find(c => c.card.id === card.id) || { quantity: 0 }
-
-        const cards = this.state.cards
-            .filter(c => c.card.id !== card.id)
-            .concat([{ quantity: quantity + cardInDeck.quantity, card: card }])
-
+    private input = (e: Event) => {
+        const textarea = e.target as HTMLTextAreaElement
         this.setState({
-            cards: cards,
-            searchValue: '',
-        })
-        this.search.focus()
-        if (this.props.onChange) {
-            this.props.onChange(cards)
-        }
-    }
-    private searchChange = (quantity: number, value: string) => {
-        this.setState({
-            searchValue: value,
+            deck: textarea.value,
         })
     }
-    private cardChange(i: number) {
-        return (quantity: number, value: string) => {
+    private keydown = (e: KeyboardEvent) => {
+        if (this.state.autocompleteOpen) {
+            if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+                e.preventDefault()
 
-            const cards = [...this.state.cards]
-            cards[i].quantity = quantity
+                const autocomplete = { ...this.state.autocomplete }
+                let open = true
+                switch (e.key) {
+                    case 'ArrowDown':
+                        autocomplete.selected += 1
+                        break
+                    case 'ArrowUp':
+                        autocomplete.selected -= 1
+                        break
+                    case 'Enter':
+                    case 'Tab':
 
-            this.setState({ cards: cards })
+                        autocomplete.selected = 0
 
-            if (this.props.onChange) {
-                this.props.onChange(cards)
+                        open = false
+                        break
+                    case 'Escape':
+                        open = false
+                        break
+                }
+                this.setState({
+                    autocomplete: autocomplete,
+                    autocompleteOpen: open,
+                })
             }
         }
     }
-    private cardSelect(i: number) {
-        return (quantity: number, card: DBCard) => {
+}
 
-            const cards = [...this.state.cards]
-            cards[i].quantity = quantity
-            cards[i].card = card
+async function cards(deck: string) {
+    const c = deck
+        .split('\n')
+        .map(row => row.match(/^(?:(\d+)x?)?([^#]*)(.*)$/i))
+        .map(matches => matches || [])
+        .map(matches => ({
+            quantity: Number(matches[1] || 1),
+            card: (matches[2] || '').trim(),
+            tags: ((matches[3] || '').match(/#[^\s]*/g) || []),
+        }))
 
-            this.setState({ cards: cards })
+    const dbCards = await Promise.all(c.map(card => findCard(card.card)))
 
-            if (this.props.onChange) {
-                this.props.onChange(cards)
+    return c.map((card, i) => ({
+        ...card,
+        card: dbCards[i],
+    }))
+}
+
+interface AutocompleteProps {
+    name: string
+    selected: number
+    // onNewResults: (results: DBCard[]) => void
+}
+
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class='autocomplete' >
+    <Async
+        promise={searchCards(props.name)}
+        // tslint:disable-next-line: jsx-no-lambda
+        result={result => {
+            if (result.loading) {
+                return 'Loading...'
             }
-        }
+            if (result.error) {
+                return result.error.toString()
+            }
+
+            if (result.result.length === 0) {
+                return 'no cards'
+            }
+            // props.onNewResults(result.result)
+            return <div class='options'>
+                {result.result.map((c, i) => <div
+                    key={c.id}
+                    class={i === props.selected ? 'selected' : ''}
+                >
+                    {c.name}
+                </div>)}
+            </div>
+        }}
+    />
+</div>
+
+const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
+function tokens(src: string) {
+    const matches = tokenRE.exec(src)
+    if (!matches) {
+        return []
     }
+    return matches.slice(1)
+}
+
+const Deck: FunctionalComponent<{ deck: string }> = props => <div class='deck' >
+    {props.deck.split('\n').map((row, i) => <Row key={i} row={row} />)}
+</div>
+
+const Row: FunctionalComponent<{ row: string }> = props => {
+    const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
+    return <div class='row' >
+        {s1}
+        <span class='quantity'>{quantity}</span>
+        {s2}
+        <span class='card'>{card}</span>
+        {s3}
+        <Tags tags={tags} />
+    </div>
+}
+
+const Tags: FunctionalComponent<{ tags: string }> = props => {
+    return <span class='tags'>
+        {props.tags.split(' ').flatMap(tag => {
+            if (tag.startsWith('#')) {
+                return [<span key={tag} class='tag'>{tag}</span>, ' ']
+            }
+            return tag + ' '
+        })}
+    </span>
 }

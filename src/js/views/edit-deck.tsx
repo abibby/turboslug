@@ -5,7 +5,6 @@ import { Deck } from 'js/deck'
 import { store } from 'js/save'
 import Layout from 'js/views/layout'
 import { Component, h } from 'preact'
-import NewDeckBuilder from 'js/components/new-deck-builder';
 
 interface Props {
     matches?: {
@@ -33,8 +32,7 @@ export default class EditDeck extends Component<Props, State> {
 
         return <Layout>
             <h1>Edit Deck</h1>
-            <NewDeckBuilder />
-            <DeckBuilder onChange={this.deckChange} cards={this.state.deck} />
+            <DeckBuilder />
             <DeckStats deck={this.state.deck} />
             <DeckList deck={this.state.deck} />
             <pre>

@@ -1,6 +1,131 @@
-.deck-builder {
+@import './variables';
 
-    .deck {
-        padding-bottom: 10px;
+.deck-builder {
+    .editor {
+
+        border: solid 1px $border-color;
+        padding: 3px;
+        background-color: $surface-color;
+
+        position: relative;
+        text-align: left;
+        white-space: pre-wrap;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+        padding: 0px;
+        overflow: hidden;
+
+        .text {
+            margin: 0px;
+            border: 0px;
+            background: none;
+            box-sizing: inherit;
+            display: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            font-style: inherit;
+            font-variant-ligatures: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            line-height: inherit;
+            tab-size: inherit;
+            text-indent: inherit;
+            text-rendering: inherit;
+            text-transform: inherit;
+            white-space: inherit;
+            word-break: inherit;
+            overflow-wrap: inherit;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            height: 100%;
+            width: 100%;
+            resize: none;
+            color: inherit;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-fill-color: transparent;
+            padding: 10px;
+        }
+
+        .deck {
+            margin: 0px;
+            border: 0px;
+            background: none;
+            box-sizing: inherit;
+            display: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            font-style: inherit;
+            font-variant-ligatures: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            line-height: inherit;
+            tab-size: inherit;
+            text-indent: inherit;
+            text-rendering: inherit;
+            text-transform: inherit;
+            white-space: inherit;
+            word-break: inherit;
+            overflow-wrap: inherit;
+            position: relative;
+            pointer-events: none;
+            padding: 10px;
+
+            // background: lightgray;
+            white-space: pre;
+            pointer-events: none;
+            font-size: inherit;
+
+            .row {
+                display: block;
+
+                .quantity {
+                    color: red;
+                }
+
+                .card {
+                    position: relative;
+                    color: blue;
+
+                    .popup {
+                        display: none;
+                    }
+
+                    &:hover .popup {
+                        display: block;
+                        position: absolute;
+
+                        border: solid 1px #333;
+                        width: 200px;
+
+                        img {
+                            width: 100%;
+                        }
+                    }
+                }
+
+                .tag {
+                    background-color: cornflowerblue;
+                    border-radius: 3px;
+                    color: white;
+                }
+            }
+        }
+    }
+
+    .autocomplete {
+        position: absolute;
+
+        border: solid #ccc 1px;
+        background-color: white;
+        z-index: 10;
+
+        .options {
+            .selected {
+                background-color: lightblue;
+            }
+        }
     }
 }
