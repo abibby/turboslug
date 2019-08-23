@@ -35,11 +35,11 @@ export default class Async<T> extends Component<Props<T>, Result<T>> {
             .catch(this.catch)
     }
 
-    public render() {
+    public render(): ComponentChild {
         return this.props.result(this.state)
     }
 
-    public componentDidUpdate(previousProps: Props<T>) {
+    public componentDidUpdate(previousProps: Props<T>): void {
         if (previousProps.promise !== this.props.promise) {
             this.props.promise
                 .then(this.then)
@@ -48,7 +48,7 @@ export default class Async<T> extends Component<Props<T>, Result<T>> {
     }
 
     @bind
-    public then(result: T) {
+    public then(result: T): void {
         this.setState({
             loading: false,
             error: undefined,
@@ -57,7 +57,7 @@ export default class Async<T> extends Component<Props<T>, Result<T>> {
     }
 
     @bind
-    public catch(error: Error) {
+    public catch(error: Error): void {
         this.setState({
             loading: false,
             error: error,

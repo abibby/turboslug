@@ -2,7 +2,7 @@ import 'css/app.scss'
 import { createHashHistory } from 'history'
 import { loadDB } from 'js/database'
 import Home from 'js/views/home'
-import { Component, h, render } from 'preact'
+import { Component, ComponentChild, h, render } from 'preact'
 import Router from 'preact-router'
 import Loader from './components/loader'
 import EditDeck from './views/edit-deck'
@@ -21,7 +21,7 @@ class Index extends Component<{}, State> {
         }
         this.loadDB()
     }
-    public render() {
+    public render(): ComponentChild {
         if (!this.state.loaded) {
             return <div>
                 <div>
@@ -35,7 +35,7 @@ class Index extends Component<{}, State> {
             <EditDeck path='/edit/:name' />
         </Router>
     }
-    private async loadDB() {
+    private async loadDB(): Promise<void> {
         await loadDB((count, total) => this.setState({ progress: count / total }))
         this.setState({ loaded: true })
     }

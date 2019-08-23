@@ -6,13 +6,13 @@ export class Collection<T> implements Iterable<T> {
         this.base = itr
     }
 
-    public [Symbol.iterator]() {
+    public [Symbol.iterator](): Iterator<T> {
         return this.base[Symbol.iterator]()
     }
 
     public map<U>(callback: (element: T) => U): Collection<U> {
         const itr = this
-        return build(function* () {
+        return build(function* (): IterableIterator<U> {
             for (const element of itr) {
                 yield callback(element)
             }
@@ -21,7 +21,7 @@ export class Collection<T> implements Iterable<T> {
 
     public concat(itr1: Iterable<T>): Collection<T> {
         const itr2 = this
-        return build(function* () {
+        return build(function* (): IterableIterator<T> {
             for (const element of itr1) {
                 yield element
             }
@@ -51,11 +51,11 @@ export class Collection<T> implements Iterable<T> {
         return collect(m)
     }
 
-    public sort(callback: (a: T, b: T) => number) {
+    public sort(callback: (a: T, b: T) => number): Collection<T> {
         return collect(this.toArray().sort(callback))
     }
 
-    public sortBy(callback: (element: T) => number | string) {
+    public sortBy(callback: (element: T) => number | string): Collection<T> {
         // TODO: make it so it only needs to run the callback once for each
         // element in the collection
         return this.sort((a, b) => {
@@ -87,7 +87,7 @@ export function collect<T>(itr: Iterable<T>): Collection<T> {
 }
 
 export function range(count: number): Collection<number> {
-    return build(function* () {
+    return build(function* (): IterableIterator<number> {
         for (let i = 0; i < count; i++) {
             yield i
         }

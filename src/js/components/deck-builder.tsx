@@ -1,12 +1,13 @@
 import 'css/deck-builder.scss'
+import { bind } from 'decko'
 import { keys } from 'idb-keyval'
 import { DBCard, findCard, searchCards } from 'js/database'
 import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
-import { Component, FunctionalComponent, h } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 
 interface Props {
-    // deck?: string
+    deck?: string
 }
 interface State {
     deck: string
@@ -28,7 +29,7 @@ export default class DeckBuilder extends Component<Props, State> {
         }
 
     }
-    public render() {
+    public render(): ComponentChild {
         let autocomplete
         if (this.state.autocompleteOpen) {
             autocomplete = <Autocomplete
@@ -45,13 +46,16 @@ export default class DeckBuilder extends Component<Props, State> {
         </div>
     }
 
-    private input = (e: Event) => {
+    @bind
+    private input(e: Event): void {
         const textarea = e.target as HTMLTextAreaElement
         this.setState({
             deck: textarea.value,
         })
     }
-    private keydown = (e: KeyboardEvent) => {
+
+    @bind
+    private keydown(e: KeyboardEvent): void {
         if (this.state.autocompleteOpen) {
             if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
                 e.preventDefault()
@@ -85,7 +89,7 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 }
 
-async function cards(deck: string) {
+async function cards(deck: string): Promise<Array<{ quantity: number, card: DBCard | undefined, tags: string[] }>> {
     const c = deck
         .split('\n')
         .map(row => row.match(/^(?:(\d+)x?)?([^#]*)(.*)$/i))
@@ -139,7 +143,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class
 </div>
 
 const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
-function tokens(src: string) {
+function tokens(src: string): string[] {
     const matches = tokenRE.exec(src)
     if (!matches) {
         return []

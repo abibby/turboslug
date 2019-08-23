@@ -2,7 +2,7 @@ import 'css/deck-list.scss'
 import { bind } from 'decko'
 import { collect, range } from 'js/collection'
 import { Deck, Slot } from 'js/deck'
-import { Component, FunctionalComponent, h, options } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h, options } from 'preact'
 
 const colorLookup = {
     W: 'White',
@@ -62,7 +62,7 @@ export default class DeckList extends Component<Props, State> {
         }
     }
 
-    public render() {
+    public render(): ComponentChild {
         return <div>
             <div>
                 Group by:
@@ -83,7 +83,7 @@ export default class DeckList extends Component<Props, State> {
     }
 
     @bind
-    private groupChange(e: Event) {
+    private groupChange(e: Event): void {
         const select = e.target as HTMLSelectElement
         this.setState({ groupBy: this.groups[select.value] })
     }

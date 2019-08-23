@@ -1,6 +1,6 @@
 import 'css/mana-cost.scss'
 import symbols from 'data/symbols.json'
-import { Component, FunctionalComponent, h } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 
 interface SymbolProps {
     symbol: string
@@ -22,7 +22,7 @@ interface Props {
     cost: string
 }
 export default class ManaCost extends Component<Props & JSX.HTMLAttributes> {
-    public render() {
+    public render(): ComponentChild {
         return <span {...this.props}>
             {splitSymbols(this.props.cost).map((cost, i) => <ManaSymbol key={i} symbol={cost} />)}
         </span>

@@ -1,6 +1,6 @@
 import { store } from 'js/save'
 import Layout from 'js/views/layout'
-import { Component, h } from 'preact'
+import { Component, ComponentChild, h } from 'preact'
 import { Link } from 'preact-router'
 
 interface State {
@@ -19,7 +19,7 @@ export default class Home extends Component<{}, State> {
 
         store('local').list().then(decks => this.setState({ decks: decks }))
     }
-    public render() {
+    public render(): ComponentChild {
         return <Layout>
             <h1>Home</h1>
 

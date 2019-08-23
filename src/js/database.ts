@@ -175,20 +175,20 @@ function queryFilter<T extends object>(
     }
 }
 
-async function setChunks(chunks: Chunk[]) {
+async function setChunks(chunks: Chunk[]): Promise<void> {
     await set('chunks', chunks)
 }
 async function getChunks(): Promise<Chunk[]> {
     return await get('chunks') || []
 }
-async function setCards(index: number, cards: Card[]) {
+async function setCards(index: number, cards: Card[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
 async function getCards(index: number): Promise<Card[]> {
     return await get(`chunk-${index}`) || []
 }
 
-export async function loadDB(progress?: (count: number, total: number) => void) {
+export async function loadDB(progress?: (count: number, total: number) => void): Promise<void> {
     try {
         await loadNetwork(progress)
     } catch (e) {
@@ -212,7 +212,7 @@ export async function loadDB(progress?: (count: number, total: number) => void) 
 
 }
 
-async function loadNetwork(progress?: (count: number, total: number) => void) {
+async function loadNetwork(progress?: (count: number, total: number) => void): Promise<void> {
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
     let localChunks: Chunk[] = await getChunks()
     let i = 0

@@ -61,7 +61,7 @@ function symbolPercentages(deck: Deck): Array<[string, number, number]> {
             [symbol, (nonLandCount / totalNonLand) || 0, (landCount / totalLand) || 0])
 }
 
-function nonLandSymbols(slots: Deck) {
+function nonLandSymbols(slots: Deck): Array<[string, number]> {
     const manaSymbols = new Map<string, number>(emptySymbols)
     for (const slot of slots) {
         for (const symbol of splitSymbols(slot.card.mana_cost)) {
@@ -78,7 +78,7 @@ function nonLandSymbols(slots: Deck) {
     return Array.from(manaSymbols)
 }
 
-function landSymbols(slots: Deck) {
+function landSymbols(slots: Deck): Array<[string, number]> {
     const manaSymbols = new Map<string, number>(emptySymbols)
     for (const slot of slots) {
         if (slot.card.type.includes('Land')) {

@@ -1,10 +1,11 @@
+import { bind } from 'decko'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import { Deck } from 'js/deck'
 import { store } from 'js/save'
 import Layout from 'js/views/layout'
-import { Component, h } from 'preact'
+import { Component, ComponentChild, h } from 'preact'
 
 interface Props {
     matches?: {
@@ -28,8 +29,7 @@ export default class EditDeck extends Component<Props, State> {
 
         this.loadDeck()
     }
-    public render() {
-
+    public render(): ComponentChild {
         return <Layout>
             <h1>Edit Deck</h1>
             <DeckBuilder />
@@ -41,18 +41,19 @@ export default class EditDeck extends Component<Props, State> {
         </Layout>
     }
 
-    public componentDidUpdate(previousProps: Props) {
+    public componentDidUpdate(previousProps: Props): void {
         if (previousProps.matches!.name !== this.props.matches!.name) {
             this.loadDeck()
         }
     }
 
-    private deckChange = async (deck: Deck) => {
+    @bind
+    private async deckChange(deck: Deck): Promise<void> {
         this.setState({ deck: deck })
         await this.store.save(this.props.matches!.name, deck)
     }
 
-    private async loadDeck() {
+    private async loadDeck(): Promise<void> {
         const deck = await this.store.load(this.props.matches!.name)
         this.setState({ deck: deck || [] })
     }

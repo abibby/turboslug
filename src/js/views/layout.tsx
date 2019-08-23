@@ -1,8 +1,8 @@
-import { Component, h } from 'preact'
+import { Component, ComponentChild, h } from 'preact'
 import { Link } from 'preact-router'
 
 export default class Layout extends Component {
-    public render() {
+    public render(): ComponentChild {
         return <div>
             <div>
                 <Link href='/'>Home</Link>

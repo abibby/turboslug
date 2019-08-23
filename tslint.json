@@ -44,6 +44,10 @@
             "allow-pascal-case",
             "allow-leading-underscore"
         ],
-        "no-invalid-this": true
+        "no-invalid-this": true,
+        "typedef": [
+            true,
+            "call-signature"
+        ]
     }
 }

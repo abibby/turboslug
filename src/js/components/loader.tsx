@@ -1,12 +1,12 @@
 import 'css/loader.scss'
-import { Component, h } from 'preact'
+import { Component, ComponentChild, h } from 'preact'
 
 interface Props {
     progress: number
 }
 
 export default class Loader extends Component<Props> {
-    public render() {
+    public render(): ComponentChild {
         const width = 3
         const radius = (100 / 2) - width
         const circ = 2 * Math.PI * radius
