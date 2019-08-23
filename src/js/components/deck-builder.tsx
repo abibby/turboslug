@@ -13,6 +13,7 @@ interface State {
     deck: string
     autocomplete: Pick<AutocompleteProps, 'name' | 'selected'>
     autocompleteOpen: boolean
+    currentCard: string | undefined
 }
 export default class DeckBuilder extends Component<Props, State> {
 
@@ -26,15 +27,16 @@ export default class DeckBuilder extends Component<Props, State> {
                 selected: 0,
             },
             autocompleteOpen: true,
+            currentCard: undefined,
         }
 
     }
     public render(): ComponentChild {
         let autocomplete
-        if (this.state.autocompleteOpen) {
+        if (this.state.currentCard !== undefined && this.state.autocompleteOpen) {
             autocomplete = <Autocomplete
                 {...this.state.autocomplete}
-                name={this.state.deck}
+                name={this.state.currentCard}
             />
         }
         return <div class='deck-builder' >
@@ -49,8 +51,23 @@ export default class DeckBuilder extends Component<Props, State> {
     @bind
     private input(e: Event): void {
         const textarea = e.target as HTMLTextAreaElement
+        const deck = textarea.value
+        const start = textarea.selectionStart
+
+        const linesBeforeStart = deck.slice(0, start).split('\n')
+        const linePosition = linesBeforeStart[linesBeforeStart.length - 1].length
+        const currentLine = deck.split('\n')[linesBeforeStart.length - 1]
+        const [s1, quantity, s2, card] = tokens(currentLine)
+        const preCard = s1 + quantity + s2
+
+        let currentCard: string | undefined
+        if (linePosition > preCard.length && linePosition <= preCard.length + card.length) {
+            currentCard = card
+        }
+
         this.setState({
-            deck: textarea.value,
+            deck: deck,
+            currentCard: currentCard,
         })
     }
 
@@ -82,7 +99,7 @@ export default class DeckBuilder extends Component<Props, State> {
                 }
                 this.setState({
                     autocomplete: autocomplete,
-                    autocompleteOpen: open,
+                    // autocompleteOpen: open,
                 })
             }
         }
