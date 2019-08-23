@@ -1,3 +1,4 @@
+import { bind } from 'decko'
 import { Component, ComponentChild } from 'preact'
 
 type Result<T> = {
@@ -46,14 +47,17 @@ export default class Async<T> extends Component<Props<T>, Result<T>> {
         }
     }
 
-    public then = (result: T) => {
+    @bind
+    public then(result: T) {
         this.setState({
             loading: false,
             error: undefined,
             result: result,
         })
     }
-    public catch = (error: Error) => {
+
+    @bind
+    public catch(error: Error) {
         this.setState({
             loading: false,
             error: error,

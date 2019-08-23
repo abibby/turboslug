@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@types/history": "^4.7.2",
+    "decko": "^1.2.0",
     "history": "^4.9.0",
     "idb-keyval": "^3.2.0",
     "node-fetch": "^2.6.0",

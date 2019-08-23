@@ -1,4 +1,5 @@
 import 'css/deck-list.scss'
+import { bind } from 'decko'
 import { collect, range } from 'js/collection'
 import { Deck, Slot } from 'js/deck'
 import { Component, FunctionalComponent, h, options } from 'preact'
@@ -81,7 +82,8 @@ export default class DeckList extends Component<Props, State> {
         </div>
     }
 
-    private groupChange = (e: Event) => {
+    @bind
+    private groupChange(e: Event) {
         const select = e.target as HTMLSelectElement
         this.setState({ groupBy: this.groups[select.value] })
     }
