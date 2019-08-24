@@ -12,7 +12,6 @@ interface Props {
 interface State {
     deck: string
     autocompleteSelected: number
-    autocompleteOpen: boolean
     currentCard: string | undefined
 }
 export default class DeckBuilder extends Component<Props, State> {
@@ -25,14 +24,13 @@ export default class DeckBuilder extends Component<Props, State> {
         this.state = {
             deck: '',
             autocompleteSelected: 0,
-            autocompleteOpen: true,
             currentCard: undefined,
         }
 
     }
     public render(): ComponentChild {
         let autocomplete
-        if (this.state.currentCard !== undefined && this.state.autocompleteOpen) {
+        if (this.state.currentCard !== undefined) {
             autocomplete = <Autocomplete
                 name={this.state.currentCard}
                 selected={this.state.autocompleteSelected}
@@ -53,6 +51,7 @@ export default class DeckBuilder extends Component<Props, State> {
         </div>
     }
 
+    // tslint:disable-next-line: typedef
     private info(textarea: HTMLTextAreaElement) {
 
         const deck = textarea.value
@@ -103,48 +102,83 @@ export default class DeckBuilder extends Component<Props, State> {
         const newState: State = { ...this.state }
         const textarea = e.target as HTMLTextAreaElement
 
-        const { lines, preCard, postCard, currentLine } = this.info(textarea)
-
-        if (this.state.autocompleteOpen && this.state.currentCard !== undefined) {
-            if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
-                e.preventDefault()
-
-                switch (e.key) {
-                    case 'ArrowDown':
+        if (this.state.currentCard !== undefined) {
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault()
+                    if (newState.autocompleteSelected < 14) {
                         newState.autocompleteSelected += 1
-                        break
-                    case 'ArrowUp':
+                    }
+                    break
+                case 'ArrowUp':
+                    e.preventDefault()
+                    if (newState.autocompleteSelected > 0) {
                         newState.autocompleteSelected -= 1
-                        break
-                    case 'Enter':
-                    case 'Tab':
-                        const c = this.results[newState.autocompleteSelected]
+                    }
+                    break
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    newState.currentCard = undefined
+                    break
+                case 'Enter':
+                case 'Tab':
+                    e.preventDefault()
+                    const { lines, preCard, postCard, currentLine } = this.info(textarea)
+                    const c = this.results[newState.autocompleteSelected]
 
-                        newState.deck = lines.map((line, i) => {
-                            if (i !== currentLine) {
-                                return line
-                            }
-                            return preCard + c.name + postCard
-                        }).join('\n')
-
-                        const newLines = newState.deck.split('\n')
-                        let start = 0
-                        for (let i = 0; i <= currentLine; i++) {
-                            start += newLines[i].length
+                    newState.deck = lines.map((line, i) => {
+                        if (i !== currentLine) {
+                            return line
                         }
-                        textarea.value = newState.deck
-                        textarea.setSelectionRange(start, start)
+                        return preCard + c.name + postCard
+                    }).join('\n')
 
-                        newState.autocompleteSelected = 0
+                    const newLines = newState.deck.split('\n')
+                    let start = 0
+                    for (let i = 0; i < currentLine; i++) {
+                        start += newLines[i].length + 1
+                    }
+                    start += (preCard + c.name).length
+                    textarea.value = newState.deck
+                    textarea.setSelectionRange(start, start)
 
-                        // newState.autocompleteOpen = false
-                        break
-                    case 'Escape':
-                        // newState.autocompleteOpen = false
-                        break
-                }
+                    newState.autocompleteSelected = 0
+
+                    newState.currentCard = undefined
+                    break
+                case 'Escape':
+                    e.preventDefault()
+                    newState.currentCard = undefined
+                    break
             }
+
         }
+
+        if (e.key === '/' && e.ctrlKey) {
+            e.preventDefault()
+            const comment = '// '
+
+            const { lines, currentLine } = this.info(textarea)
+            const isComment = lines[currentLine].startsWith(comment)
+            newState.deck = lines.map((line, i) => {
+                if (i !== currentLine) {
+                    return line
+                }
+
+                if (isComment) {
+                    return line.slice(comment.length)
+                }
+                return comment + line
+            }).join('\n')
+            let start = textarea.selectionStart
+            if (isComment) {
+                start += comment.length
+            } else {
+                start -= comment.length
+            }
+            textarea.setSelectionRange(start, start)
+        }
+
         this.setState(newState)
     }
 
@@ -221,6 +255,11 @@ const Deck: FunctionalComponent<{ deck: string }> = props => <div class='deck' >
 </div>
 
 const Row: FunctionalComponent<{ row: string }> = props => {
+    if (props.row.startsWith('//')) {
+        return <div class='row' >
+            <span className='comment'>{props.row}</span>
+        </div>
+    }
     const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
     return <div class='row' >
         {s1}
