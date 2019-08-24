@@ -11,23 +11,20 @@ interface Props {
 }
 interface State {
     deck: string
-    autocomplete: Pick<AutocompleteProps, 'name' | 'selected' | 'x' | 'y'>
+    autocompleteSelected: number
     autocompleteOpen: boolean
     currentCard: string | undefined
 }
 export default class DeckBuilder extends Component<Props, State> {
+
+    private results: DBCard[]
 
     constructor(props: Props) {
         super(props)
 
         this.state = {
             deck: '',
-            autocomplete: {
-                name: '',
-                selected: 0,
-                x: 0,
-                y: 0,
-            },
+            autocompleteSelected: 0,
             autocompleteOpen: true,
             currentCard: undefined,
         }
@@ -37,8 +34,9 @@ export default class DeckBuilder extends Component<Props, State> {
         let autocomplete
         if (this.state.currentCard !== undefined && this.state.autocompleteOpen) {
             autocomplete = <Autocomplete
-                {...this.state.autocomplete}
                 name={this.state.currentCard}
+                selected={this.state.autocompleteSelected}
+                onNewResults={this.autocompleteNewResults}
             />
         }
         return <div class='deck-builder' >
@@ -46,7 +44,8 @@ export default class DeckBuilder extends Component<Props, State> {
                 <textarea
                     class='text'
                     onInput={this.input}
-                // onKeyDown={this.keydown}
+                    onKeyDown={this.keydown}
+                    value={this.state.deck}
                 />
                 <Deck deck={this.state.deck} />
             </div>
@@ -54,72 +53,104 @@ export default class DeckBuilder extends Component<Props, State> {
         </div>
     }
 
+    private info(textarea: HTMLTextAreaElement) {
+
+        const deck = textarea.value
+        const start = textarea.selectionStart
+
+        const lines = deck.split('\n')
+        const linesBeforeStart = deck.slice(0, start).split('\n')
+        const linePosition = linesBeforeStart[linesBeforeStart.length - 1].length
+        const currentLine = lines[linesBeforeStart.length - 1]
+        const [s1, quantity, s2, card, s3, tags] = tokens(currentLine)
+        const preCard = s1 + quantity + s2
+        const postCard = s3 + tags
+        return {
+            lines: lines,
+            preCard: preCard,
+            card: card,
+            postCard: postCard,
+            linePosition: linePosition,
+            currentLine: linesBeforeStart.length - 1,
+        }
+    }
+
     @bind
     private input(e: Event): void {
         const textarea = e.target as HTMLTextAreaElement
         const deck = textarea.value
-        const start = textarea.selectionStart
 
-        const linesBeforeStart = deck.slice(0, start).split('\n')
-        const linePosition = linesBeforeStart[linesBeforeStart.length - 1].length
-        const currentLine = deck.split('\n')[linesBeforeStart.length - 1]
-        const [s1, quantity, s2, card] = tokens(currentLine)
-        const preCard = s1 + quantity + s2
+        const { linePosition, preCard, card, currentLine } = this.info(textarea)
 
         let currentCard: string | undefined
         if (linePosition > preCard.length && linePosition <= preCard.length + card.length) {
             currentCard = card
         }
 
-        const a = document.querySelector('.autocomplete') as HTMLElement
-
-        if (a) {
-            a.style.setProperty('--x', String(linePosition))
-            a.style.setProperty('--y', String(linesBeforeStart.length))
+        const autocomplete = document.querySelector<HTMLElement>('.autocomplete')
+        if (autocomplete) {
+            autocomplete.style.setProperty('--x', String(linePosition))
+            autocomplete.style.setProperty('--y', String(currentLine))
         }
         this.setState({
             deck: deck,
             currentCard: currentCard,
-            autocomplete: {
-                ...this.state.autocomplete,
-                x: linePosition,
-                y: linesBeforeStart.length - 1,
-            },
         })
     }
 
     @bind
     private keydown(e: KeyboardEvent): void {
-        if (this.state.autocompleteOpen) {
+        const newState: State = { ...this.state }
+        const textarea = e.target as HTMLTextAreaElement
+
+        const { lines, preCard, postCard, currentLine } = this.info(textarea)
+
+        if (this.state.autocompleteOpen && this.state.currentCard !== undefined) {
             if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
                 e.preventDefault()
 
-                const autocomplete = { ...this.state.autocomplete }
-                let open = true
                 switch (e.key) {
                     case 'ArrowDown':
-                        autocomplete.selected += 1
+                        newState.autocompleteSelected += 1
                         break
                     case 'ArrowUp':
-                        autocomplete.selected -= 1
+                        newState.autocompleteSelected -= 1
                         break
                     case 'Enter':
                     case 'Tab':
+                        const c = this.results[newState.autocompleteSelected]
 
-                        autocomplete.selected = 0
+                        newState.deck = lines.map((line, i) => {
+                            if (i !== currentLine) {
+                                return line
+                            }
+                            return preCard + c.name + postCard
+                        }).join('\n')
 
-                        open = false
+                        const newLines = newState.deck.split('\n')
+                        let start = 0
+                        for (let i = 0; i <= currentLine; i++) {
+                            start += newLines[i].length
+                        }
+                        textarea.value = newState.deck
+                        textarea.setSelectionRange(start, start)
+
+                        newState.autocompleteSelected = 0
+
+                        // newState.autocompleteOpen = false
                         break
                     case 'Escape':
-                        open = false
+                        // newState.autocompleteOpen = false
                         break
                 }
-                this.setState({
-                    autocomplete: autocomplete,
-                    // autocompleteOpen: open,
-                })
             }
         }
+        this.setState(newState)
+    }
+
+    @bind
+    private autocompleteNewResults(results: DBCard[]): void {
+        this.results = results
     }
 }
 
@@ -145,18 +176,10 @@ async function cards(deck: string): Promise<Array<{ quantity: number, card: DBCa
 interface AutocompleteProps {
     name: string
     selected: number
-    x: number
-    y: number
-    // onNewResults: (results: DBCard[]) => void
+    onNewResults: (results: DBCard[]) => void
 }
 
-const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div
-    class='autocomplete'
-    style={{
-        '--x': String(props.y),
-        '--y': String(props.x),
-    }}
->
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class='autocomplete' >
     <Async
         promise={searchCards(props.name)}
         // tslint:disable-next-line: jsx-no-lambda
@@ -171,7 +194,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div
             if (result.result.length === 0) {
                 return 'no cards'
             }
-            // props.onNewResults(result.result)
+            props.onNewResults(result.result)
             return <div class='options' >
                 {result.result.map((c, i) => <div
                     key={c.id}
