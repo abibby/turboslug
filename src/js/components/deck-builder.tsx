@@ -11,7 +11,7 @@ interface Props {
 }
 interface State {
     deck: string
-    autocomplete: Pick<AutocompleteProps, 'name' | 'selected'>
+    autocomplete: Pick<AutocompleteProps, 'name' | 'selected' | 'x' | 'y'>
     autocompleteOpen: boolean
     currentCard: string | undefined
 }
@@ -25,6 +25,8 @@ export default class DeckBuilder extends Component<Props, State> {
             autocomplete: {
                 name: '',
                 selected: 0,
+                x: 0,
+                y: 0,
             },
             autocompleteOpen: true,
             currentCard: undefined,
@@ -41,7 +43,11 @@ export default class DeckBuilder extends Component<Props, State> {
         }
         return <div class='deck-builder' >
             <div className='editor'>
-                <textarea class='text' onInput={this.input} onKeyDown={this.keydown} />
+                <textarea
+                    class='text'
+                    onInput={this.input}
+                // onKeyDown={this.keydown}
+                />
                 <Deck deck={this.state.deck} />
             </div>
             {autocomplete}
@@ -65,9 +71,20 @@ export default class DeckBuilder extends Component<Props, State> {
             currentCard = card
         }
 
+        const a = document.querySelector('.autocomplete') as HTMLElement
+
+        if (a) {
+            a.style.setProperty('--x', String(linePosition))
+            a.style.setProperty('--y', String(linesBeforeStart.length))
+        }
         this.setState({
             deck: deck,
             currentCard: currentCard,
+            autocomplete: {
+                ...this.state.autocomplete,
+                x: linePosition,
+                y: linesBeforeStart.length - 1,
+            },
         })
     }
 
@@ -128,10 +145,18 @@ async function cards(deck: string): Promise<Array<{ quantity: number, card: DBCa
 interface AutocompleteProps {
     name: string
     selected: number
+    x: number
+    y: number
     // onNewResults: (results: DBCard[]) => void
 }
 
-const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class='autocomplete' >
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div
+    class='autocomplete'
+    style={{
+        '--x': String(props.y),
+        '--y': String(props.x),
+    }}
+>
     <Async
         promise={searchCards(props.name)}
         // tslint:disable-next-line: jsx-no-lambda
@@ -147,7 +172,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class
                 return 'no cards'
             }
             // props.onNewResults(result.result)
-            return <div class='options'>
+            return <div class='options' >
                 {result.result.map((c, i) => <div
                     key={c.id}
                     class={i === props.selected ? 'selected' : ''}

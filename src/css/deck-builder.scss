@@ -1,7 +1,12 @@
 @import './variables';
 
 .deck-builder {
+    position: relative;
+    font-family: monospace;
+    font-size: 16px;
+
     .editor {
+        $line-height: 1.25em;
 
         border: solid 1px $border-color;
         padding: 3px;
@@ -16,7 +21,7 @@
         padding: 0px;
         overflow: hidden;
 
-        .text {
+        @mixin editor {
             margin: 0px;
             border: 0px;
             background: none;
@@ -36,6 +41,14 @@
             white-space: inherit;
             word-break: inherit;
             overflow-wrap: inherit;
+            padding: 10px;
+            line-height: $line-height;
+            letter-spacing: 0;
+        }
+
+        .text {
+            @include editor;
+
             position: absolute;
             top: 0px;
             left: 0px;
@@ -46,37 +59,14 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -webkit-text-fill-color: transparent;
-            padding: 10px;
         }
 
         .deck {
-            margin: 0px;
-            border: 0px;
-            background: none;
-            box-sizing: inherit;
-            display: inherit;
-            font-family: inherit;
-            font-size: inherit;
-            font-style: inherit;
-            font-variant-ligatures: inherit;
-            font-weight: inherit;
-            letter-spacing: inherit;
-            line-height: inherit;
-            tab-size: inherit;
-            text-indent: inherit;
-            text-rendering: inherit;
-            text-transform: inherit;
-            white-space: inherit;
-            word-break: inherit;
-            overflow-wrap: inherit;
+            @include editor;
+
             position: relative;
             pointer-events: none;
-            padding: 10px;
-
-            // background: lightgray;
             white-space: pre;
-            pointer-events: none;
-            font-size: inherit;
 
             .row {
                 display: block;
@@ -118,9 +108,13 @@
     .autocomplete {
         position: absolute;
 
+        top: calc(var(--y) * $line-height);
+        left: calc(var(--x) * 1ch);
         border: solid #ccc 1px;
         background-color: white;
         z-index: 10;
+
+        margin: -10px 10px;
 
         .options {
             .selected {
