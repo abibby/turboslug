@@ -1,9 +1,8 @@
-import { Deck } from 'js/deck'
 import LocalStore from 'js/save/local-store'
 
 export interface DeckStore {
-    save(name: string, deck: Deck): Promise<void>
-    load(name: string): Promise<Deck | undefined>
+    save(name: string, deck: string): Promise<void>
+    load(name: string): Promise<string | undefined>
     list(): Promise<string[]>
 }
 

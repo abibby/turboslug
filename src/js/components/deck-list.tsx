@@ -1,7 +1,7 @@
 import 'css/deck-list.scss'
 import { bind } from 'decko'
 import { collect, range } from 'js/collection'
-import { Deck, Slot } from 'js/deck'
+import { Slot } from 'js/deck'
 import { Component, ComponentChild, FunctionalComponent, h, options } from 'preact'
 
 const colorLookup = {
@@ -13,7 +13,7 @@ const colorLookup = {
 }
 
 interface Props {
-    deck: Deck
+    deck: Slot[]
 }
 interface State {
     groupBy: (slot: Slot) => string
@@ -70,7 +70,7 @@ export default class DeckList extends Component<Props, State> {
                     {Object.entries(this.groups).map(([name]) => <option key={name}>{name}</option>)}
                 </select>
             </div>
-            {collect(this.props.deck)
+            {collect(this.props.deck.filter(slot => slot.card.id !== ''))
                 .groupBy(this.state.groupBy)
                 .sortBy(([name]) => name)
                 .map(([name, deck]) => (
@@ -89,13 +89,13 @@ export default class DeckList extends Component<Props, State> {
     }
 }
 
-const CardList: FunctionalComponent<{ deck: Deck }> = props => <div class='deck-list'>
+const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='deck-list'>
     {props.deck.map(slot => (
         <div
             key={slot.card.id}
             class='slot'
         >
-            {range(slot.quantity).map(i => (
+            {range(Math.min(slot.quantity, 4)).map(i => (
                 <div key={i} class='card' >
                     <img
                         src={slot.card.image_url}

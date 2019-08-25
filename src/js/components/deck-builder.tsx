@@ -1,13 +1,15 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
 import { keys } from 'idb-keyval'
-import { DBCard, findCard, searchCards } from 'js/database'
+import { DBCard, findCard, newCard, searchCards } from 'js/database'
+import { Slot } from 'js/deck'
 import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 
 interface Props {
     deck?: string
+    onChange?: (deck: string) => void
 }
 interface State {
     deck: string
@@ -22,7 +24,7 @@ export default class DeckBuilder extends Component<Props, State> {
         super(props)
 
         this.state = {
-            deck: '',
+            deck: this.props.deck || '',
             autocompleteSelected: 0,
             currentCard: undefined,
         }
@@ -49,6 +51,14 @@ export default class DeckBuilder extends Component<Props, State> {
             </div>
             {autocomplete}
         </div>
+    }
+
+    public componentDidUpdate(previousProps: Props): void {
+        if (this.props.deck !== undefined && previousProps.deck !== this.props.deck) {
+            this.setState({
+                deck: this.props.deck,
+            })
+        }
     }
 
     // tslint:disable-next-line: typedef
@@ -91,6 +101,11 @@ export default class DeckBuilder extends Component<Props, State> {
             autocomplete.style.setProperty('--x', String(linePosition))
             autocomplete.style.setProperty('--y', String(currentLine))
         }
+
+        if (this.props.onChange) {
+            this.props.onChange(deck)
+        }
+
         this.setState({
             deck: deck,
             currentCard: currentCard,
@@ -145,6 +160,10 @@ export default class DeckBuilder extends Component<Props, State> {
                     newState.autocompleteSelected = 0
 
                     newState.currentCard = undefined
+
+                    if (this.props.onChange) {
+                        this.props.onChange(newState.deck)
+                    }
                     break
                 case 'Escape':
                     e.preventDefault()
@@ -177,6 +196,10 @@ export default class DeckBuilder extends Component<Props, State> {
                 start -= comment.length
             }
             textarea.setSelectionRange(start, start)
+
+            if (this.props.onChange) {
+                this.props.onChange(newState.deck)
+            }
         }
 
         this.setState(newState)
@@ -186,25 +209,6 @@ export default class DeckBuilder extends Component<Props, State> {
     private autocompleteNewResults(results: DBCard[]): void {
         this.results = results
     }
-}
-
-async function cards(deck: string): Promise<Array<{ quantity: number, card: DBCard | undefined, tags: string[] }>> {
-    const c = deck
-        .split('\n')
-        .map(row => row.match(/^(?:(\d+)x?)?([^#]*)(.*)$/i))
-        .map(matches => matches || [])
-        .map(matches => ({
-            quantity: Number(matches[1] || 1),
-            card: (matches[2] || '').trim(),
-            tags: ((matches[3] || '').match(/#[^\s]*/g) || []),
-        }))
-
-    const dbCards = await Promise.all(c.map(card => findCard(card.card)))
-
-    return c.map((card, i) => ({
-        ...card,
-        card: dbCards[i],
-    }))
 }
 
 interface AutocompleteProps {
@@ -242,7 +246,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class
 </div>
 
 const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
-function tokens(src: string): string[] {
+export function tokens(src: string): string[] {
     const matches = tokenRE.exec(src)
     if (!matches) {
         return []

@@ -3,7 +3,5 @@ import { DBCard } from './database'
 export interface Slot {
     quantity: number
     card: DBCard
-    tags?: string[]
+    tags: string[]
 }
-
-export type Deck = Slot[]

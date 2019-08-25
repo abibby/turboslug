@@ -268,3 +268,18 @@ function toDBCard(c: Card): DBCard {
         type: c.type_line,
     }
 }
+
+export function newCard(name: string): DBCard {
+    return {
+        id: 'custom-' + name,
+        name: name,
+        oracle_text: '',
+        mana_cost: '',
+        set: '',
+        type: 'Unknown',
+        image_url: '',
+        color_identity: [],
+        legalities: [],
+        cmc: 0,
+    }
+}
