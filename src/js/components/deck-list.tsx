@@ -16,43 +16,44 @@ interface Props {
     deck: Slot[]
 }
 interface State {
-    groupBy: (slot: Slot) => string
+    groupBy: (slot: Slot) => string[]
 }
 export default class DeckList extends Component<Props, State> {
-    private readonly groups: { [name: string]: (slot: Slot) => string } = {
+    private readonly groups: { [name: string]: (slot: Slot) => string[] } = {
         Type: slot => {
             const type = slot.card.type.split(' — ')[0]
 
             if (type.includes('Creature')) {
-                return 'Creature'
+                return ['Creature']
             } else if (type.includes('Land')) {
-                return 'Land'
+                return ['Land']
             } else if (type.includes('Artifact')) {
-                return 'Artifact'
+                return ['Artifact']
             } else if (type.includes('Enchantment')) {
-                return 'Enchantment'
+                return ['Enchantment']
             } else if (type.includes('Planeswalker')) {
-                return 'Planeswalker'
+                return ['Planeswalker']
             } else if (type.includes('Instant')) {
-                return 'Instant'
+                return ['Instant']
             } else if (type.includes('Sorcery')) {
-                return 'Sorcery'
+                return ['Sorcery']
             }
 
-            return type
+            return [type]
         },
         Color: slot => {
             switch (slot.card.color_identity.length) {
                 case 0:
-                    return 'Colorless'
+                    return ['Colorless']
                 case 1:
-                    return colorLookup[slot.card.color_identity[0]]
+                    return [colorLookup[slot.card.color_identity[0]]]
                 default:
-                    return 'Gold'
+                    return ['Gold']
             }
         },
-        CMC: slot => slot.card.cmc + '',
-        None: slot => 'Cards',
+        CMC: slot => [slot.card.cmc + ''],
+        None: slot => ['Cards'],
+        Tags: slot => slot.tags || [],
     }
 
     constructor(props: Props) {
@@ -71,7 +72,7 @@ export default class DeckList extends Component<Props, State> {
                 </select>
             </div>
             {collect(this.props.deck.filter(slot => slot.card.id !== ''))
-                .groupBy(this.state.groupBy)
+                .multiGroupBy(this.state.groupBy)
                 .sortBy(([name]) => name)
                 .map(([name, deck]) => (
                     <div key={name}>

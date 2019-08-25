@@ -39,14 +39,20 @@ export class Collection<T> implements Iterable<T> {
     }
 
     public groupBy<U>(callback: (element: T) => U): Collection<[U, Collection<T>]> {
+        return this.multiGroupBy(e => [callback(e)])
+    }
+
+    public multiGroupBy<U>(callback: (element: T) => U[]): Collection<[U, Collection<T>]> {
         const m: Map<U, Collection<T>> = new Map()
         for (const element of this) {
-            const key = callback(element)
-            let sub = m.get(key)
-            if (sub === undefined) {
-                sub = collect([])
+            const keys = callback(element)
+            for (const key of keys) {
+                let sub = m.get(key)
+                if (sub === undefined) {
+                    sub = collect([])
+                }
+                m.set(key, sub.concat([element]))
             }
-            m.set(key, sub.concat([element]))
         }
         return collect(m)
     }
