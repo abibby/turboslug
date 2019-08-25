@@ -195,8 +195,8 @@ export default class DeckBuilder extends Component<Props, State> {
             } else {
                 start -= comment.length
             }
+            textarea.value = newState.deck
             textarea.setSelectionRange(start, start)
-
             if (this.props.onChange) {
                 this.props.onChange(newState.deck)
             }
