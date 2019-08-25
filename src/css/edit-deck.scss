@@ -1,0 +1,31 @@
+.edit-deck {
+    display: grid;
+    grid-template-columns: auto 300px;
+    grid-template-rows: auto;
+    grid-gap: 10px;
+    grid-template-areas:
+        "title title"
+        "builder stats"
+        "list stats ";
+
+    .title {
+        grid-area: title;
+    }
+
+    .deck-builder {
+        grid-area: builder;
+    }
+
+    .stats-wrapper {
+        grid-area: stats;
+
+        .deck-stats {
+            position: sticky;
+            top: 5px;
+        }
+    }
+
+    .deck-list {
+        grid-area: list;
+    }
+}

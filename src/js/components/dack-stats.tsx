@@ -1,4 +1,5 @@
 import 'css/deck-stats.scss'
+import { collect } from 'js/collection'
 import { Slot } from 'js/deck'
 import { FunctionalComponent, h } from 'preact'
 import { ManaSymbol, splitSymbols } from './mana-cost'
@@ -7,7 +8,7 @@ interface Props {
     deck: Slot[]
 }
 
-const DeckStats: FunctionalComponent<Props> = props => <div>
+const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
     count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
     <table>
         <tr>
@@ -22,6 +23,21 @@ const DeckStats: FunctionalComponent<Props> = props => <div>
                     <td><ManaBar symbol={symbol} persentage={land} /></td>
                 </tr>
             ))}
+    </table>
+    <table>
+        <tr>
+            <th>Tag</th>
+            <th>Quantity</th>
+        </tr>
+        {collect(props.deck)
+            .multiGroupBy(slot => slot.tags)
+            .map(([name, slots]) => <tr key={name}>
+                <td>{name}</td>
+                <td>
+                    {slots.reduce((total, slot) => total + slot.quantity, 0)}
+                </td>
+            </tr>)
+            .toArray()}
     </table>
 </div>
 

@@ -5,8 +5,9 @@
     font-family: monospace;
     font-size: 16px;
 
+    $line-height: 1.25em;
+
     .editor {
-        $line-height: 1.25em;
 
         border: solid 1px $border-color;
         padding: 3px;
@@ -76,34 +77,15 @@
                 }
 
                 .card {
-                    position: relative;
-                    color: blue;
-
-                    .popup {
-                        display: none;
-                    }
-
-                    &:hover .popup {
-                        display: block;
-                        position: absolute;
-
-                        border: solid 1px #333;
-                        width: 200px;
-
-                        img {
-                            width: 100%;
-                        }
-                    }
+                    // color: blue;
                 }
 
                 .tag {
-                    background-color: cornflowerblue;
-                    border-radius: 3px;
-                    color: white;
+                    color: cornflowerblue;
                 }
 
                 .comment {
-                    color: lightcoral;
+                    color: lightgrey;
                 }
             }
         }
@@ -111,8 +93,7 @@
 
     .autocomplete {
         position: absolute;
-
-        top: calc(var(--y) * $line-height);
+        top: calc((var(--y) + 2) * #{$line-height});
         left: calc(var(--x) * 1ch);
         border: solid #ccc 1px;
         background-color: white;

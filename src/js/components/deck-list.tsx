@@ -14,6 +14,7 @@ const colorLookup = {
 
 interface Props {
     deck: Slot[]
+    groupBy?: string
 }
 interface State {
     groupBy: (slot: Slot) => string[]
@@ -58,13 +59,21 @@ export default class DeckList extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props)
+
+        const groupByEntry = Object.entries(this.groups)
+            .find(([name]) => (this.props.groupBy || '').toLowerCase() === name.toLowerCase())
+
+        let groupBy = this.groups.Type
+        if (groupByEntry) {
+            groupBy = groupByEntry[1]
+        }
         this.state = {
-            groupBy: this.groups.Type,
+            groupBy: groupBy,
         }
     }
 
     public render(): ComponentChild {
-        return <div>
+        return <div class='deck-list'>
             <div>
                 Group by:
                 <select onChange={this.groupChange}>
@@ -79,7 +88,7 @@ export default class DeckList extends Component<Props, State> {
                         <h2>{name} ({deck.reduce((total, slot) => total + slot.quantity, 0)})</h2>
                         <CardList deck={deck.toArray().sort((a, b) => a.card.name.localeCompare(b.card.name))} />
                     </div>
-                )).toArray()}
+                )).toArray()}G
         </div>
     }
 
@@ -90,7 +99,7 @@ export default class DeckList extends Component<Props, State> {
     }
 }
 
-const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='deck-list'>
+const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='deck-list-group'>
     {props.deck.map(slot => (
         <div
             key={slot.card.id}

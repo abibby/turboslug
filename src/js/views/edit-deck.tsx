@@ -1,3 +1,4 @@
+import 'css/edit-deck.scss'
 import { bind } from 'decko'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
@@ -11,6 +12,7 @@ import { Component, ComponentChild, h } from 'preact'
 interface Props {
     matches?: {
         name: string,
+        type?: string,
     }
 }
 
@@ -33,14 +35,16 @@ export default class EditDeck extends Component<Props, State> {
         this.loadDeck()
     }
     public render(): ComponentChild {
-        return <Layout>
-            <h1>Edit Deck</h1>
+        return <Layout class='edit-deck'>
+            <h1 class='title'>Edit Deck</h1>
             <DeckBuilder
                 deck={this.state.deck}
                 onChange={this.deckChange}
             />
-            <DeckStats deck={this.state.slots} />
-            <DeckList deck={this.state.slots} />
+            <div class='stats-wrapper'>
+                <DeckStats deck={this.state.slots} />
+            </div>
+            <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} />
         </Layout>
     }
 
@@ -60,7 +64,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     private async loadDeck(): Promise<void> {
-        const deck = String(await this.store.load(this.props.matches!.name))
+        const deck = (await this.store.load(this.props.matches!.name)) || ''
         this.setState({ deck: deck })
         const slots = await cards(deck)
         this.setState({ slots: slots })
@@ -77,7 +81,7 @@ async function cards(deck: string): Promise<Slot[]> {
         .map(([, quantity, , card, , tags]) => ({
             quantity: quantity !== '' ? Number(quantity) : 1,
             card: card,
-            tags: (tags.match(/#[^\s]*/g) || []),
+            tags: (tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')),
         }))
 
     const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
