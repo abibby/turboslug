@@ -101,6 +101,10 @@
 
         margin: -10px 10px;
 
+        &.hidden {
+            display: none;
+        }
+
         .options {
             .selected {
                 background-color: lightblue;

@@ -1,9 +1,6 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { keys } from 'idb-keyval'
-import { DBCard, findCard, newCard, searchCards } from 'js/database'
-import { Slot } from 'js/deck'
-import { relativeOffset, relativePosition, relativeRange, setRange } from 'js/selection'
+import { DBCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 
@@ -31,14 +28,6 @@ export default class DeckBuilder extends Component<Props, State> {
 
     }
     public render(): ComponentChild {
-        let autocomplete
-        if (this.state.currentCard !== undefined) {
-            autocomplete = <Autocomplete
-                name={this.state.currentCard}
-                selected={this.state.autocompleteSelected}
-                onNewResults={this.autocompleteNewResults}
-            />
-        }
         return <div class='deck-builder' >
             <div className='editor'>
                 <textarea
@@ -49,7 +38,12 @@ export default class DeckBuilder extends Component<Props, State> {
                 />
                 <Deck deck={this.state.deck} />
             </div>
-            {autocomplete}
+            <Autocomplete
+                hidden={this.state.currentCard === undefined}
+                name={this.state.currentCard || ''}
+                selected={this.state.autocompleteSelected}
+                onNewResults={this.autocompleteNewResults}
+            />
         </div>
     }
 
@@ -97,6 +91,7 @@ export default class DeckBuilder extends Component<Props, State> {
         }
 
         const autocomplete = document.querySelector<HTMLElement>('.autocomplete')
+        console.log(deck, autocomplete)
         if (autocomplete) {
             autocomplete.style.setProperty('--x', String(linePosition))
             autocomplete.style.setProperty('--y', String(currentLine))
@@ -214,36 +209,38 @@ export default class DeckBuilder extends Component<Props, State> {
 interface AutocompleteProps {
     name: string
     selected: number
+    hidden: boolean
     onNewResults: (results: DBCard[]) => void
 }
 
-const Autocomplete: FunctionalComponent<AutocompleteProps> = props => <div class='autocomplete' >
-    <Async
-        promise={searchCards(props.name)}
-        // tslint:disable-next-line: jsx-no-lambda
-        result={result => {
-            if (result.loading) {
-                return 'Loading...'
-            }
-            if (result.error) {
-                return result.error.toString()
-            }
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
+    <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`} >
+        <Async
+            promise={searchCards(props.name)}
+            // tslint:disable-next-line: jsx-no-lambda
+            result={result => {
+                if (result.loading) {
+                    return 'Loading...'
+                }
+                if (result.error) {
+                    return result.error.toString()
+                }
 
-            if (result.result.length === 0) {
-                return 'no cards'
-            }
-            props.onNewResults(result.result)
-            return <div class='options' >
-                {result.result.map((c, i) => <div
-                    key={c.id}
-                    class={i === props.selected ? 'selected' : ''}
-                >
-                    {c.name}
-                </div>)}
-            </div>
-        }}
-    />
-</div>
+                if (result.result.length === 0) {
+                    return 'no cards'
+                }
+                props.onNewResults(result.result)
+                return <div class='options' >
+                    {result.result.map((c, i) => <div
+                        key={c.id}
+                        class={i === props.selected ? 'selected' : ''}
+                    >
+                        {c.name}
+                    </div>)}
+                </div>
+            }}
+        />
+    </div>
 
 const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
 export function tokens(src: string): string[] {

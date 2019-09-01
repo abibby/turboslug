@@ -38,7 +38,7 @@ type QueryDefinition<T> = {
 const allCards: DBCard[] = []
 
 addEventListener('message', async  e => {
-    postMessage(await runFunction(e.data), undefined)
+    postMessage(await runFunction(e.data), undefined as any)
 })
 
 async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> {
