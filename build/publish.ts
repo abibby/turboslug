@@ -8,9 +8,9 @@ import { downloadCards } from './cards'
 const webpack = require('webpack')
 const config = require('../webpack.config')
 
-function pack() {
+function pack(): Promise<void> {
     return new Promise((resolve, reject) => {
-        webpack(config({}, { mode: 'production' }), async (err: Error, stats: any) => { // Stats Object
+        webpack(config({}, { mode: 'production' }), async (err: Error, stats: any) => {
             if (err || stats.hasErrors()) {
                 reject(err || new Error('build failed'))
                 return
@@ -20,7 +20,7 @@ function pack() {
     })
 }
 
-function publish(basePath: string) {
+function publish(basePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
         ghPublish(basePath, err => {
             if (err !== undefined) {
@@ -32,13 +32,13 @@ function publish(basePath: string) {
     })
 }
 
-function deleteFolderRecursive(path: string) {
+function deleteFolderRecursive(path: string): void {
     if (fs.existsSync(path)) {
         for (const file of fs.readdirSync(path)) {
             const curPath = path + '/' + file
-            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+            if (fs.lstatSync(curPath).isDirectory()) {
                 deleteFolderRecursive(curPath)
-            } else { // delete file
+            } else {
                 fs.unlinkSync(curPath)
             }
         }
@@ -50,6 +50,7 @@ function deleteFolderRecursive(path: string) {
     deleteFolderRecursive('dist')
     await pack()
     await downloadCards()
+    fs.writeFileSync('dist/CNAME', 'turboslug.app\n')
     await publish('dist')
     console.log('uploaded successfully')
 })()

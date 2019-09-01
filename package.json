@@ -38,15 +38,18 @@
     "uglifyjs-webpack-plugin": "^1.0.0-rc.0",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
-    "workbox-webpack-plugin": "^4.3.1"
+    "workbox-webpack-plugin": "^4.3.1",
+    "worker-loader": "^2.0.0"
   },
   "dependencies": {
     "@types/history": "^4.7.2",
+    "comlink": "^4.0.2",
     "decko": "^1.2.0",
     "history": "^4.9.0",
     "idb-keyval": "^3.2.0",
     "node-fetch": "^2.6.0",
     "preact": "^8.4.2",
-    "preact-router": "^2.6.1"
+    "preact-router": "^2.6.1",
+    "worker-plugin": "^3.2.0"
   }
 }
