@@ -6,6 +6,7 @@ import { Component, ComponentChild, h, render } from 'preact'
 import Router from 'preact-router'
 import Loader from './components/loader'
 import EditDeck from './views/edit-deck'
+import Help from './views/help';
 
 interface State {
     progress: number
@@ -32,6 +33,7 @@ class Index extends Component<{}, State> {
         }
         return <Router history={createHashHistory()}>
             <Home path='/' />
+            <Help path='/help' />
             <EditDeck path='/edit/:name/:type?' />
         </Router>
     }

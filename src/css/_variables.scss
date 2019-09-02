@@ -1,5 +1,17 @@
-$text-color: #333;
-$light-text-color: rgba($text-color, 0.7);
+$text-white: rgba(white, 0.8);
+$text-black: rgba(black, 0.8);
+
+$text-color: $text-black;
+$light-text-color: rgba($text-color, 0.4);
 $background-color: #eee;
 $surface-color: #fff;
 $border-color: #ddd;
+
+$primary: #26547C;
+$on-primary: $text-white;
+
+$secondary: #9DBEBB;
+$on-secondary: $text-white;
+
+$dark: #031926;
+$on-dark: $text-black;

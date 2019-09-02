@@ -1,1 +1,32 @@
-.container {}
+@import './variables';
+
+$nav-height: 30px;
+
+.nav {
+    $padding: 5px;
+
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    height: $nav-height - 2 * $padding;
+    background-color: $primary;
+    z-index: 10;
+
+    padding: $padding;
+    line-height: $nav-height - 2 * $padding;
+
+    .link {
+        color: $on-primary;
+        padding: $padding 0.5ch;
+        margin: #{$padding * -1} 0;
+
+        &:hover {
+            background: rgba($secondary, 0.5);
+        }
+    }
+}
+
+.content {
+    padding-top: $nav-height;
+}

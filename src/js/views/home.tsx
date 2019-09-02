@@ -21,7 +21,7 @@ export default class Home extends Component<{}, State> {
     }
     public render(): ComponentChild {
         return <Layout>
-            <h1>Home</h1>
+            <h1>Turbo Slug</h1>
 
             <h2>New Deck</h2>
 

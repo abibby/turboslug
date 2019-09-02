@@ -80,7 +80,7 @@ export default class DeckList extends Component<Props, State> {
                     {Object.entries(this.groups).map(([name]) => <option key={name}>{name}</option>)}
                 </select>
             </div>
-            {collect(this.props.deck.filter(slot => slot.card.id !== ''))
+            {collect(this.props.deck.filter(slot => slot.card.id !== '' && slot.card.name !== ''))
                 .multiGroupBy(this.state.groupBy)
                 .sortBy(([name]) => name)
                 .map(([name, deck]) => (
@@ -88,7 +88,7 @@ export default class DeckList extends Component<Props, State> {
                         <h2>{name} ({deck.reduce((total, slot) => total + slot.quantity, 0)})</h2>
                         <CardList deck={deck.toArray().sort((a, b) => a.card.name.localeCompare(b.card.name))} />
                     </div>
-                )).toArray()}G
+                )).toArray()}
         </div>
     }
 

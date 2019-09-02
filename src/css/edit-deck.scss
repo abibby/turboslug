@@ -1,3 +1,5 @@
+@import './layout';
+
 .edit-deck {
     display: grid;
     grid-template-columns: auto 300px;
@@ -21,7 +23,7 @@
 
         .deck-stats {
             position: sticky;
-            top: 5px;
+            top: 5px + $nav-height;
         }
     }
 

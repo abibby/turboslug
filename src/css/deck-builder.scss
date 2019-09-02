@@ -77,7 +77,7 @@
                 display: block;
 
                 .quantity {
-                    color: red;
+                    color: $primary;
                 }
 
                 .card {
@@ -85,7 +85,7 @@
                 }
 
                 .tag {
-                    color: cornflowerblue;
+                    color: $secondary;
                 }
 
                 .mana-cost {
@@ -125,7 +125,7 @@
                 }
 
                 .comment {
-                    color: lightgrey;
+                    color: $light-text-color;
                 }
 
                 &.even {
@@ -140,7 +140,7 @@
         top: calc((var(--y) + 2) * #{$line-height});
         left: calc(var(--x) * 1ch);
         border: solid #ccc 1px;
-        background-color: white;
+        background-color: $surface-color;
         z-index: 10;
         width: 500px;
 
@@ -157,7 +157,7 @@
                 overflow: hidden;
 
                 &.selected {
-                    background-color: lightblue;
+                    background-color: $primary;
                 }
             }
         }
