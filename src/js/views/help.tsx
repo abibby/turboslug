@@ -6,17 +6,14 @@ export default class Help extends Component {
     public render(): ComponentChild {
         return <Layout>
             <h1>Help</h1>
-            <h2>Shortcuts</h2>
-            <table>
-                <tr>
-                    <th>Shortcut</th>
-                    <th>Action</th>
-                </tr>
-                <tr>
-                    <td>ctrl + /</td>
-                    <td>Comment line</td>
-                </tr>
-            </table>
+            <h2>Syntax</h2>
+            <p>
+                Each row in the deck editor represents one card in your deck. The
+                row can start with a number and an optional x for the quantity of that card, or
+                nothing if there is only one, then the name of the card, and
+                finally a list of tags each starting with a hash.
+                e.g. <Code>1 Ponder #cantrip</Code> or <Code>3x Stomping Ground</Code> or <Code>Force of Will</Code>
+            </p>
             <h2>Searching</h2>
             <p>
                 When typing in the deck editor you can use a simple search
