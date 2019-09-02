@@ -27,7 +27,7 @@ async function runFunction(message: DatabaseMessage): Promise<any> {
         const onMessage = (e: MessageEvent) => {
             const response: DatabaseResponse = e.data
 
-            if (JSON.stringify(response.message) === JSON.stringify(message)) {
+            if (response.type === 'function' && JSON.stringify(response.message) === JSON.stringify(message)) {
                 resolve(response.value)
                 worker.removeEventListener('message', onMessage)
             }
@@ -52,10 +52,23 @@ export async function searchCards(query: string): Promise<DBCard[]> {
 }
 
 export async function loadDB(progress?: (count: number, total: number) => void): Promise<void> {
-    return runFunction({
+    let onProgress: ((e: MessageEvent) => void) | undefined
+    if (progress) {
+        onProgress = e => {
+            const response: DatabaseResponse = e.data
+            if (response.type !== 'partial') {
+                return
+            }
+            progress(response.current, response.total)
+        }
+        worker.addEventListener('message', onProgress)
+    }
+    await runFunction({
         function: 'loadDB',
     })
-
+    if (onProgress) {
+        worker.removeEventListener('message', onProgress)
+    }
 }
 
 export function newCard(name: string): DBCard {

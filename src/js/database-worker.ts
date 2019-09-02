@@ -15,9 +15,17 @@ export interface LoadDBMessage {
     function: 'loadDB'
 }
 
-export interface DatabaseResponse {
+export type DatabaseResponse = FunctionResponse | LoadingResponse
+export interface FunctionResponse {
+    type: 'function'
     message: DatabaseMessage
     value: any
+}
+export interface LoadingResponse {
+    type: 'partial'
+    name: 'loadDB' | 'loadNetwork'
+    current: number
+    total: number
 }
 
 interface QueryArgs {
@@ -46,18 +54,21 @@ async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> 
         case 'findCard':
             const card = findCard(message.name)
             return {
+                type: 'function',
                 message: message,
                 value: card,
             }
         case 'searchCards':
             const cards = searchCards(message.query)
             return {
+                type: 'function',
                 message: message,
                 value: cards,
             }
         case 'loadDB':
             await loadDB()
             return {
+                type: 'function',
                 message: message,
                 value: undefined,
             }
@@ -214,9 +225,9 @@ async function getCards(index: number): Promise<Card[]> {
     return await get(`chunk-${index}`) || []
 }
 
-async function loadDB(progress?: (count: number, total: number) => void): Promise<void> {
+async function loadDB(): Promise<void> {
     try {
-        await loadNetwork(progress)
+        await loadNetwork()
     } catch (e) {
         // tslint:disable-next-line: no-console
         console.warn(`failed to load cards from network ${e}`)
@@ -229,16 +240,19 @@ async function loadDB(progress?: (count: number, total: number) => void): Promis
         const cards = await getCards(chunk.index)
         allCards.push(...cards.map(toDBCard))
 
-        if (progress) {
-            progress(i + 1, chunks.length)
-        }
+        updateLoading({
+            type: 'partial',
+            name: 'loadDB',
+            current: i + 1,
+            total: chunks.length,
+        })
         i++
     }
     allCards.sort((a, b) => a.name.localeCompare(b.name))
 
 }
 
-async function loadNetwork(progress?: (count: number, total: number) => void): Promise<void> {
+async function loadNetwork(): Promise<void> {
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
     let localChunks: Chunk[] = await getChunks()
     let i = 0
@@ -257,12 +271,19 @@ async function loadNetwork(progress?: (count: number, total: number) => void): P
         setCards(chunk.index, cards.filter(card => ['normal', 'transform'].includes(card.layout)))
         localChunks.push(chunk)
 
-        if (progress) {
-            progress(i + 1, chunks.length)
-        }
+        updateLoading({
+            type: 'partial',
+            name: 'loadNetwork',
+            current: i + 1,
+            total: chunks.length,
+        })
         i++
     }
     await setChunks(localChunks)
+}
+
+function updateLoading(message: LoadingResponse): void {
+    postMessage(message, undefined as any)
 }
 
 function toDBCard(c: Card): DBCard {
