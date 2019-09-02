@@ -105,6 +105,7 @@ const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='dec
             key={slot.card.id}
             class='slot'
         >
+            {slot.quantity > 4 ? <div class='quantity'>&times;{slot.quantity}</div> : null}
             {range(Math.min(slot.quantity, 4)).map(i => (
                 <div key={i} class='card' >
                     <img

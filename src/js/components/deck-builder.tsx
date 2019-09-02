@@ -37,6 +37,7 @@ export default class DeckBuilder extends Component<Props, State> {
                     onInput={this.input}
                     onKeyDown={this.keydown}
                     value={this.state.deck}
+                    spellcheck={false}
                 />
             </div>
             <Autocomplete

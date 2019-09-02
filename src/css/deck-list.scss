@@ -1,3 +1,30 @@
+@import './variables';
+
+/// Stroke font-character
+/// @param  {Integer} $stroke - Stroke width
+/// @param  {Color}   $color  - Stroke color
+/// @return {List}            - text-shadow list
+@function stroke($stroke, $color) {
+    $shadow: ();
+    $from: $stroke*-1;
+
+    @for $i from $from through $stroke {
+        @for $j from $from through $stroke {
+            $shadow: append($shadow, $i*1px $j*1px 0 $color, comma);
+        }
+    }
+
+    @return $shadow;
+}
+
+/// Stroke font-character
+/// @param  {Integer} $stroke - Stroke width
+/// @param  {Color}   $color  - Stroke color
+/// @return {Style}           - text-shadow
+@mixin stroke($stroke, $color) {
+    text-shadow: stroke($stroke, $color);
+}
+
 .deck-list-group {
     $width: 200px;
     $gap: 15px;
@@ -16,6 +43,16 @@
             position: relative;
         }
 
+        .quantity {
+            position: absolute;
+            z-index: 1;
+            color: $on-primary;
+            font-size: 2em;
+            font-weight: bold;
+            @include stroke(2, $primary);
+            padding: 15px;
+        }
+
         .card {
             width: $width;
             height: floor($width / 6.5);
@@ -24,6 +61,7 @@
                 width: $width;
                 border-radius: floor($width / 22);
                 pointer-events: none;
+
             }
         }
     }

@@ -20,9 +20,11 @@ $nav-height: 30px;
         color: $on-primary;
         padding: $padding 0.5ch;
         margin: #{$padding * -1} 0;
+        text-decoration: none;
 
         &:hover {
-            background: rgba($secondary, 0.5);
+            background: $secondary;
+            color: $on-secondary;
         }
     }
 }
