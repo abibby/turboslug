@@ -1,3 +1,4 @@
+import 'css/layout.scss'
 import { Component, ComponentChild, h } from 'preact'
 import { Link } from 'preact-router'
 
@@ -7,7 +8,7 @@ interface Props {
 
 export default class Layout extends Component<Props> {
     public render(): ComponentChild {
-        return <div>
+        return <div class='container'>
             <div>
                 <Link href='/'>Home</Link>
             </div>

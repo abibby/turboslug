@@ -1,8 +1,9 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, searchCards } from 'js/database'
+import { DBCard, findCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
+import ManaCost from './mana-cost'
 
 interface Props {
     deck?: string
@@ -30,13 +31,13 @@ export default class DeckBuilder extends Component<Props, State> {
     public render(): ComponentChild {
         return <div class='deck-builder' >
             <div className='editor'>
+                <Deck deck={this.state.deck} />
                 <textarea
                     class='text'
                     onInput={this.input}
                     onKeyDown={this.keydown}
                     value={this.state.deck}
                 />
-                <Deck deck={this.state.deck} />
             </div>
             <Autocomplete
                 hidden={this.state.currentCard === undefined}
@@ -91,7 +92,6 @@ export default class DeckBuilder extends Component<Props, State> {
         }
 
         const autocomplete = document.querySelector<HTMLElement>('.autocomplete')
-        console.log(deck, autocomplete)
         if (autocomplete) {
             autocomplete.style.setProperty('--x', String(linePosition))
             autocomplete.style.setProperty('--y', String(currentLine))
@@ -230,13 +230,16 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
                     return 'no cards'
                 }
                 props.onNewResults(result.result)
-                return <div class='options' >
-                    {result.result.map((c, i) => <div
-                        key={c.id}
-                        class={i === props.selected ? 'selected' : ''}
-                    >
-                        {c.name}
-                    </div>)}
+                return <div>
+                    <img class='card' src={result.result[props.selected].image_url} />
+                    <div class='options' >
+                        {result.result.map((c, i) => <div
+                            key={c.id}
+                            class={`option ${i === props.selected ? 'selected' : ''}`}
+                        >
+                            {c.name}
+                        </div>)}
+                    </div>
                 </div>
             }}
         />
@@ -252,23 +255,37 @@ export function tokens(src: string): string[] {
 }
 
 const Deck: FunctionalComponent<{ deck: string }> = props => <div class='deck' >
-    {props.deck.split('\n').map((row, i) => <Row key={i} row={row} />)}
+    {props.deck.split('\n').map((row, i) => <Row key={i} row={row} even={i % 2 === 0} />)}
 </div>
 
-const Row: FunctionalComponent<{ row: string }> = props => {
+const Row: FunctionalComponent<{ row: string, even: boolean }> = props => {
     if (props.row.startsWith('//')) {
-        return <div class='row' >
+        return <div class={`row ${props.even ? 'even' : 'odd'}`} >
             <span className='comment'>{props.row}</span>
         </div>
     }
     const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
-    return <div class='row' >
+    return <div class={`row ${props.even ? 'even' : 'odd'}`} >
         {s1}
         <span class='quantity'>{quantity}</span>
         {s2}
         <span class='card'>{card}</span>
         {s3}
         <Tags tags={tags} />
+        <Async
+            promise={findCard(card)}
+            // tslint:disable-next-line: jsx-no-lambda
+            result={({ loading, error, result }) => {
+                if (loading || error || props.row === '') {
+                    return null
+                }
+
+                if (result) {
+                    return <ManaCost cost={result.mana_cost} class='mana-cost' />
+                }
+                return <span class='mana-cost warning' />
+            }}
+        />
     </div>
 }
 

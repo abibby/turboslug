@@ -1,4 +1,5 @@
 @import './variables';
+@import './mana-cost';
 
 .deck-builder {
     position: relative;
@@ -64,12 +65,15 @@
 
         .deck {
             @include editor;
+            padding-left: 0;
+            padding-right: 0;
 
             position: relative;
             pointer-events: none;
             white-space: pre;
 
             .row {
+                padding: 0 10px;
                 display: block;
 
                 .quantity {
@@ -84,8 +88,48 @@
                     color: cornflowerblue;
                 }
 
+                .mana-cost {
+                    float: right;
+
+                    &.warning {
+                        @extend .card-symbol;
+
+                        position: relative;
+                        background-color: orange;
+
+                        $size: 3px;
+                        $height: 15px;
+                        $padding: 2px;
+
+                        &::before,
+                        &::after {
+                            position: absolute;
+                            display: block;
+                            content: ' ';
+                            width: $size;
+                            background-color: $text-color;
+                            left: 15 / 2 - $size / 2;
+                            border-radius: $size / 2;
+                        }
+
+                        &::before {
+                            height: $size;
+                            top: $height - $size - $padding;
+                        }
+
+                        &::after {
+                            height: $height - $size - ($padding * 3);
+                            top: $padding;
+                        }
+                    }
+                }
+
                 .comment {
                     color: lightgrey;
+                }
+
+                &.even {
+                    background-color: rgba(black, 0.03);
                 }
             }
         }
@@ -98,6 +142,7 @@
         border: solid #ccc 1px;
         background-color: white;
         z-index: 10;
+        width: 500px;
 
         margin: -10px 10px;
 
@@ -106,9 +151,20 @@
         }
 
         .options {
-            .selected {
-                background-color: lightblue;
+            .option {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+
+                &.selected {
+                    background-color: lightblue;
+                }
             }
+        }
+
+        .card {
+            width: 200px;
+            float: right;
         }
     }
 }
