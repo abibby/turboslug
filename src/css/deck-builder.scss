@@ -5,6 +5,7 @@
     .filter {
         $padding: 6px;
 
+        display: flex;
         border: solid 1px $border-color;
         background-color: $surface-color;
 
@@ -19,6 +20,7 @@
             border: none;
             outline: none;
             padding: $padding;
+            flex-grow: 9999;
         }
     }
 
