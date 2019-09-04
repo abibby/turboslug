@@ -2,168 +2,188 @@
 @import './mana-cost';
 
 .deck-builder {
-    position: relative;
-    font-family: monospace;
-    font-size: 16px;
-
-    $line-height: 1.25em;
-
-    .editor {
+    .filter {
+        $padding: 6px;
 
         border: solid 1px $border-color;
-        padding: 3px;
         background-color: $surface-color;
 
-        position: relative;
-        text-align: left;
-        white-space: pre-wrap;
-        word-break: keep-all;
-        overflow-wrap: break-word;
-        box-sizing: border-box;
-        padding: 0px;
-        overflow: hidden;
-
-        @mixin editor {
-            margin: 0px;
-            border: 0px;
-            background: none;
-            box-sizing: inherit;
-            display: inherit;
-            font-family: inherit;
-            font-size: inherit;
-            font-style: inherit;
-            font-variant-ligatures: inherit;
-            font-weight: inherit;
-            letter-spacing: inherit;
-            line-height: inherit;
-            tab-size: inherit;
-            text-indent: inherit;
-            text-rendering: inherit;
-            text-transform: inherit;
-            white-space: inherit;
-            word-break: inherit;
-            overflow-wrap: inherit;
-            padding: 10px;
-            line-height: $line-height;
-            letter-spacing: 0;
+        .title {
+            border-right: solid 1px $border-color;
+            padding: $padding;
         }
 
-        .text {
-            @include editor;
-
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            height: 100%;
-            width: 100%;
-            resize: none;
-            color: inherit;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .deck {
-            @include editor;
-            padding-left: 0;
-            padding-right: 0;
-
-            position: relative;
-            white-space: pre;
-
-            .row {
-                padding: 0 10px;
-                display: block;
-
-                .quantity {
-                    color: $primary;
-                }
-
-                .card {
-                    // color: blue;
-                }
-
-                .tag {
-                    color: $secondary;
-                }
-
-                .mana-cost {
-                    float: right;
-
-                    &.warning {
-                        @extend .card-symbol;
-
-                        position: relative;
-                        background-color: orange;
-
-                        $size: 3px;
-                        $height: 15px;
-                        $padding: 2px;
-
-                        &::before,
-                        &::after {
-                            position: absolute;
-                            display: block;
-                            content: ' ';
-                            width: $size;
-                            background-color: $text-color;
-                            left: 15 / 2 - $size / 2;
-                            border-radius: $size / 2;
-                        }
-
-                        &::before {
-                            height: $size;
-                            top: $height - $size - $padding;
-                        }
-
-                        &::after {
-                            height: $height - $size - ($padding * 3);
-                            top: $padding;
-                        }
-                    }
-                }
-
-                .comment {
-                    color: $light-text-color;
-                }
-
-                &.even {
-                    background-color: rgba(black, 0.03);
-                }
-            }
+        input {
+            border: none;
+            outline: none;
+            padding: $padding;
         }
     }
 
-    .autocomplete {
-        position: absolute;
-        top: calc((var(--y) + 2) * #{$line-height});
-        left: calc(var(--x) * 1ch);
-        border: solid #ccc 1px;
-        background-color: $surface-color;
-        z-index: 10;
-        width: 500px;
+    .editor-wrapper {
+        font-family: monospace;
+        font-size: 16px;
 
-        margin: -10px 10px;
+        $line-height: 1.25em;
+        position: relative;
 
-        &.hidden {
-            display: none;
-        }
+        .editor {
 
-        .options {
-            .option {
-                white-space: nowrap;
-                text-overflow: ellipsis;
+            border: solid 1px $border-color;
+            padding: 3px;
+            background-color: $surface-color;
+
+            position: relative;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
+            padding: 0px;
+            overflow: hidden;
+
+            @mixin editor {
+                margin: 0px;
+                border: 0px;
+                background: none;
+                box-sizing: inherit;
+                display: inherit;
+                font-family: inherit;
+                font-size: inherit;
+                font-style: inherit;
+                font-variant-ligatures: inherit;
+                font-weight: inherit;
+                letter-spacing: inherit;
+                line-height: inherit;
+                tab-size: inherit;
+                text-indent: inherit;
+                text-rendering: inherit;
+                text-transform: inherit;
+                white-space: inherit;
+                word-break: inherit;
+                overflow-wrap: inherit;
+                padding: 10px;
+                line-height: $line-height;
+                letter-spacing: 0;
+            }
+
+            .text {
+                @include editor;
+
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                resize: none;
+                color: inherit;
                 overflow: hidden;
+                -webkit-font-smoothing: antialiased;
+                -webkit-text-fill-color: transparent;
+            }
 
-                &.selected {
-                    background-color: $primary;
+            .deck {
+                @include editor;
+                padding-left: 0;
+                padding-right: 0;
+
+                position: relative;
+                white-space: pre;
+
+                .row {
+                    padding: 0 10px;
+                    display: block;
+
+                    .quantity {
+                        color: $primary;
+                    }
+
+                    .card {
+                        // color: blue;
+                    }
+
+                    .tag {
+                        color: $secondary;
+                    }
+
+                    .mana-cost {
+                        float: right;
+
+                        &.warning {
+                            @extend .card-symbol;
+
+                            position: relative;
+                            background-color: orange;
+
+                            $size: 3px;
+                            $height: 15px;
+                            $padding: 2px;
+
+                            &::before,
+                            &::after {
+                                position: absolute;
+                                display: block;
+                                content: ' ';
+                                width: $size;
+                                background-color: $text-color;
+                                left: 15 / 2 - $size / 2;
+                                border-radius: $size / 2;
+                            }
+
+                            &::before {
+                                height: $size;
+                                top: $height - $size - $padding;
+                            }
+
+                            &::after {
+                                height: $height - $size - ($padding * 3);
+                                top: $padding;
+                            }
+                        }
+                    }
+
+                    .comment {
+                        color: $light-text-color;
+                    }
+
+                    &.even {
+                        background-color: rgba(black, 0.03);
+                    }
                 }
             }
         }
 
-        .card {
-            width: 200px;
-            float: right;
+        .autocomplete {
+            position: absolute;
+            top: calc((var(--y) + 2) * #{$line-height});
+            left: calc(var(--x) * 1ch);
+            border: solid #ccc 1px;
+            background-color: $surface-color;
+            z-index: 10;
+            width: 500px;
+
+            margin: -10px 10px;
+
+            &.hidden {
+                display: none;
+            }
+
+            .options {
+                .option {
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+
+                    &.selected {
+                        background-color: $primary;
+                    }
+                }
+            }
+
+            .card {
+                width: 200px;
+                float: right;
+            }
         }
     }
 }

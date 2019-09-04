@@ -13,6 +13,7 @@ interface State {
     deck: string
     autocompleteSelected: number
     currentCard: string | undefined
+    filter: string
 }
 export default class DeckBuilder extends Component<Props, State> {
 
@@ -25,27 +26,34 @@ export default class DeckBuilder extends Component<Props, State> {
             deck: this.props.deck || '',
             autocompleteSelected: 0,
             currentCard: undefined,
+            filter: '',
         }
 
     }
     public render(): ComponentChild {
         return <div class='deck-builder' >
-            <div className='editor'>
-                <Deck deck={this.state.deck} />
-                <textarea
-                    class='text'
-                    onInput={this.input}
-                    onKeyDown={this.keydown}
-                    value={this.state.deck}
-                    spellcheck={false}
+            <div className='filter'>
+                <span class='title'>Filter</span>
+                <input type='text' onChange={this.filterChange} />
+            </div>
+            <div class='editor-wrapper'>
+                <div className='editor'>
+                    <Deck deck={this.state.deck} />
+                    <textarea
+                        class='text'
+                        onInput={this.input}
+                        onKeyDown={this.keydown}
+                        value={this.state.deck}
+                        spellcheck={false}
+                    />
+                </div>
+                <Autocomplete
+                    hidden={this.state.currentCard === undefined}
+                    name={this.state.filter + ' ' + this.state.currentCard || ''}
+                    selected={this.state.autocompleteSelected}
+                    onNewResults={this.autocompleteNewResults}
                 />
             </div>
-            <Autocomplete
-                hidden={this.state.currentCard === undefined}
-                name={this.state.currentCard || ''}
-                selected={this.state.autocompleteSelected}
-                onNewResults={this.autocompleteNewResults}
-            />
         </div>
     }
 
@@ -204,6 +212,14 @@ export default class DeckBuilder extends Component<Props, State> {
     @bind
     private autocompleteNewResults(results: DBCard[]): void {
         this.results = results
+    }
+
+    @bind
+    private filterChange(e: Event): void {
+        const input = e.target as HTMLInputElement
+        this.setState({
+            filter: input.value,
+        })
     }
 }
 
