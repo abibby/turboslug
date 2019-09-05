@@ -8,9 +8,10 @@ service cloud.firestore {
       allow create, read, update, delete: if request.auth.uid == userId;
     }
     
-    match /users/{userId}/decks/{deckName} {
-      allow create, read, update, delete: if request.auth.uid == userId;
-      allow read: if request.auth.uid != null;
+    match /decks/{deckName} {
+      allow read;
+      allow update, delete: if resource.data.userID == request.auth.uid;
+      allow create: if request.auth.uid != null && request.resource.data.userID == request.auth.uid; 
     }
   }
 }

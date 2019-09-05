@@ -3,6 +3,12 @@ import 'firebase/auth'
 import 'firebase/firestore'
 import { DeckStore } from 'js/save'
 
+interface StoreDeck {
+    name: string
+    cards: string
+    userID: string
+}
+
 const firebaseConfig = {
     apiKey: 'AIzaSyBB8L89aHFYnpUuQwV_MElk5Q2GeV2Piys',
     authDomain: 'turboslug-929d8.firebaseapp.com',
@@ -30,24 +36,35 @@ export async function signIn(): Promise<void> {
     }
 }
 
+export function currentUser(): firebase.User | null {
+    return auth.currentUser
+}
+
+export function onAuthChange(
+    nextOrObserver: (a: firebase.User | null) => void,
+    error?: (a: firebase.auth.Error) => void,
+): firebase.Unsubscribe {
+    return auth.onAuthStateChanged(nextOrObserver, error)
+}
+export function signOut(): Promise<void> {
+    return auth.signOut()
+}
+
 export default class FirebaseStore implements DeckStore {
 
     public async save(name: string, deck: string): Promise<void> {
         await db
-            .collection('users')
-            .doc(this.userID())
             .collection('decks')
             .doc(name)
             .set({
                 name: name,
                 cards: deck,
+                userID: this.userID(),
             })
     }
     public async load(name: string): Promise<string | undefined> {
 
         const deck = await db
-            .collection('users')
-            .doc(this.userID())
             .collection('decks')
             .doc(name)
             .get()
@@ -60,9 +77,8 @@ export default class FirebaseStore implements DeckStore {
     }
     public async list(): Promise<string[]> {
         const decks = await db
-            .collection('users')
-            .doc(this.userID())
             .collection('decks')
+            .where('userID', '==', this.userID())
             .get()
 
         return decks.docs.map(doc => doc.id)

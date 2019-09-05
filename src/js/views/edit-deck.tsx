@@ -6,6 +6,7 @@ import DeckList from 'js/components/deck-list'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { store } from 'js/save'
+import { currentUser, onAuthChange } from 'js/save/firebase'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 
@@ -19,10 +20,12 @@ interface Props {
 interface State {
     deck: string
     slots: Slot[]
+    user: firebase.User | null
 }
 
 export default class EditDeck extends Component<Props, State> {
     private readonly store = store('firebase')
+    private authChangeUnsubscribe: () => void
 
     constructor(props: {}) {
         super(props)
@@ -30,9 +33,15 @@ export default class EditDeck extends Component<Props, State> {
         this.state = {
             deck: '',
             slots: [],
+            user: currentUser(),
         }
 
         this.loadDeck()
+        this.authChangeUnsubscribe = onAuthChange(this.authChange)
+    }
+
+    public componentWillUnmount(): void {
+        this.authChangeUnsubscribe()
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
@@ -70,12 +79,17 @@ export default class EditDeck extends Component<Props, State> {
         this.setState({ slots: slots })
     }
 
+    @bind
+    private authChange(user: firebase.User): void {
+        this.setState({ user: user })
+    }
 }
 
 async function cards(deck: string): Promise<Slot[]> {
     const c = deck
         .split('\n')
         .filter(row => !row.startsWith('//'))
+        .filter(row => row.trim() !== '')
         .map(row => tokens(row))
         .filter(t => t.length > 0)
         .map(([, quantity, , card, , tags]) => ({
