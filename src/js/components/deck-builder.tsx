@@ -289,7 +289,7 @@ const Row: FunctionalComponent<{ row: string, even: boolean }> = props => {
         <span class='card'>{card}</span>
         {s3}
         <Tags tags={tags} />
-        <Async
+        {/* <Async
             promise={findCard(card)}
             // tslint:disable-next-line: jsx-no-lambda
             result={({ loading, error, result }) => {
@@ -302,7 +302,7 @@ const Row: FunctionalComponent<{ row: string, even: boolean }> = props => {
                 }
                 return <span class='mana-cost warning' />
             }}
-        />
+        /> */}
     </div>
 }
 
