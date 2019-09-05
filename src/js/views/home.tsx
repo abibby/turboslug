@@ -1,4 +1,5 @@
 import { store } from 'js/save'
+import { signIn } from 'js/save/firebase'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { Link } from 'preact-router'
@@ -17,16 +18,19 @@ export default class Home extends Component<{}, State> {
             newDeckName: '',
         }
 
-        store('local').list().then(decks => this.setState({ decks: decks }))
+        store('firebase').list().then(decks => this.setState({ decks: decks }))
     }
     public render(): ComponentChild {
         return <Layout>
             <h1>Turbo Slug</h1>
 
+            <button onClick={signIn}>Login</button>
             <h2>New Deck</h2>
 
-            Name: <input type='text' onInput={this.newDeckNameChange} />
-            <Link href={`/edit/${this.state.newDeckName}`}>Create</Link>
+            <form action={`#/edit/${this.state.newDeckName}`}>
+                Name: <input type='text' onInput={this.newDeckNameChange} />
+                <button>Create</button>
+            </form>
 
             <h2>Decks</h2>
             <ul>

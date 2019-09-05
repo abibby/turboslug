@@ -22,7 +22,7 @@ interface State {
 }
 
 export default class EditDeck extends Component<Props, State> {
-    private readonly store = store('local')
+    private readonly store = store('firebase')
 
     constructor(props: {}) {
         super(props)
