@@ -8,7 +8,6 @@ import { Link } from 'preact-router'
 interface State {
     decks: string[]
     newDeckName: string
-    user: firebase.User | null
 }
 
 export default class Home extends Component<{}, State> {
@@ -19,11 +18,9 @@ export default class Home extends Component<{}, State> {
         this.state = {
             decks: [],
             newDeckName: '',
-            user: currentUser(),
         }
 
-        store('firebase').list().then(decks => this.setState({ decks: decks }))
-
+        this.authChange()
         this.authChangeUnsubscribe = onAuthChange(this.authChange)
     }
 
@@ -32,21 +29,8 @@ export default class Home extends Component<{}, State> {
     }
 
     public render(): ComponentChild {
-        let user = <button onClick={signIn}>Login</button>
-        if (this.state.user) {
-            user = <div>
-                <div>
-                    Hello {this.state.user.displayName}
-                </div>
-                <div>
-                    <button onClick={signOut}>Sign Out</button>
-                </div>
-            </div>
-        }
         return <Layout>
             <h1>Turbo Slug</h1>
-
-            {user}
 
             <h2>New Deck</h2>
 
@@ -71,8 +55,8 @@ export default class Home extends Component<{}, State> {
     }
 
     @bind
-    private authChange(user: firebase.User): void {
-        this.setState({ user: user })
-        store('firebase').list().then(decks => this.setState({ decks: decks }))
+    private async authChange(): Promise<void> {
+        const decks = await store('firebase').list()
+        this.setState({ decks: decks })
     }
 }

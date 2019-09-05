@@ -76,9 +76,13 @@ export default class FirebaseStore implements DeckStore {
         return data.cards
     }
     public async list(): Promise<string[]> {
+        const userID = this.userID()
+        if (userID === undefined) {
+            return []
+        }
         const decks = await db
             .collection('decks')
-            .where('userID', '==', this.userID())
+            .where('userID', '==', userID)
             .get()
 
         return decks.docs.map(doc => doc.id)
