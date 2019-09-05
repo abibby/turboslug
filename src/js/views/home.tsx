@@ -1,4 +1,5 @@
 import { bind } from 'decko'
+import Button from 'js/components/button'
 import { store } from 'js/save'
 import { currentUser, onAuthChange, signIn, signOut } from 'js/save/firebase'
 import Layout from 'js/views/layout'
@@ -30,13 +31,10 @@ export default class Home extends Component<{}, State> {
 
     public render(): ComponentChild {
         return <Layout>
-            <h1>Turbo Slug</h1>
-
             <h2>New Deck</h2>
-
             <form action={`#/edit/${this.state.newDeckName}`}>
                 Name: <input type='text' onInput={this.newDeckNameChange} />
-                <button>Create</button>
+                <Button type='submit'>Create</Button>
             </form>
             <h2>Decks</h2>
             <ul>

@@ -45,7 +45,7 @@ export default class EditDeck extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
-            <h1 class='title'>Edit Deck</h1>
+            <h1 class='title'>{this.props.matches!.name}</h1>
             <DeckBuilder
                 deck={this.state.deck}
                 onChange={this.deckChange}

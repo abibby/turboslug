@@ -1,0 +1,12 @@
+@import './variables';
+
+.button {
+    color: $on-primary;
+    background-color: $primary;
+    padding: 5px;
+    text-decoration: none;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+}
