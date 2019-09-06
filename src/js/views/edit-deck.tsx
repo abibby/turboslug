@@ -1,5 +1,6 @@
 import 'css/edit-deck.scss'
 import { bind } from 'decko'
+import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
@@ -46,13 +47,19 @@ export default class EditDeck extends Component<Props, State> {
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
             <h1 class='title'>{this.props.matches!.name}</h1>
+
             <DeckBuilder
                 deck={this.state.deck}
                 onChange={this.deckChange}
             />
+
             <div class='stats-wrapper'>
-                <DeckStats deck={this.state.slots} />
+                <div class='side-bar'>
+                    <Button type='button' onClick={this.save}>Save</Button>
+                    <DeckStats deck={this.state.slots} />
+                </div>
             </div>
+
             <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} />
         </Layout>
     }
@@ -67,7 +74,6 @@ export default class EditDeck extends Component<Props, State> {
     private async deckChange(deck: string): Promise<void> {
         this.setState({ deck: deck })
 
-        this.store.save(this.props.matches!.name, deck)
         const slots = await cards(deck)
         this.setState({ slots: slots })
     }
@@ -82,6 +88,11 @@ export default class EditDeck extends Component<Props, State> {
     @bind
     private authChange(user: firebase.User): void {
         this.setState({ user: user })
+    }
+
+    @bind
+    private save(): void {
+        this.store.save(this.props.matches!.name, this.state.deck)
     }
 }
 

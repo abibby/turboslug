@@ -21,7 +21,7 @@
     .stats-wrapper {
         grid-area: stats;
 
-        .deck-stats {
+        .side-bar {
             position: sticky;
             top: 5px + $nav-height;
         }
