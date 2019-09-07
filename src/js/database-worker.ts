@@ -1,5 +1,4 @@
 import { get, set } from 'idb-keyval'
-import { Card } from 'js/scryfall'
 import { Chunk, DBCard } from './database'
 
 export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
@@ -95,7 +94,7 @@ function searchCards(query: string): DBCard[] {
         },
         set: {
             field: ['set', 's'],
-            matcher: arrayMatch,
+            matcher: stringMatch,
         },
         color_identity: {
             field: ['color', 'c'],
@@ -226,7 +225,7 @@ async function setChunks(chunks: Chunk[]): Promise<void> {
 async function getChunks(): Promise<Chunk[]> {
     return await get('chunks') || []
 }
-async function setCards(index: number, cards: Card[]): Promise<void> {
+async function setCards(index: number, cards: DBCard[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
 async function getCards(index: number): Promise<DBCard[]> {
@@ -275,7 +274,7 @@ async function loadNetwork(): Promise<void> {
             }
         }
 
-        const cards: Card[] = await fetch(chunk.path).then(r => r.json())
+        const cards: DBCard[] = await fetch(chunk.path).then(r => r.json())
         setCards(chunk.index, cards)
         localChunks.push(chunk)
 

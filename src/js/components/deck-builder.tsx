@@ -1,10 +1,9 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, findCard, searchCards } from 'js/database'
+import { DBCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
-import Card from './card';
-import ManaCost from './mana-cost'
+import Card from './card'
 
 interface Props {
     deck?: string

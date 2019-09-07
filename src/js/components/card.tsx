@@ -15,7 +15,6 @@ const Card: FunctionalComponent<Props> = ({ card }) => <div class='card' >
         <div className='text'>{card.oracle_text}</div>
     </div>
     <img src={card.image_url} alt={card.name} />
-    {/* <img src='https://img.scryfall.com/cards/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg?1562442158' /> */}
 </div>
 
 export default Card
