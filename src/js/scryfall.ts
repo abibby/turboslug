@@ -9,7 +9,7 @@ export interface CardResponse extends ScryfallResponse<Card> {
     next_page: string
 }
 
-export type Card = NormalCard | TransformCard
+export type Card = NormalCard | TransformCard | VanguardCard | SplitCard
 
 export interface BaseCard {
     object: 'card'
@@ -76,6 +76,59 @@ export interface NormalCard extends BaseCard {
 }
 export interface TransformCard extends BaseCard {
     layout: 'transform'
+
+    card_faces: Array<{
+        object: 'card_face'
+        artist: string
+        colors: string[]
+        illustration_id: string
+        image_uris: ImageURIs
+        mana_cost: string
+        name: string
+        oracle_text: string
+        power: string
+        toughness: string
+        type_line: string,
+    }>
+}
+export interface VanguardCard extends BaseCard {
+    layout: 'vanguard'
+}
+export interface SplitCard extends BaseCard {
+    layout: 'split'
+
+    artist: string
+    colors: string[]
+    illustration_id: string
+    image_uris: ImageURIs
+    mana_cost: string
+    name: string
+    type_line: string,
+
+    card_faces: Array<{
+        object: 'card_face'
+        artist: string
+        colors: string[]
+        illustration_id: string
+        image_uris: ImageURIs
+        mana_cost: string
+        name: string
+        oracle_text: string
+        power: string
+        toughness: string
+        type_line: string,
+    }>
+}
+export interface FlipCard extends BaseCard {
+    layout: 'flip'
+
+    artist: string
+    colors: string[]
+    illustration_id: string
+    image_uris: ImageURIs
+    mana_cost: string
+    name: string
+    type_line: string,
 
     card_faces: Array<{
         object: 'card_face'

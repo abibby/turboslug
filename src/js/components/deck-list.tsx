@@ -3,6 +3,7 @@ import { bind } from 'decko'
 import { collect, range } from 'js/collection'
 import { Slot } from 'js/deck'
 import { Component, ComponentChild, FunctionalComponent, h, options } from 'preact'
+import Card from './card'
 
 const colorLookup = {
     W: 'White',
@@ -106,14 +107,7 @@ const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='dec
             class='slot'
         >
             {slot.quantity > 4 ? <div class='quantity'>&times;{slot.quantity}</div> : null}
-            {range(Math.min(slot.quantity, 4)).map(i => (
-                <div key={i} class='card' >
-                    <img
-                        src={slot.card.image_url}
-                        alt={slot.card.name}
-                    />
-                </div>
-            )).toArray()}
+            {range(Math.min(slot.quantity, 4)).map(i => <Card key={slot.card.id} card={slot.card} />).toArray()}
         </div>
     ))}
 </div>

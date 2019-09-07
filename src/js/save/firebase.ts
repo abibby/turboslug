@@ -26,7 +26,8 @@ const db = firebase.firestore()
 const auth = firebase.auth()
 const provider = new firebase.auth.GoogleAuthProvider()
 
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+db.enablePersistence({ synchronizeTabs: true })
 
 export async function signIn(): Promise<void> {
     const result = await auth.signInWithPopup(provider)

@@ -3,6 +3,7 @@ import { bind } from 'decko'
 import { DBCard, findCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
+import Card from './card';
 import ManaCost from './mana-cost'
 
 interface Props {
@@ -248,7 +249,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
                 }
                 props.onNewResults(result.result)
                 return <div>
-                    <img class='card' src={result.result[props.selected].image_url} />
+                    <Card card={result.result[props.selected]} />
                     <div class='options' >
                         {result.result.map((c, i) => <div
                             key={c.id}

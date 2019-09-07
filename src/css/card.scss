@@ -1,0 +1,42 @@
+.card {
+    position: relative;
+
+    img {
+        position: absolute;
+        top: 0;
+        color: rgba(0, 0, 0, 0);
+    }
+
+    .backup-card {
+        display: grid;
+        grid-template-areas:
+            "title mana-cost"
+            "type type"
+            "text text";
+
+        background: white;
+        border: solid black 8px;
+        border-radius: 8px;
+        width: 185px;
+        height: 264px;
+        font-size: 10px;
+
+        .title {
+            grid-area: title;
+        }
+
+        .mana-cost {
+            grid-area: mana-cost;
+
+            text-align: right;
+        }
+
+        .type {
+            grid-area: type;
+        }
+
+        .text {
+            grid-area: text;
+        }
+    }
+}

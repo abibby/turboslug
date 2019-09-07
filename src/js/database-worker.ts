@@ -95,7 +95,7 @@ function searchCards(query: string): DBCard[] {
         },
         set: {
             field: ['set', 's'],
-            matcher: stringMatch,
+            matcher: arrayMatch,
         },
         color_identity: {
             field: ['color', 'c'],
@@ -141,6 +141,14 @@ function arrayExactMatch(found: string[], search: string[]): boolean {
         }
     }
     return true
+}
+function arrayMatch(found: string[], search: string[]): boolean {
+    for (const f of found) {
+        if (stringMatch(f, search)) {
+            return true
+        }
+    }
+    return false
 }
 
 function* tokens(q: string): Iterable<string> {
@@ -221,7 +229,7 @@ async function getChunks(): Promise<Chunk[]> {
 async function setCards(index: number, cards: Card[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
-async function getCards(index: number): Promise<Card[]> {
+async function getCards(index: number): Promise<DBCard[]> {
     return await get(`chunk-${index}`) || []
 }
 
@@ -230,7 +238,7 @@ async function loadDB(): Promise<void> {
         await loadNetwork()
     } catch (e) {
         // tslint:disable-next-line: no-console
-        console.warn(`failed to load cards from network ${e}`)
+        console.warn(`failed to load cards from network: ${e}`)
     }
 
     allCards.length = 0
@@ -238,7 +246,7 @@ async function loadDB(): Promise<void> {
     let i = 0
     for (const chunk of chunks) {
         const cards = await getCards(chunk.index)
-        allCards.push(...cards.map(toDBCard))
+        allCards.push(...cards)
 
         updateLoading({
             type: 'partial',
@@ -268,7 +276,7 @@ async function loadNetwork(): Promise<void> {
         }
 
         const cards: Card[] = await fetch(chunk.path).then(r => r.json())
-        setCards(chunk.index, cards.filter(card => ['normal', 'transform'].includes(card.layout)))
+        setCards(chunk.index, cards)
         localChunks.push(chunk)
 
         updateLoading({
@@ -284,34 +292,4 @@ async function loadNetwork(): Promise<void> {
 
 function updateLoading(message: LoadingResponse): void {
     postMessage(message, undefined as any)
-}
-
-function toDBCard(c: Card): DBCard {
-    const base = {
-        id: c.id,
-        name: c.name,
-        set: c.set,
-        color_identity: c.color_identity,
-        cmc: c.cmc,
-        legalities: Object.entries(c.legalities)
-            .filter(([, legal]) => legal === 'legal')
-            .map(([format]) => format),
-    }
-    if (c.layout === 'transform') {
-        return {
-            ...base,
-            oracle_text: c.card_faces[0].oracle_text,
-            mana_cost: c.card_faces[0].mana_cost,
-            image_url: c.card_faces[0].image_uris.normal,
-            type: c.card_faces[0].type_line,
-        }
-    }
-
-    return {
-        ...base,
-        oracle_text: c.oracle_text,
-        mana_cost: c.mana_cost,
-        image_url: c.image_uris.normal,
-        type: c.type_line,
-    }
 }

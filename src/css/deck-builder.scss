@@ -1,5 +1,4 @@
 @import './variables';
-@import './mana-cost';
 
 .deck-builder {
     .filter {
@@ -108,42 +107,6 @@
 
                     .tag {
                         color: $secondary;
-                    }
-
-                    .mana-cost {
-                        float: right;
-
-                        &.warning {
-                            @extend .card-symbol;
-
-                            position: relative;
-                            background-color: orange;
-
-                            $size: 3px;
-                            $height: 15px;
-                            $padding: 2px;
-
-                            &::before,
-                            &::after {
-                                position: absolute;
-                                display: block;
-                                content: ' ';
-                                width: $size;
-                                background-color: $text-color;
-                                left: 15 / 2 - $size / 2;
-                                border-radius: $size / 2;
-                            }
-
-                            &::before {
-                                height: $size;
-                                top: $height - $size - $padding;
-                            }
-
-                            &::after {
-                                height: $height - $size - ($padding * 3);
-                                top: $padding;
-                            }
-                        }
                     }
 
                     .comment {

@@ -8,7 +8,7 @@ export interface DBCard {
     name: string
     oracle_text: string,
     mana_cost: string
-    set: string
+    set: string[]
     type: string
     image_url: string
     color_identity: Array<'W' | 'U' | 'B' | 'R' | 'G'>
@@ -77,7 +77,7 @@ export function newCard(name: string): DBCard {
         name: name,
         oracle_text: '',
         mana_cost: '',
-        set: '',
+        set: [],
         type: 'Unknown',
         image_url: '',
         color_identity: [],
