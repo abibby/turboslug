@@ -20,6 +20,7 @@ interface Props {
 
 interface State {
     deck: string
+    savedDeck: string
     slots: Slot[]
     user: firebase.User | null
 }
@@ -33,6 +34,7 @@ export default class EditDeck extends Component<Props, State> {
 
         this.state = {
             deck: '',
+            savedDeck: '',
             slots: [],
             user: currentUser(),
         }
@@ -55,7 +57,9 @@ export default class EditDeck extends Component<Props, State> {
 
             <div class='stats-wrapper'>
                 <div class='side-bar'>
-                    <Button type='button' onClick={this.save}>Save</Button>
+                    <Button type='button' onClick={this.save}>
+                        Save {this.state.deck === this.state.savedDeck ? '' : '*'}
+                    </Button>
                     <DeckStats deck={this.state.slots} />
                 </div>
             </div>
@@ -80,7 +84,10 @@ export default class EditDeck extends Component<Props, State> {
 
     private async loadDeck(): Promise<void> {
         const deck = (await this.store.load(this.props.matches!.name)) || ''
-        this.setState({ deck: deck })
+        this.setState({
+            deck: deck,
+            savedDeck: deck,
+        })
         const slots = await cards(deck)
         this.setState({ slots: slots })
     }
@@ -93,6 +100,7 @@ export default class EditDeck extends Component<Props, State> {
     @bind
     private save(): void {
         this.store.save(this.props.matches!.name, this.state.deck)
+        this.setState({ savedDeck: this.state.deck })
     }
 }
 
