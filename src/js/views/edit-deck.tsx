@@ -50,7 +50,12 @@ export default class EditDeck extends Component<Props, State> {
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
             {/* <h1 class='title'>{this.state.name}</h1> */}
-            <input class='title' type='text' value={this.state.name} onInput={this.titleChange} />
+            <input
+                class='title'
+                type='text'
+                value={this.state.name}
+                onInput={this.titleChange}
+            />
 
             <DeckBuilder
                 deck={this.state.deck}
@@ -95,18 +100,19 @@ export default class EditDeck extends Component<Props, State> {
             this.setState({
                 deck: '',
                 savedDeck: '',
+                name: '',
                 slots: [],
             })
             return
         }
 
-        const deck = await load(this.props.matches!.id)
-        const cs = (deck && deck.cards) || ''
+        const deck = (await load(this.props.matches!.id)) || { name: '', cards: '' }
         this.setState({
-            deck: cs,
-            savedDeck: cs,
+            name: deck.name,
+            deck: deck.cards,
+            savedDeck: deck.cards,
         })
-        const slots = await cards(cs)
+        const slots = await cards(deck.cards)
         this.setState({ slots: slots })
     }
 
@@ -117,18 +123,19 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
+        const base = {
+            name: this.state.name,
+            cards: this.state.deck,
+            keyImageURL: this.state.slots[0].card.image_url,
+        }
         if (this.props.matches!.id === undefined) {
-            const id = await create({
-                name: this.state.name,
-                cards: this.state.deck,
-            })
+            const id = await create(base)
             route(`/edit/${id}`)
             return
         }
         save({
+            ...base,
             id: this.props.matches!.id,
-            name: this.state.name,
-            cards: this.state.deck,
         })
         this.setState({ savedDeck: this.state.deck })
     }

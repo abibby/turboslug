@@ -6,9 +6,10 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 export interface Deck {
     id: string
+    userID: string
     name: string
     cards: string
-    userID: string
+    keyImageURL: string
 }
 
 const firebaseConfig = {
@@ -69,7 +70,6 @@ export async function save(deck: Omit<Deck, 'userID'>): Promise<void> {
         .doc(deck.id)
         .set({
             ...deck,
-            id: undefined,
             userID: userID(),
         })
 }
@@ -94,6 +94,7 @@ export async function list(): Promise<Deck[]> {
     const decks = await db
         .collection('decks')
         .where('userID', '==', uid)
+        .orderBy('name')
         .get()
 
     return decks.docs.map(loadDeck)

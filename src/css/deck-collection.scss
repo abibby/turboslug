@@ -1,0 +1,57 @@
+@import './variables';
+
+
+.deck-collection {
+
+    .deck-element {
+        a {
+            text-decoration: none;
+            color: $text-color;
+            $key-image-width: 100px;
+
+            position: relative;
+            display: grid;
+            grid-template-areas:
+                "key title"
+                "key author";
+            grid-template-columns: #{$key-image-width / 2} auto;
+
+            background-color: $surface-color;
+            margin-top: $key-image-width / 2;
+            margin-left: $key-image-width / 2;
+            height: $key-image-width / 2;
+            border: solid 1px $border-color;
+
+            .key-image {
+                position: absolute;
+                grid-area: key;
+                width: $key-image-width;
+                height: $key-image-width;
+                // height: $key-image-width * 0.72;
+                overflow: hidden;
+                border-radius: 50%;
+
+                top: $key-image-width / -2;
+                left: $key-image-width / -2;
+
+                img {
+                    // width: 118%;
+                    // margin: -19% -9%;
+                    height: 223%;
+                    margin: -24% -29%;
+                }
+            }
+
+            .title {
+                grid-area: title;
+                font-size: 1.25em;
+                font-weight: bold;
+            }
+
+            .author {
+                grid-area: author;
+                color: $light-text-color;
+            }
+        }
+    }
+}
