@@ -6,19 +6,20 @@ import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
-import { store } from 'js/save'
-import { currentUser, onAuthChange } from 'js/save/firebase'
+import { create, currentUser, load, onAuthChange, save } from 'js/store'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
+import { route } from 'preact-router'
 
 interface Props {
     matches?: {
-        name: string,
+        id?: string,
         type?: string,
     }
 }
 
 interface State {
+    name: string
     deck: string
     savedDeck: string
     slots: Slot[]
@@ -26,13 +27,13 @@ interface State {
 }
 
 export default class EditDeck extends Component<Props, State> {
-    private readonly store = store('firebase')
     private authChangeUnsubscribe: () => void
 
     constructor(props: {}) {
         super(props)
 
         this.state = {
+            name: '',
             deck: '',
             savedDeck: '',
             slots: [],
@@ -48,7 +49,8 @@ export default class EditDeck extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
-            <h1 class='title'>{this.props.matches!.name}</h1>
+            {/* <h1 class='title'>{this.state.name}</h1> */}
+            <input class='title' type='text' value={this.state.name} onInput={this.titleChange} />
 
             <DeckBuilder
                 deck={this.state.deck}
@@ -69,7 +71,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     public componentDidUpdate(previousProps: Props): void {
-        if (previousProps.matches!.name !== this.props.matches!.name) {
+        if (previousProps.matches!.id !== this.props.matches!.id) {
             this.loadDeck()
         }
     }
@@ -82,13 +84,29 @@ export default class EditDeck extends Component<Props, State> {
         this.setState({ slots: slots })
     }
 
+    @bind
+    private titleChange(e: Event): void {
+        const input = e.target as HTMLInputElement
+        this.setState({ name: input.value })
+    }
+
     private async loadDeck(): Promise<void> {
-        const deck = (await this.store.load(this.props.matches!.name)) || ''
+        if (this.props.matches!.id === undefined) {
+            this.setState({
+                deck: '',
+                savedDeck: '',
+                slots: [],
+            })
+            return
+        }
+
+        const deck = await load(this.props.matches!.id)
+        const cs = (deck && deck.cards) || ''
         this.setState({
-            deck: deck,
-            savedDeck: deck,
+            deck: cs,
+            savedDeck: cs,
         })
-        const slots = await cards(deck)
+        const slots = await cards(cs)
         this.setState({ slots: slots })
     }
 
@@ -98,8 +116,20 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
-    private save(): void {
-        this.store.save(this.props.matches!.name, this.state.deck)
+    private async save(): Promise<void> {
+        if (this.props.matches!.id === undefined) {
+            const id = await create({
+                name: this.state.name,
+                cards: this.state.deck,
+            })
+            route(`/edit/${id}`)
+            return
+        }
+        save({
+            id: this.props.matches!.id,
+            name: this.state.name,
+            cards: this.state.deck,
+        })
         this.setState({ savedDeck: this.state.deck })
     }
 }

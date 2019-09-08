@@ -34,7 +34,8 @@ class Index extends Component<{}, State> {
         return <Router history={createHashHistory()}>
             <Home path='/' />
             <Help path='/help' />
-            <EditDeck path='/edit/:name/:type?' />
+            <EditDeck path='/edit/create' />
+            <EditDeck path='/edit/:id/:type?' />
         </Router>
     }
     private async loadDB(): Promise<void> {

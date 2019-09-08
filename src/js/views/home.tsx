@@ -1,13 +1,12 @@
 import { bind } from 'decko'
 import Button from 'js/components/button'
-import { store } from 'js/save'
-import { currentUser, onAuthChange, signIn, signOut } from 'js/save/firebase'
+import { Deck, list, onAuthChange } from 'js/store'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { Link } from 'preact-router'
 
 interface State {
-    decks: string[]
+    decks: Deck[]
     newDeckName: string
 }
 
@@ -39,8 +38,8 @@ export default class Home extends Component<{}, State> {
             <h2>Decks</h2>
             <ul>
                 {this.state.decks.map(deck => (
-                    <li key={deck} >
-                        <Link href={`/edit/${deck}`}>{deck}</Link>
+                    <li key={deck.name} >
+                        <Link href={`/edit/${deck.id}`}>{deck.name}</Link>
                     </li>
                 ))}
             </ul>
@@ -54,7 +53,7 @@ export default class Home extends Component<{}, State> {
 
     @bind
     private async authChange(): Promise<void> {
-        const decks = await store('firebase').list()
+        const decks = await list()
         this.setState({ decks: decks })
     }
 }
