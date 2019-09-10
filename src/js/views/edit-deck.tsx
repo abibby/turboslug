@@ -6,7 +6,7 @@ import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
-import { create, currentUser, load, onAuthChange, save } from 'js/store'
+import { create, currentUser, destroy, load, onAuthChange, save } from 'js/store'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -49,7 +49,6 @@ export default class EditDeck extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
-            {/* <h1 class='title'>{this.state.name}</h1> */}
             <input
                 class='title'
                 type='text'
@@ -66,6 +65,9 @@ export default class EditDeck extends Component<Props, State> {
                 <div class='side-bar'>
                     <Button type='button' onClick={this.save}>
                         Save {this.state.deck === this.state.savedDeck ? '' : '*'}
+                    </Button>
+                    <Button type='button' color='danger' onClick={this.delete}>
+                        Delete
                     </Button>
                     <DeckStats deck={this.state.slots} />
                 </div>
@@ -138,6 +140,16 @@ export default class EditDeck extends Component<Props, State> {
             id: this.props.matches!.id,
         })
         this.setState({ savedDeck: this.state.deck })
+    }
+
+    @bind
+    private async delete(): Promise<void> {
+        if (this.props.matches!.id === undefined) {
+            return
+        }
+
+        await destroy(this.props.matches!.id)
+        route('/')
     }
 }
 

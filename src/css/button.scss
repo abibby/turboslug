@@ -9,4 +9,12 @@
     outline: none;
     font-family: inherit;
     font-size: inherit;
+
+    &.default{
+
+    }
+    &.danger{
+        background-color: $danger;
+        color: $on-danger;
+    }
 }

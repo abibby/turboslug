@@ -27,8 +27,8 @@
         font-size: inherit;
 
         &:hover {
-            background: $secondary;
-            color: $on-secondary;
+            background: $primary-light;
+            color: $on-primary-light;
         }
     }
 
@@ -49,15 +49,15 @@
 
             .nav-option {
                 display: block;
-                background-color: $surface-color;
-                color: $text-color;
+                background-color: $surface;
+                color: $on-surface;
                 width: calc(100% - #{$padding * 2});
                 padding: $padding;
                 cursor: pointer;
 
                 &:hover {
-                    background: $secondary;
-                    color: $on-secondary;
+                    background: $primary-light;
+                    color: $on-primary-light;
                 }
             }
         }

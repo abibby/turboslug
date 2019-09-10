@@ -75,7 +75,6 @@ export async function save(deck: Omit<Deck, 'userID'>): Promise<void> {
 }
 
 export async function load(id: string): Promise<Deck | undefined> {
-
     const deck = await db
         .collection('decks')
         .doc(id)
@@ -86,6 +85,14 @@ export async function load(id: string): Promise<Deck | undefined> {
     }
     return loadDeck(deck)
 }
+
+export async function destroy(id: string): Promise<void> {
+    await db
+        .collection('decks')
+        .doc(id)
+        .delete()
+}
+
 export async function list(): Promise<Deck[]> {
     const uid = userID()
     if (uid === undefined) {

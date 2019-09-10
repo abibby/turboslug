@@ -6,7 +6,7 @@
 
         display: flex;
         border: solid 1px $border-color;
-        background-color: $surface-color;
+        background-color: $surface;
 
         margin-bottom: 10px;
 
@@ -34,7 +34,7 @@
 
             border: solid 1px $border-color;
             padding: 3px;
-            background-color: $surface-color;
+            background-color: $surface;
 
             position: relative;
             text-align: left;
@@ -106,7 +106,7 @@
                     }
 
                     .tag {
-                        color: $secondary;
+                        color: $primary-light;
                     }
 
                     .comment {
@@ -125,7 +125,7 @@
             top: calc((var(--y) + 2) * #{$line-height});
             left: calc(var(--x) * 1ch);
             border: solid #ccc 1px;
-            background-color: $surface-color;
+            background-color: $surface;
             z-index: 10;
             width: 500px;
 

@@ -7,19 +7,28 @@ $mtg-green: #9bd3ae;
 $text-white: rgba(white, 0.8);
 $text-black: rgba(black, 0.8);
 
-$text-color: $text-black;
-$light-text-color: rgba($text-color, 0.4);
-$background-color: #eee;
-$surface-color: #fff;
+$light-text-color: rgba($text-black, 0.4);
+
+$background: #eee;
+$on-background: $text-black;
+
+$surface: #fff;
+$on-surface: $text-black;
+
 $border-color: #ddd;
 
 $primary: #26547C;
 $on-primary: $text-white;
+$primary-dark: #002c50;
+$on-primary-dark: $text-white;
+$primary-light: #5880ab;
+$on-primary-light: $text-black;
 
-$secondary: #9DBEBB;
-$on-secondary: $text-white;
-
-$dark: #031926;
-$on-dark: $text-black;
+$danger: #7c3026;
+$on-danger: $text-white;
+$danger-light:#af5c4e;
+$on-danger-light: $text-white;
+$danger-dark: #4b0100;
+$on-danger-dark: $text-white;
 
 $nav-height: 30px;

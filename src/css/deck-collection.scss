@@ -9,7 +9,7 @@
 
         a {
             text-decoration: none;
-            color: $text-color;
+            color: inherit;
             $key-image-width: 100px;
 
             position: relative;
@@ -19,7 +19,7 @@
                 "key author";
             grid-template-columns: #{$key-image-width / 2} auto;
 
-            background-color: $surface-color;
+            background-color: $surface;
             margin-top: $key-image-width / 2;
             margin-left: $key-image-width / 2 - $border-thickness;
             height: $key-image-width / 2;
@@ -30,17 +30,15 @@
                 grid-area: key;
                 width: $key-image-width;
                 height: $key-image-width;
-                // height: $key-image-width * 0.72;
                 overflow: hidden;
                 border-radius: 50%;
 
                 border: solid $border-thickness $border-color;
                 top: $key-image-width / -2 - $border-thickness;
                 left: $key-image-width / -2 - $border-thickness;
+                background-color: $border-color;
 
                 img {
-                    // width: 118%;
-                    // margin: -19% -9%;
                     height: 223%;
                     margin: -24% -29%;
                 }
