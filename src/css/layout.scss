@@ -27,8 +27,8 @@
         font-size: inherit;
 
         &:hover {
-            background: $primary-light;
-            color: $on-primary-light;
+            background: $primary-dark;
+            color: $on-primary-dark;
         }
     }
 
@@ -56,8 +56,8 @@
                 cursor: pointer;
 
                 &:hover {
-                    background: $primary-light;
-                    color: $on-primary-light;
+                    background: $primary-dark;
+                    color: $on-primary-dark;
                 }
             }
         }
