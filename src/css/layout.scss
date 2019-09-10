@@ -73,5 +73,11 @@
 }
 
 .content {
+    $width: 1000px;
     padding-top: $nav-height;
+    margin: 0 calc(50vw - #{$width / 2});
+
+    @media screen and (max-width: $width) {
+        margin: 0;
+    }
 }
