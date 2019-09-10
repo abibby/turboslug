@@ -4,6 +4,7 @@
 .deck-collection {
 
     .deck-element {
+        $border-thickness: 1px;
         padding-bottom: 10px;
 
         a {
@@ -20,9 +21,9 @@
 
             background-color: $surface-color;
             margin-top: $key-image-width / 2;
-            margin-left: $key-image-width / 2;
+            margin-left: $key-image-width / 2 - $border-thickness;
             height: $key-image-width / 2;
-            border: solid 1px $border-color;
+            border: solid $border-thickness $border-color;
 
             .key-image {
                 position: absolute;
@@ -33,8 +34,9 @@
                 overflow: hidden;
                 border-radius: 50%;
 
-                top: $key-image-width / -2;
-                left: $key-image-width / -2;
+                border: solid $border-thickness $border-color;
+                top: $key-image-width / -2 - $border-thickness;
+                left: $key-image-width / -2 - $border-thickness;
 
                 img {
                     // width: 118%;
