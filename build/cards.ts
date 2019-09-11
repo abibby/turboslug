@@ -23,7 +23,7 @@ export async function downloadCards(): Promise<void> {
     const chunks: Chunk[] = []
     let i = 0
     await fs.mkdir('dist/cards', { recursive: true })
-    for (const cards of chunk(Object.entries(allCards).map(([, card]) => card), 100)) {
+    for (const cards of chunk(Object.entries(allCards).map(([, card]) => card), 1000)) {
         const path = `cards/${i}.json`
         const content = JSON.stringify(cards.map(toDBCard))
         await fs.writeFile('dist/' + path, content)

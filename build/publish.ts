@@ -1,11 +1,12 @@
 // tslint:disable: no-var-requires
 // tslint:disable: no-console
 
-import * as fbtools from 'firebase-tools'
 import * as fs from 'fs'
 import { publish as ghPublish } from 'gh-pages'
+import { resolve } from 'path'
 import { downloadCards } from './cards'
 
+const fbtools = require('firebase-tools')
 const webpack = require('webpack')
 const config = require('../webpack.config')
 
@@ -51,6 +52,8 @@ function deleteFolderRecursive(path: string): void {
     deleteFolderRecursive('dist')
     await pack()
     await downloadCards()
-    fbtools.deploy()
+    await fbtools.deploy({
+        cwd: resolve(__dirname, '../'),
+    })
     console.log('uploaded successfully')
 })()

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "watch": "webpack --watch --display=minimal",
-    "serve": "http-server dist",
+    "serve": "firebase serve",
     "cards": "ts-node build/cards.ts",
     "publish": "ts-node build/publish.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,6 @@
   "author": "Adam Bibby",
   "license": "MIT",
   "devDependencies": {
-    "@types/dexie": "^1.3.1",
     "@types/gh-pages": "^2.0.0",
     "@types/history": "^4.7.2",
     "@types/node": "^12.6.8",
@@ -25,7 +24,6 @@
     "firebase-tools": "^7.3.1",
     "gh-pages": "^2.0.1",
     "html-webpack-plugin": "^3.2.0",
-    "http-server": "^0.11.1",
     "mini-css-extract-plugin": "^0.8.0",
     "node-fetch": "^2.6.0",
     "node-sass": "^4.12.0",
@@ -49,6 +47,7 @@
   "dependencies": {
     "decko": "^1.2.0",
     "firebase": "^6.5.0",
+    "fuse.js": "^3.4.5",
     "history": "^4.9.0",
     "idb-keyval": "^3.2.0",
     "preact": "^8.4.2",

@@ -1,6 +1,6 @@
+import Fuse from 'fuse.js'
 import { get, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
-
 export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
 export interface FindCardMessage {
     function: 'findCard'
@@ -77,8 +77,8 @@ async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> 
 function findCard(name: string): DBCard | undefined {
     return allCards.find(card => card.name === name)
 }
-function searchCards(query: string): DBCard[] {
 
+function searchCards(query: string): DBCard[] {
     const filter = queryFilter<DBCard>(parseQuery(query), {
         name: {
             field: ['default'],
