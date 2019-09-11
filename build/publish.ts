@@ -1,6 +1,7 @@
 // tslint:disable: no-var-requires
 // tslint:disable: no-console
 
+import * as fbtools from 'firebase-tools'
 import * as fs from 'fs'
 import { publish as ghPublish } from 'gh-pages'
 import { downloadCards } from './cards'
@@ -50,7 +51,6 @@ function deleteFolderRecursive(path: string): void {
     deleteFolderRecursive('dist')
     await pack()
     await downloadCards()
-    fs.writeFileSync('dist/CNAME', 'turboslug.app\n')
-    await publish('dist')
+    fbtools.deploy()
     console.log('uploaded successfully')
 })()
