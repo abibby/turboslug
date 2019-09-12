@@ -48,7 +48,6 @@
     "decko": "^1.2.0",
     "firebase": "^6.5.0",
     "fuse.js": "^3.4.5",
-    "history": "^4.9.0",
     "idb-keyval": "^3.2.0",
     "preact": "^8.4.2",
     "preact-router": "^2.6.1"

@@ -20,47 +20,48 @@ module.exports = (env, argv) => {
         devtool: devMode ? 'source-map' : '',
         module: {
             rules: [{
-                test: /\.tsx?$/,
-                exclude: /node_modules/,
-                loader: [
-                    'ts-loader',
-                    'tslint-loader',
-                ],
-            },
-            {
-                test: /\.scss$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    {
-                        loader: 'postcss-loader',
-                        options: {
-                            ident: 'postcss',
-                            plugins: [
-                                require("css-mqpacker")({
-                                    sort: true
-                                }),
-                                require('autoprefixer'),
-                            ]
+                    test: /\.tsx?$/,
+                    exclude: /node_modules/,
+                    loader: [
+                        'ts-loader',
+                        'tslint-loader',
+                    ],
+                },
+                {
+                    test: /\.scss$/,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        'css-loader',
+                        {
+                            loader: 'postcss-loader',
+                            options: {
+                                ident: 'postcss',
+                                plugins: [
+                                    require("css-mqpacker")({
+                                        sort: true
+                                    }),
+                                    require('autoprefixer'),
+                                ]
+                            },
                         },
-                    },
-                    {
-                        loader: "sass-loader",
-                        options: {
-                            sourceMap: true,
-                            includePaths: [
-                                'node_modules', 'src', '.'
-                            ]
-                        }
-                    },
-                ],
-            },
+                        {
+                            loader: "sass-loader",
+                            options: {
+                                sourceMap: true,
+                                includePaths: [
+                                    'node_modules', 'src', '.'
+                                ]
+                            }
+                        },
+                    ],
+                },
             ]
         },
         output: {
             path: paths.dist,
-            filename: './' + (devMode ? '[name].js' : '[name].[hash].js'),
-            chunkFilename: './' + (devMode ? '[id].js' : '[id].[hash].js'),
+            filename: (devMode ? '[name].js' : '[name].[hash].js'),
+            chunkFilename: (devMode ? '[id].js' : '[id].[hash].js'),
+            publicPath: '/',
         },
         resolve: {
             extensions: ['.tsx', '.ts', '.js', '.scss', '.css'],
@@ -77,8 +78,8 @@ module.exports = (env, argv) => {
             new MiniCssExtractPlugin({
                 // Options similar to the same options in webpackOptions.output
                 // both options are optional
-                filename: './' + (devMode ? '[name].css' : '[name].[hash].css'),
-                chunkFilename: './' + (devMode ? '[id].css' : '[id].[hash].css'),
+                filename: (devMode ? '[name].css' : '[name].[hash].css'),
+                chunkFilename: (devMode ? '[id].css' : '[id].[hash].css'),
             }),
             new WorkboxPlugin.GenerateSW(),
             new WorkerPlugin(),

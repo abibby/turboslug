@@ -1,5 +1,4 @@
 import 'css/app.scss'
-import { createHashHistory } from 'history'
 import { loadDB } from 'js/database'
 import Home from 'js/views/home'
 import { Component, ComponentChild, h, render } from 'preact'
@@ -31,7 +30,7 @@ class Index extends Component<{}, State> {
                 <Loader progress={this.state.progress} />
             </div>
         }
-        return <Router history={createHashHistory()}>
+        return <Router>
             <Home path='/' />
             <Help path='/help' />
             <EditDeck path='/edit/create' />
