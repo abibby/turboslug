@@ -121,7 +121,7 @@ export default class DeckBuilder extends Component<Props, State> {
         const newState: State = { ...this.state }
         const textarea = e.target as HTMLTextAreaElement
 
-        if (this.state.currentCard !== undefined) {
+        if (this.state.currentCard !== undefined && !e.shiftKey) {
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault()
