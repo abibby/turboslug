@@ -1,6 +1,6 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, searchCards } from 'js/database'
+import { DBCard, newCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -173,6 +173,8 @@ export default class DeckBuilder extends Component<Props, State> {
                     e.preventDefault()
                     newState.currentCard = undefined
                     break
+                default:
+                    newState.autocompleteSelected = 0
             }
 
         }
