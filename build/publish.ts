@@ -2,7 +2,6 @@
 // tslint:disable: no-console
 
 import * as fs from 'fs'
-import { publish as ghPublish } from 'gh-pages'
 import { resolve } from 'path'
 import { downloadCards } from './cards'
 
@@ -15,18 +14,6 @@ function pack(): Promise<void> {
         webpack(config({}, { mode: 'production' }), async (err: Error, stats: any) => {
             if (err || stats.hasErrors()) {
                 reject(err || new Error('build failed'))
-                return
-            }
-            resolve()
-        })
-    })
-}
-
-function publish(basePath: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        ghPublish(basePath, err => {
-            if (err !== undefined) {
-                reject(err)
                 return
             }
             resolve()
