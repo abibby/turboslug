@@ -22,6 +22,7 @@ interface State {
     name: string
     deck: string
     savedDeck: string
+    savedName: string
     slots: Slot[]
     user: firebase.User | null
 }
@@ -36,6 +37,7 @@ export default class EditDeck extends Component<Props, State> {
             name: '',
             deck: '',
             savedDeck: '',
+            savedName: '',
             slots: [],
             user: currentUser(),
         }
@@ -64,7 +66,9 @@ export default class EditDeck extends Component<Props, State> {
             <div class='stats-wrapper'>
                 <div class='side-bar'>
                     <Button type='button' onClick={this.save}>
-                        Save {this.state.deck === this.state.savedDeck ? '' : '*'}
+                        Save
+                        {this.state.name === this.state.savedName
+                            && this.state.deck === this.state.savedDeck ? '' : '*'}
                     </Button>
                     <Button type='button' color='danger' onClick={this.delete}>
                         Delete
@@ -103,6 +107,7 @@ export default class EditDeck extends Component<Props, State> {
                 deck: '',
                 savedDeck: '',
                 name: '',
+                savedName: '',
                 slots: [],
             })
             return
@@ -111,6 +116,7 @@ export default class EditDeck extends Component<Props, State> {
         const deck = (await load(this.props.matches!.id)) || { name: '', cards: '' }
         this.setState({
             name: deck.name,
+            savedName: deck.name,
             deck: deck.cards,
             savedDeck: deck.cards,
         })

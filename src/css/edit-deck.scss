@@ -10,8 +10,22 @@
         "builder stats"
         "list stats ";
 
-    .title {
+    > .title {
         grid-area: title;
+
+        font-size: 2em;
+        font-weight: bold;
+
+        background: none;
+        border: none;
+        outline: none;
+        &:hover{
+            &::after{
+                display: block;
+                content: 'edit';
+                background: red;
+            }
+        }
     }
 
     .deck-builder {
