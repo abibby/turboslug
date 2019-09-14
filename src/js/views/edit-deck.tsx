@@ -45,20 +45,24 @@ export default class EditDeck extends Component<Props, State> {
 
         this.loadDeck()
         this.authChangeUnsubscribe = onAuthChange(this.authChange)
+
+        window.addEventListener('keydown', this.keydown)
     }
 
     public componentWillUnmount(): void {
         this.authChangeUnsubscribe()
+
+        window.removeEventListener('keydown', this.keydown)
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
             <div class='title'>
-                <Icon name='pencil' size='x1_5' />
                 <input
                     type='text'
                     value={this.state.name}
                     onInput={this.titleChange}
                 />
+                <Icon name='pencil' size='x1_5' />
             </div>
 
             <DeckBuilder
@@ -148,7 +152,10 @@ export default class EditDeck extends Component<Props, State> {
             ...base,
             id: this.props.matches!.id,
         })
-        this.setState({ savedDeck: this.state.deck })
+        this.setState({
+            savedDeck: this.state.deck,
+            savedName: this.state.name,
+        })
     }
 
     @bind
@@ -159,6 +166,14 @@ export default class EditDeck extends Component<Props, State> {
 
         await destroy(this.props.matches!.id)
         route('/')
+    }
+
+    @bind
+    private keydown(e: KeyboardEvent): void {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLocaleLowerCase() === 's') {
+            e.preventDefault()
+            this.save()
+        }
     }
 }
 

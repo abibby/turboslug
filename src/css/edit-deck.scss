@@ -36,10 +36,9 @@
             top: 0.5em;
             left: -1em;
         }
-        &:hover {
-            i {
-                display: inline-block;
-            }
+        input:focus + i,
+        &:hover i {
+            display: inline-block;
         }
     }
 
