@@ -4,6 +4,7 @@ import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
+import Icon from 'js/components/icon'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { create, currentUser, destroy, load, onAuthChange, save } from 'js/store'
@@ -51,12 +52,14 @@ export default class EditDeck extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
-            <input
-                class='title'
-                type='text'
-                value={this.state.name}
-                onInput={this.titleChange}
-            />
+            <div class='title'>
+                <Icon name='pencil' size='x1_5' />
+                <input
+                    type='text'
+                    value={this.state.name}
+                    onInput={this.titleChange}
+                />
+            </div>
 
             <DeckBuilder
                 deck={this.state.deck}

@@ -1,4 +1,4 @@
-@import './variables';
+@import "./variables";
 
 .edit-deck {
     display: grid;
@@ -12,18 +12,33 @@
 
     > .title {
         grid-area: title;
+        position: relative;
 
-        font-size: 2em;
-        font-weight: bold;
+        input {
+            font-size: 2em;
+            font-weight: bold;
 
-        background: none;
-        border: none;
-        outline: none;
-        &:hover{
-            &::after{
-                display: block;
-                content: 'edit';
-                background: red;
+            width: 100%;
+
+            background: none;
+            border: none;
+            outline: none;
+            &:focus {
+                background: $surface;
+                border: solid 1px $border-color;
+                color: $on-surface;
+                margin: -1px;
+            }
+        }
+        i {
+            position: absolute;
+            display: none;
+            top: 0.5em;
+            left: -1em;
+        }
+        &:hover {
+            i {
+                display: inline-block;
             }
         }
     }
