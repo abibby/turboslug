@@ -6,6 +6,8 @@ import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
 
 interface Props {
+    me: boolean
+    order: keyof Deck
 }
 
 interface State {
@@ -13,8 +15,13 @@ interface State {
 }
 
 export default class DeckCollection extends Component<Props, State> {
+    public static readonly defaultProps = {
+        me: true,
+        order: 'name',
+    }
+
     private authChangeUnsubscribe: () => void
-    constructor(props: {}) {
+    constructor(props: Props) {
         super(props)
 
         this.state = {
@@ -37,7 +44,7 @@ export default class DeckCollection extends Component<Props, State> {
 
     @bind
     private async authChange(user: User | null): Promise<void> {
-        const decks = await list()
+        const decks = await list(this.props.me, this.props.order)
         this.setState({ decks: decks })
     }
 }

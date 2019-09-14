@@ -4,13 +4,16 @@ import 'firebase/firestore'
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
-export interface Deck {
+export interface WriteDeck {
     id: string
-    userID: string
-    userName: string
     name: string
     cards: string
     keyImageURL: string
+}
+
+export interface Deck extends WriteDeck {
+    userID: string
+    userName: string
 }
 
 const firebaseConfig = {
@@ -55,7 +58,7 @@ export function signOut(): Promise<void> {
     return auth.signOut()
 }
 
-export async function create(deck: Omit<Deck, 'id' | 'userID' | 'userName'>): Promise<string> {
+export async function create(deck: Omit<WriteDeck, 'id'>): Promise<string> {
     const doc = await db
         .collection('decks')
         .add({
@@ -66,7 +69,7 @@ export async function create(deck: Omit<Deck, 'id' | 'userID' | 'userName'>): Pr
     return doc.id
 }
 
-export async function save(deck: Omit<Deck, 'userID' | 'userName'>): Promise<void> {
+export async function save(deck: WriteDeck): Promise<void> {
     await db
         .collection('decks')
         .doc(deck.id)
@@ -96,16 +99,21 @@ export async function destroy(id: string): Promise<void> {
         .delete()
 }
 
-export async function list(): Promise<Deck[]> {
+export async function list(me: boolean = true, order: keyof Deck = 'name'): Promise<Deck[]> {
     const uid = userID()
     if (uid === undefined) {
         return []
     }
-    const decks = await db
+
+    let query = db
         .collection('decks')
-        // .where('userID', '==', uid)
-        .orderBy('name')
-        .get()
+        .orderBy(order)
+
+    if (me) {
+        query = query.where('userID', '==', uid)
+    }
+
+    const decks = await query.get()
 
     return decks.docs.map(loadDeck)
 }
