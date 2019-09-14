@@ -52,7 +52,7 @@ const DeckElement: FunctionalComponent<{ deck: Deck }> = ({ deck }) => (
                 {deck.name}
             </div>
             <div class='author'>
-                by {deck.userID}
+                by {deck.userName || deck.userID}
             </div>
         </Link>
     </div>

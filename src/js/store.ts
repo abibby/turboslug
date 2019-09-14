@@ -7,6 +7,7 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export interface Deck {
     id: string
     userID: string
+    userName: string
     name: string
     cards: string
     keyImageURL: string
@@ -54,23 +55,25 @@ export function signOut(): Promise<void> {
     return auth.signOut()
 }
 
-export async function create(deck: Omit<Deck, 'id' | 'userID'>): Promise<string> {
+export async function create(deck: Omit<Deck, 'id' | 'userID' | 'userName'>): Promise<string> {
     const doc = await db
         .collection('decks')
         .add({
             ...deck,
             userID: userID(),
+            userName: userName(),
         })
     return doc.id
 }
 
-export async function save(deck: Omit<Deck, 'userID'>): Promise<void> {
+export async function save(deck: Omit<Deck, 'userID' | 'userName'>): Promise<void> {
     await db
         .collection('decks')
         .doc(deck.id)
         .set({
             ...deck,
             userID: userID(),
+            userName: userName(),
         })
 }
 
@@ -120,4 +123,12 @@ function userID(): string | undefined {
         return undefined
     }
     return user.uid
+}
+
+function userName(): string | undefined {
+    const user = auth.currentUser
+    if (user === null || user.displayName === null) {
+        return undefined
+    }
+    return user.displayName
 }
