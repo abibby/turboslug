@@ -26,6 +26,7 @@ interface State {
     savedName: string
     slots: Slot[]
     user: firebase.User | null
+    deckUserID?: string
 }
 
 export default class EditDeck extends Component<Props, State> {
@@ -56,30 +57,38 @@ export default class EditDeck extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
-            <div class='title'>
-                <input
-                    type='text'
-                    value={this.state.name}
-                    onInput={this.titleChange}
-                />
-                <Icon name='pencil' size='x1_5' />
-            </div>
+
+            {this.canEdit() &&
+                <div class='title'>
+                    <input
+                        type='text'
+                        value={this.state.name}
+                        onInput={this.titleChange}
+                    />
+                    <Icon name='pencil' size='small' />
+                </div>
+                ||
+                <div class='title'>{this.state.name}</div>
+            }
 
             <DeckBuilder
                 deck={this.state.deck}
                 onChange={this.deckChange}
+                edit={this.canEdit()}
             />
 
             <div class='stats-wrapper'>
                 <div class='side-bar'>
-                    <Button type='button' onClick={this.save}>
-                        Save
+                    {this.canEdit() && [
+                        <Button key='save' type='button' onClick={this.save}>
+                            Save
                         {this.state.name === this.state.savedName
-                            && this.state.deck === this.state.savedDeck ? '' : '*'}
-                    </Button>
-                    <Button type='button' color='danger' onClick={this.delete}>
-                        Delete
-                    </Button>
+                                && this.state.deck === this.state.savedDeck ? '' : '*'}
+                        </Button>,
+                        <Button key='delete' type='button' color='danger' onClick={this.delete}>
+                            Delete
+                        </Button>,
+                    ]}
                     <DeckStats deck={this.state.slots} />
                 </div>
             </div>
@@ -92,6 +101,10 @@ export default class EditDeck extends Component<Props, State> {
         if (previousProps.matches!.id !== this.props.matches!.id) {
             this.loadDeck()
         }
+    }
+
+    private canEdit(): boolean {
+        return this.state.user !== null && this.state.deckUserID === this.state.user.uid
     }
 
     @bind
@@ -120,12 +133,13 @@ export default class EditDeck extends Component<Props, State> {
             return
         }
 
-        const deck = (await load(this.props.matches!.id)) || { name: '', cards: '' }
+        const deck = (await load(this.props.matches!.id)) || { name: '', cards: '', userID: '' }
         this.setState({
             name: deck.name,
             savedName: deck.name,
             deck: deck.cards,
             savedDeck: deck.cards,
+            deckUserID: deck.userID,
         })
         const slots = await cards(deck.cards)
         this.setState({ slots: slots })

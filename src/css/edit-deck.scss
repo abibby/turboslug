@@ -14,9 +14,12 @@
         grid-area: title;
         position: relative;
 
+        font-size: 2em;
+        font-weight: bold;
         input {
-            font-size: 2em;
-            font-weight: bold;
+            font: inherit;
+            // font-weight: inherit;
+            // font-family: inherit;
 
             width: 100%;
 

@@ -100,7 +100,7 @@ export async function list(): Promise<Deck[]> {
     }
     const decks = await db
         .collection('decks')
-        .where('userID', '==', uid)
+        // .where('userID', '==', uid)
         .orderBy('name')
         .get()
 

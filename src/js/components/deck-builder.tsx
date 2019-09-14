@@ -8,6 +8,7 @@ import Card from './card'
 interface Props {
     deck?: string
     onChange?: (deck: string) => void
+    edit: boolean
 }
 interface State {
     deck: string
@@ -32,27 +33,34 @@ export default class DeckBuilder extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <div class='deck-builder' >
-            <div className='filter'>
-                <span class='title'>Filter</span>
-                <input type='text' onChange={this.filterChange} />
-            </div>
+            {this.props.edit &&
+                <div className='filter'>
+                    <span class='title'>Filter</span>
+                    <input type='text' onChange={this.filterChange} />
+                </div>
+            }
             <div class='editor-wrapper'>
                 <div className='editor'>
                     <Deck deck={this.state.deck} />
-                    <textarea
-                        class='text'
-                        onInput={this.input}
-                        onKeyDown={this.keydown}
-                        value={this.state.deck}
-                        spellcheck={false}
-                    />
+
+                    {this.props.edit &&
+                        <textarea
+                            class='text'
+                            onInput={this.input}
+                            onKeyDown={this.keydown}
+                            value={this.state.deck}
+                            spellcheck={false}
+                        />
+                    }
                 </div>
-                <Autocomplete
-                    hidden={this.state.currentCard === undefined}
-                    name={this.state.filter + ' ' + this.state.currentCard || ''}
-                    selected={this.state.autocompleteSelected}
-                    onNewResults={this.autocompleteNewResults}
-                />
+                {this.props.edit &&
+                    <Autocomplete
+                        hidden={this.state.currentCard === undefined}
+                        name={this.state.filter + ' ' + this.state.currentCard || ''}
+                        selected={this.state.autocompleteSelected}
+                        onNewResults={this.autocompleteNewResults}
+                    />
+                }
             </div>
         </div>
     }
