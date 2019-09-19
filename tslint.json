@@ -48,6 +48,7 @@
         "typedef": [
             true,
             "call-signature"
-        ]
+        ],
+        "max-classes-per-file": false
     }
 }

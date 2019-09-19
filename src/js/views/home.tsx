@@ -1,10 +1,7 @@
-import { bind } from 'decko'
 import Button from 'js/components/button'
 import DeckCollection from 'js/components/deck-collection'
-import { Deck, list, onAuthChange } from 'js/store'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
-import { Link } from 'preact-router'
 
 export default class Home extends Component {
     public render(): ComponentChild {

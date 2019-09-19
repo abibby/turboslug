@@ -1,7 +1,8 @@
 import 'css/deck-collection.scss'
 import { bind } from 'decko'
 import { User } from 'firebase'
-import { currentUser, Deck, list, onAuthChange } from 'js/store'
+import { currentUser, onAuthChange } from 'js/firebase'
+import Deck from 'js/orm/deck'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
 
@@ -44,7 +45,13 @@ export default class DeckCollection extends Component<Props, State> {
 
     @bind
     private async authChange(user: User | null): Promise<void> {
-        const decks = await list(this.props.me, this.props.order)
+        let query = Deck
+            .builder<Deck>()
+            .orderBy('name')
+        if (user && this.props.me) {
+            query = query.where('userID', '==', user.uid)
+        }
+        const decks = await query.get()
         this.setState({ decks: decks })
     }
 }

@@ -7,7 +7,8 @@ import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
-import { create, currentUser, destroy, load, onAuthChange, save } from 'js/store'
+import { currentUser, onAuthChange } from 'js/firebase'
+import Deck from 'js/orm/deck';
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -133,7 +134,7 @@ export default class EditDeck extends Component<Props, State> {
             return
         }
 
-        const deck = (await load(this.props.matches!.id)) || { name: '', cards: '', userID: '' }
+        const deck = (await Deck.find(this.props.matches!.id)) || { name: '', cards: '', userID: '' }
         this.setState({
             name: deck.name,
             savedName: deck.name,
