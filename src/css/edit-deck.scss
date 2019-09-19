@@ -10,12 +10,13 @@
         "builder stats"
         "list stats ";
 
-    > .title {
+    >.title {
         grid-area: title;
         position: relative;
 
         font-size: 2em;
         font-weight: bold;
+
         input {
             font: inherit;
             // font-weight: inherit;
@@ -26,6 +27,8 @@
             background: none;
             border: none;
             outline: none;
+
+            &.empty,
             &:focus {
                 background: $surface;
                 border: solid 1px $border-color;
@@ -33,13 +36,15 @@
                 margin: -1px;
             }
         }
+
         i {
             position: absolute;
             display: none;
             top: 0.5em;
             left: -1em;
         }
-        input:focus + i,
+
+        input:focus+i,
         &:hover i {
             display: inline-block;
         }

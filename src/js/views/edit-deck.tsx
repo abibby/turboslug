@@ -60,8 +60,9 @@ export default class EditDeck extends Component<Props, State> {
         return <Layout class='edit-deck'>
 
             {this.canEdit() &&
-                <div class='title'>
+                <div class={'title'}>
                     <input
+                        class={this.state.name === '' ? 'empty' : ''}
                         type='text'
                         value={this.state.name}
                         onInput={this.titleChange}
@@ -105,7 +106,9 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     private canEdit(): boolean {
-        return this.state.user !== null && this.state.deckUserID === this.state.user.uid
+        return this.props.matches!.id === undefined
+            || (this.state.user !== null
+                && this.state.deckUserID === this.state.user.uid)
     }
 
     @bind
