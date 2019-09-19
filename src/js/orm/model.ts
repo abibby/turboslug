@@ -42,6 +42,12 @@ export default abstract class Model {
         }
 
     }
+    public async delete(): Promise<void> {
+        if (this.id === undefined) {
+            return
+        }
+        await this.collection.doc(this.id).delete()
+    }
 }
 
 export class QueryBuilder<T> {
