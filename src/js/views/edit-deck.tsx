@@ -165,7 +165,7 @@ export default class EditDeck extends Component<Props, State> {
     private async save(): Promise<void> {
         this.state.deck.keyImageURL = this.state.slots[0].card.image_url
         await this.state.deck.save()
-        route(`edit/${this.state.deck.id}`)
+        route(`/edit/${this.state.deck.id}`)
         this.setState({
             savedDeck: this.state.deck.cards,
             savedName: this.state.deck.name,

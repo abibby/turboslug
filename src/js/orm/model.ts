@@ -1,5 +1,3 @@
-import { firestore } from 'js/firebase'
-
 export interface StaticModel<T> {
     defaults: { [field: string]: unknown }
     new(): T
