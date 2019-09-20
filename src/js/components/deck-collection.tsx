@@ -22,6 +22,9 @@ export default class DeckCollection extends Component<Props, State> {
     }
 
     private authChangeUnsubscribe: () => void
+
+    private decksUnsubscribe: (() => void) | undefined
+
     constructor(props: Props) {
         super(props)
 
@@ -45,14 +48,17 @@ export default class DeckCollection extends Component<Props, State> {
 
     @bind
     private async authChange(user: User | null): Promise<void> {
+        if (this.decksUnsubscribe) {
+            this.decksUnsubscribe()
+        }
+
         let query = Deck
             .builder<Deck>()
             .orderBy('name')
         if (user && this.props.me) {
             query = query.where('userID', '==', user.uid)
         }
-        const decks = await query.get()
-        this.setState({ decks: decks })
+        this.decksUnsubscribe = query.subscribe(decks => this.setState({ decks: decks }))
     }
 }
 

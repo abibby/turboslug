@@ -8,7 +8,7 @@ import Icon from 'js/components/icon'
 import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
-import Deck from 'js/orm/deck';
+import Deck from 'js/orm/deck'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -21,8 +21,7 @@ interface Props {
 }
 
 interface State {
-    name: string
-    deck: string
+    deck: Deck
     savedDeck: string
     savedName: string
     slots: Slot[]
@@ -32,13 +31,13 @@ interface State {
 
 export default class EditDeck extends Component<Props, State> {
     private authChangeUnsubscribe: () => void
+    private deckChangeUnsubscribe: (() => void) | undefined
 
     constructor(props: {}) {
         super(props)
 
         this.state = {
-            name: '',
-            deck: '',
+            deck: new Deck(),
             savedDeck: '',
             savedName: '',
             slots: [],
@@ -62,19 +61,19 @@ export default class EditDeck extends Component<Props, State> {
             {this.canEdit() &&
                 <div class={'title'}>
                     <input
-                        class={this.state.name === '' ? 'empty' : ''}
+                        class={this.state.deck.name === '' ? 'empty' : ''}
                         type='text'
-                        value={this.state.name}
+                        value={this.state.deck.name}
                         onInput={this.titleChange}
                     />
                     <Icon name='pencil' size='small' />
                 </div>
                 ||
-                <div class='title'>{this.state.name}</div>
+                <div class='title'>{this.state.deck.name}</div>
             }
 
             <DeckBuilder
-                deck={this.state.deck}
+                deck={this.state.deck.cards}
                 onChange={this.deckChange}
                 edit={this.canEdit()}
             />
@@ -84,8 +83,8 @@ export default class EditDeck extends Component<Props, State> {
                     {this.canEdit() && [
                         <Button key='save' type='button' onClick={this.save}>
                             Save
-                        {this.state.name === this.state.savedName
-                                && this.state.deck === this.state.savedDeck ? '' : '*'}
+                        {this.state.deck.name === this.state.savedName
+                                && this.state.deck.cards === this.state.savedDeck ? '' : '*'}
                         </Button>,
                         <Button key='delete' type='button' color='danger' onClick={this.delete}>
                             Delete
@@ -112,41 +111,49 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
-    private async deckChange(deck: string): Promise<void> {
+    private async deckChange(c: string): Promise<void> {
+        const deck = this.state.deck
+        deck.cards = c
         this.setState({ deck: deck })
 
-        const slots = await cards(deck)
+        const slots = await cards(c)
         this.setState({ slots: slots })
     }
 
     @bind
     private titleChange(e: Event): void {
         const input = e.target as HTMLInputElement
-        this.setState({ name: input.value })
+        const deck = this.state.deck
+        deck.name = input.value
+        this.setState({ deck: deck })
     }
 
-    private async loadDeck(): Promise<void> {
+    private loadDeck(): void {
+        if (this.deckChangeUnsubscribe) {
+            this.deckChangeUnsubscribe()
+        }
+
         if (this.props.matches!.id === undefined) {
             this.setState({
-                deck: '',
+                deck: new Deck(),
                 savedDeck: '',
-                name: '',
                 savedName: '',
                 slots: [],
             })
             return
         }
 
-        const deck = (await Deck.find(this.props.matches!.id)) || { name: '', cards: '', userID: '' }
-        this.setState({
-            name: deck.name,
-            savedName: deck.name,
-            deck: deck.cards,
-            savedDeck: deck.cards,
-            deckUserID: deck.userID,
+        this.deckChangeUnsubscribe = Deck.subscribe<Deck>(this.props.matches!.id, async deck => {
+            this.setState({
+                deck: deck,
+                savedName: deck.name,
+                savedDeck: deck.cards,
+                deckUserID: deck.userID,
+            })
+
+            const slots = await cards(deck.cards)
+            this.setState({ slots: slots })
         })
-        const slots = await cards(deck.cards)
-        this.setState({ slots: slots })
     }
 
     @bind
@@ -156,23 +163,12 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
-        const base = {
-            name: this.state.name,
-            cards: this.state.deck,
-            keyImageURL: this.state.slots[0].card.image_url,
-        }
-        if (this.props.matches!.id === undefined) {
-            const id = await create(base)
-            route(`/edit/${id}`)
-            return
-        }
-        save({
-            ...base,
-            id: this.props.matches!.id,
-        })
+        this.state.deck.keyImageURL = this.state.slots[0].card.image_url
+        await this.state.deck.save()
+        route(`edit/${this.state.deck.id}`)
         this.setState({
-            savedDeck: this.state.deck,
-            savedName: this.state.name,
+            savedDeck: this.state.deck.cards,
+            savedName: this.state.deck.name,
         })
     }
 
@@ -181,8 +177,7 @@ export default class EditDeck extends Component<Props, State> {
         if (this.props.matches!.id === undefined) {
             return
         }
-
-        await destroy(this.props.matches!.id)
+        await this.state.deck.delete()
         route('/')
     }
 

@@ -1,11 +1,14 @@
 import { firestore } from 'js/firebase'
 
 export interface StaticModel<T> {
+    defaults: { [field: string]: unknown }
     new(): T
     builder(): QueryBuilder<T>
 }
 
 export default abstract class Model {
+    public static defaults: { [field: string]: unknown } = {}
+
     public static builder<T extends Model>(this: StaticModel<T>): QueryBuilder<T> {
         const m = new this()
         return new QueryBuilder(this, m.collection)
@@ -21,24 +24,39 @@ export default abstract class Model {
         return m
     }
 
+    public static subscribe<T extends Model>(
+        this: StaticModel<T>,
+        id: string,
+        callback: (models: T) => void,
+    ): () => void {
+        return (new this()).collection.doc(id).onSnapshot(doc => {
+            const m = new this()
+            Object.assign(m, {
+                ...doc.data(),
+                id: doc.id,
+            })
+            callback(m)
+        })
+    }
+
     public readonly id: string | undefined
 
     protected abstract collection: firebase.firestore.CollectionReference
 
+    constructor() {
+        Object.assign(this, (this.constructor as StaticModel<Model>).defaults)
+    }
+
     public async save(): Promise<void> {
+        const saveObject: any = {}
+        for (const key of Object.keys((this.constructor as StaticModel<Model>).defaults)) {
+            saveObject[key] = (this as any)[key]
+        }
         if (this.id === undefined) {
-            const docRef = await this.collection.add({
-                ...this,
-                id: undefined,
-                collection: undefined,
-            });
+            const docRef = await this.collection.add(saveObject);
             (this as any).id = docRef.id
         } else {
-            await this.collection.doc(this.id).set({
-                ...this,
-                id: undefined,
-                collection: undefined,
-            })
+            await this.collection.doc(this.id).set(saveObject)
         }
 
     }
@@ -87,5 +105,25 @@ export class QueryBuilder<T> {
             })
             return model
         })
+    }
+
+    public subscribe(callback: (models: T[]) => void): () => void {
+        return this.query.onSnapshot(ref => {
+            callback(ref.docs.map(doc => {
+                const model = new this.staticModel()
+                Object.assign(model, {
+                    ...doc.data(),
+                    id: doc.id,
+                })
+                return model
+            }))
+        })
+    }
+}
+
+export function field(def: unknown): (type: Model, f: string) => void {
+    return (type, f) => {
+        const constructor = type.constructor as StaticModel<Model>
+        constructor.defaults[f] = def
     }
 }
