@@ -3,12 +3,12 @@ import { bind } from 'decko'
 import { User } from 'firebase'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
+import { QueryBuilder } from 'js/orm/model'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
 
 interface Props {
-    me: boolean
-    order: keyof Deck
+    query: QueryBuilder<Deck>
 }
 
 interface State {
@@ -21,8 +21,6 @@ export default class DeckCollection extends Component<Props, State> {
         order: 'name',
     }
 
-    private authChangeUnsubscribe: () => void
-
     private decksUnsubscribe: (() => void) | undefined
 
     constructor(props: Props) {
@@ -32,12 +30,16 @@ export default class DeckCollection extends Component<Props, State> {
             decks: [],
         }
 
-        this.authChange(currentUser())
-        this.authChangeUnsubscribe = onAuthChange(this.authChange)
+    }
+
+    public componentDidMount(): void {
+        this.updateQuery()
     }
 
     public componentWillUnmount(): void {
-        this.authChangeUnsubscribe()
+        if (this.decksUnsubscribe) {
+            this.decksUnsubscribe()
+        }
     }
 
     public render(): ComponentChild {
@@ -46,19 +48,19 @@ export default class DeckCollection extends Component<Props, State> {
         </div>
     }
 
+    public componentWillUpdate(previousProps: Props): void {
+        if (!previousProps.query.equal(this.props.query)) {
+            this.updateQuery()
+        }
+    }
+
     @bind
-    private async authChange(user: User | null): Promise<void> {
+    private async updateQuery(): Promise<void> {
         if (this.decksUnsubscribe) {
             this.decksUnsubscribe()
         }
 
-        let query = Deck
-            .builder<Deck>()
-            .orderBy('name')
-        if (user && this.props.me) {
-            query = query.where('userID', '==', user.uid)
-        }
-        this.decksUnsubscribe = query.subscribe(decks => this.setState({ decks: decks }))
+        this.decksUnsubscribe = this.props.query.subscribe(decks => this.setState({ decks: decks }))
     }
 }
 

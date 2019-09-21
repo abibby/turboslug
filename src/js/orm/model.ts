@@ -48,7 +48,11 @@ export default abstract class Model {
     public async save(): Promise<void> {
         const saveObject: any = {}
         for (const key of Object.keys((this.constructor as StaticModel<Model>).defaults)) {
-            saveObject[key] = (this as any)[key]
+            const value = (this as any)[key]
+            if (value === undefined) {
+                continue
+            }
+            saveObject[key] = value
         }
         if (this.id === undefined) {
             const docRef = await this.collection.add(saveObject);
@@ -71,6 +75,8 @@ export class QueryBuilder<T> {
     private readonly staticModel: StaticModel<T>
     private readonly query: firebase.firestore.Query
 
+    private readonly key: string[] = []
+
     constructor(staticModel: StaticModel<T>, query: firebase.firestore.Query) {
         this.staticModel = staticModel
         this.query = query
@@ -81,15 +87,23 @@ export class QueryBuilder<T> {
         opStr: firebase.firestore.WhereFilterOp,
         value: T[K],
     ): QueryBuilder<T> {
+        this.addKey('where', fieldPath, opStr, value)
 
         return new QueryBuilder(this.staticModel, this.query.where(fieldPath as string, opStr, value))
     }
 
-    public orderBy<K extends keyof T>(
-        fieldPath: K,
+    public orderBy(
+        fieldPath: keyof T,
         directionStr?: firebase.firestore.OrderByDirection,
     ): QueryBuilder<T> {
+        this.addKey('orderBy', fieldPath, directionStr)
+
         return new QueryBuilder(this.staticModel, this.query.orderBy(fieldPath as string, directionStr))
+    }
+    public limit(limit: number): QueryBuilder<T> {
+        this.addKey('limit', limit)
+
+        return new QueryBuilder(this.staticModel, this.query.limit(limit))
     }
 
     public async get(): Promise<T[]> {
@@ -116,6 +130,14 @@ export class QueryBuilder<T> {
                 return model
             }))
         })
+    }
+
+    public equal(q: QueryBuilder<T>): boolean {
+        return this.key.join('.') === q.key.join('.')
+    }
+
+    private addKey(func: string, ...args: unknown[]): void {
+        this.key.push(`${func}(${args.map(arg => JSON.stringify(arg)).join(', ')})`)
     }
 }
 

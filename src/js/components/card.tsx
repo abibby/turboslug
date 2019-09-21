@@ -7,7 +7,7 @@ interface Props {
     card: DBCard
 }
 
-const Card: FunctionalComponent<Props> = ({ card }) => <div class='card' >
+const Card: FunctionalComponent<Props> = ({ card }) => card && <div class='card' >
     <div class='backup-card'>
         <div className='title'>{card.name}</div>
         <ManaCost class='mana-cost' cost={card.mana_cost} />

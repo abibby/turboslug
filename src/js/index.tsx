@@ -6,6 +6,7 @@ import Router from 'preact-router'
 import Loader from './components/loader'
 import EditDeck from './views/edit-deck'
 import Help from './views/help'
+import MyDecks from './views/my-decks'
 
 interface State {
     progress: number
@@ -35,6 +36,7 @@ class Index extends Component<{}, State> {
             <Help path='/help' />
             <EditDeck path='/edit/create' />
             <EditDeck path='/edit/:id/:type?' />
+            <MyDecks path='/deck/me' />
         </Router>
     }
     private async loadDB(): Promise<void> {

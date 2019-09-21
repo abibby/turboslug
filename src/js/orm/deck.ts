@@ -14,8 +14,11 @@ export default class Deck extends Model {
     @field('')
     public userName: string
 
-    @field(0)
-    public createdAt: number
+    @field(undefined)
+    public createdAt: firebase.firestore.Timestamp | undefined
+
+    @field(undefined)
+    public updatedAt: firebase.firestore.Timestamp | undefined
 
     protected collection = firestore.collection('decks')
 

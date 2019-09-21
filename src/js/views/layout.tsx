@@ -27,21 +27,26 @@ export default class Layout extends Component<Props, State> {
         this.authChangeUnsubscribe()
     }
     public render(): ComponentChild {
-        let user = <button class='link' onClick={signIn}>Login</button>
+        let loginLogout = <button class='link' onClick={signIn}>Login</button>
+        let userNav: JSX.Element[] | null = null
         if (this.state.user) {
-            user = <NavDropdown>
+            loginLogout = <NavDropdown>
                 <NavDropdownTitle>{this.state.user.displayName}</NavDropdownTitle>
                 <NavOption onClick={signOut}>Sign Out</NavOption>
             </NavDropdown>
+            userNav = [
+                <Link key='my-decks' class='link' href='/deck/me'>My Decks</Link>,
+            ]
         }
         return <div>
             <Nav>
                 <NavLeft>
                     <Link class='link' href='/'>Home</Link>
                     <Link class='link' href='/help'>Help</Link>
+                    {userNav}
                 </NavLeft>
                 <NavRight>
-                    {user}
+                    {loginLogout}
                 </NavRight>
             </Nav>
             <div class={`content ${this.props.class}`}>
