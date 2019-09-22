@@ -1,28 +1,6 @@
 @import './variables';
 
 .deck-builder {
-    .filter {
-        $padding: 6px;
-
-        display: flex;
-        border: solid 1px $border-color;
-        background-color: $surface;
-
-        margin-bottom: 10px;
-
-        .title {
-            border-right: solid 1px $border-color;
-            padding: $padding;
-        }
-
-        input {
-            border: none;
-            outline: none;
-            padding: $padding;
-            flex-grow: 9999;
-        }
-    }
-
     .editor-wrapper {
         font-family: monospace;
         font-size: 16px;

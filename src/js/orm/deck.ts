@@ -14,10 +14,10 @@ export default class Deck extends Model {
     @field('')
     public userName: string
 
-    @field(undefined)
+    @field(undefined, { readonly: true })
     public createdAt: firebase.firestore.Timestamp | undefined
 
-    @field(undefined)
+    @field(undefined, { readonly: true })
     public updatedAt: firebase.firestore.Timestamp | undefined
 
     protected collection = firestore.collection('decks')

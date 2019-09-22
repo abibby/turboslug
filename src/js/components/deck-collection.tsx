@@ -6,19 +6,21 @@ import Deck from 'js/orm/deck'
 import { QueryBuilder } from 'js/orm/model'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
+import Input from './input'
 
 interface Props {
     query: QueryBuilder<Deck>
+    filter?: boolean
 }
 
 interface State {
     decks: Deck[]
+    filter: string
 }
 
 export default class DeckCollection extends Component<Props, State> {
     public static readonly defaultProps = {
-        me: true,
-        order: 'name',
+        filter: false,
     }
 
     private decksUnsubscribe: (() => void) | undefined
@@ -28,6 +30,7 @@ export default class DeckCollection extends Component<Props, State> {
 
         this.state = {
             decks: [],
+            filter: '',
         }
 
     }
@@ -43,8 +46,15 @@ export default class DeckCollection extends Component<Props, State> {
     }
 
     public render(): ComponentChild {
+        let filter: ComponentChild = null
+        if (this.props.filter) {
+            filter = <Input title='Search' onChange={this.filterChange} />
+        }
         return <div class='deck-collection'>
-            {this.state.decks.map(deck => <DeckElement key={deck.id} deck={deck} />)}
+            {filter}
+            {this.state.decks
+                .filter(deck => deck.name.toLowerCase().includes(this.state.filter.toLowerCase()))
+                .map(deck => <DeckElement key={deck.id} deck={deck} />)}
         </div>
     }
 
@@ -61,6 +71,11 @@ export default class DeckCollection extends Component<Props, State> {
         }
 
         this.decksUnsubscribe = this.props.query.subscribe(decks => this.setState({ decks: decks }))
+    }
+
+    @bind
+    private filterChange(value: string): void {
+        this.setState({ filter: value })
     }
 }
 

@@ -4,6 +4,7 @@ import { DBCard, newCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
+import Input from './input'
 
 interface Props {
     deck?: string
@@ -33,11 +34,7 @@ export default class DeckBuilder extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <div class='deck-builder' >
-            {this.props.edit &&
-                <div className='filter'>
-                    <span class='title'>Filter</span>
-                    <input type='text' onChange={this.filterChange} />
-                </div>
+            {this.props.edit && <Input title='Filter' onChange={this.filterChange} />
             }
             <div class='editor-wrapper'>
                 <div className='editor'>
@@ -225,11 +222,8 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     @bind
-    private filterChange(e: Event): void {
-        const input = e.target as HTMLInputElement
-        this.setState({
-            filter: input.value,
-        })
+    private filterChange(value: string): void {
+        this.setState({ filter: value })
     }
 }
 

@@ -1,11 +1,13 @@
 export interface StaticModel<T> {
     defaults: { [field: string]: unknown }
+    options: { [field: string]: FieldOptions }
     new(): T
     builder(): QueryBuilder<T>
 }
 
 export default abstract class Model {
     public static defaults: { [field: string]: unknown } = {}
+    public static options: { [field: string]: FieldOptions }
 
     public static builder<T extends Model>(this: StaticModel<T>): QueryBuilder<T> {
         const m = new this()
@@ -49,7 +51,8 @@ export default abstract class Model {
         const saveObject: any = {}
         for (const key of Object.keys((this.constructor as StaticModel<Model>).defaults)) {
             const value = (this as any)[key]
-            if (value === undefined) {
+            const options = (this.constructor as StaticModel<Model>).options
+            if (value === undefined || options.readonly) {
                 continue
             }
             saveObject[key] = value
@@ -141,9 +144,14 @@ export class QueryBuilder<T> {
     }
 }
 
-export function field(def: unknown): (type: Model, f: string) => void {
+interface FieldOptions {
+    readonly?: boolean
+}
+
+export function field(def: unknown, options: FieldOptions = {}): (type: Model, f: string) => void {
     return (type, f) => {
         const constructor = type.constructor as StaticModel<Model>
         constructor.defaults[f] = def
+        constructor.options[f] = options
     }
 }

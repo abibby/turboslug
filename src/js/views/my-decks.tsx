@@ -11,7 +11,10 @@ export default class MyDecks extends Component {
             <h2>New Deck</h2>
             <Button type='link' href='/edit/create'>Create</Button>
             <h2>Decks</h2>
-            <DeckCollection query={Deck.builder<Deck>().where('userID', '==', currentUser()!.uid).orderBy('name')} />
+            <DeckCollection
+                filter
+                query={Deck.builder<Deck>().where('userID', '==', currentUser()!.uid).orderBy('name')}
+            />
         </Layout>
     }
 }
