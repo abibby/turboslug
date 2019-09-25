@@ -48,7 +48,7 @@ export default class DeckCollection extends Component<Props, State> {
     public render(): ComponentChild {
         let filter: ComponentChild = null
         if (this.props.filter) {
-            filter = <Input title='Search' onChange={this.filterChange} />
+            filter = <Input title='Search' onChange={this.filterChange} value={this.state.filter} />
         }
         return <div class='deck-collection'>
             {filter}

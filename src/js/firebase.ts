@@ -4,7 +4,7 @@ import 'firebase/firestore'
 
 const firebaseConfig = {
     apiKey: 'AIzaSyBB8L89aHFYnpUuQwV_MElk5Q2GeV2Piys',
-    authDomain: 'turboslug-929d8.firebaseapp.com',
+    authDomain: 'turboslug.app',
     databaseURL: 'https://turboslug-929d8.firebaseio.com',
     projectId: 'turboslug-929d8',
     storageBucket: 'turboslug-929d8.appspot.com',
