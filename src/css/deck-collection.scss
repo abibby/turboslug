@@ -1,5 +1,4 @@
-@import './variables';
-
+@import "./variables";
 
 .deck-collection {
     .deck-element {
@@ -39,7 +38,8 @@
 
                 img {
                     height: 223%;
-                    margin: -24% -29%;
+                    margin: 50%;
+                    transform: translate(-50%, -33%);
                 }
             }
 

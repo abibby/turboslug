@@ -65,7 +65,7 @@ export default abstract class Model {
             const docRef = await this.collection.add(saveObject);
             (this as any).id = docRef.id
         } else {
-            await this.collection.doc(this.id).set(saveObject)
+            await this.collection.doc(this.id).set(saveObject, { merge: true })
         }
 
     }
