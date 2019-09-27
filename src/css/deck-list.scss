@@ -40,12 +40,12 @@
         padding-bottom: $gap;
 
         &:hover {
-            z-index: 1;
+            z-index: 2;
         }
 
         .quantity {
             position: absolute;
-            z-index: 2;
+            z-index: 1;
             color: $on-primary;
             font-size: 2em;
             font-weight: bold;
