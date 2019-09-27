@@ -40,12 +40,12 @@
         padding-bottom: $gap;
 
         &:hover {
-            position: relative;
+            z-index: 1;
         }
 
         .quantity {
             position: absolute;
-            z-index: 1;
+            z-index: 2;
             color: $on-primary;
             font-size: 2em;
             font-weight: bold;
@@ -57,11 +57,14 @@
             width: $width;
             height: floor($width / 6.5);
 
+            .backup-card {
+                pointer-events: none;
+            }
+
             img {
                 width: $width;
                 border-radius: floor($width / 22);
                 pointer-events: none;
-
             }
         }
     }
