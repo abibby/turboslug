@@ -191,22 +191,38 @@ export default class EditDeck extends Component<Props, State> {
 }
 
 async function cards(deck: string): Promise<Slot[]> {
-    const c = deck
+    let c = deck
         .split('\n')
         .filter(row => !row.startsWith('//'))
-        .filter(row => row.trim() !== '')
+        // .filter(row => row.trim() !== '')
         .map(row => tokens(row))
         .filter(t => t.length > 0)
         .map(([, quantity, , card, , tags]) => ({
-            quantity: quantity !== '' ? Number(quantity) : 1,
+            quantity: quantity,
             card: card,
-            tags: (tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')),
+            tags: Array.from(new Set((tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')))),
         }))
+
+    let tags: string[] | undefined
+    for (const row of c) {
+        if (row.card === '' && row.quantity === '') {
+            if (row.tags.length === 0) {
+                tags = undefined
+            } else {
+                tags = row.tags
+            }
+        } else if (tags !== undefined) {
+            row.tags = row.tags.concat(tags)
+        }
+    }
+
+    c = c.filter(slot => slot.card !== '')
 
     const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
 
     return c.map((card, i) => ({
         ...card,
         card: dbCards[i],
+        quantity: card.quantity !== '' ? Number(card.quantity) : 1,
     }))
 }

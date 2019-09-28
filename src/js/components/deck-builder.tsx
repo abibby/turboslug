@@ -80,9 +80,19 @@ export default class DeckBuilder extends Component<Props, State> {
         const linesBeforeStart = deck.slice(0, start).split('\n')
         const linePosition = linesBeforeStart[linesBeforeStart.length - 1].length
         const currentLine = lines[linesBeforeStart.length - 1]
-        const [s1, quantity, s2, card, s3, tags] = tokens(currentLine)
-        const preCard = s1 + quantity + s2
-        const postCard = s3 + tags
+        let preCard: string
+        let card: string
+        let postCard: string
+        if (currentLine.startsWith('//')) {
+            preCard = ''
+            card = ''
+            postCard = currentLine
+        } else {
+            const [s1, quantity, s2, cardToken, s3, tags] = tokens(currentLine)
+            preCard = s1 + quantity + s2
+            card = cardToken
+            postCard = s3 + tags
+        }
         return {
             lines: lines,
             preCard: preCard,
@@ -234,7 +244,7 @@ interface AutocompleteProps {
     onNewResults: (results: DBCard[]) => void
 }
 
-const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
+const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
     <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`} >
         <Async
             promise={searchCards(props.name)}
@@ -265,6 +275,7 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props =>
             }}
         />
     </div>
+)
 
 const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
 export function tokens(src: string): string[] {
