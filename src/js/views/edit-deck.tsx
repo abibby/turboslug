@@ -194,7 +194,6 @@ async function cards(deck: string): Promise<Slot[]> {
     let c = deck
         .split('\n')
         .filter(row => !row.startsWith('//'))
-        // .filter(row => row.trim() !== '')
         .map(row => tokens(row))
         .filter(t => t.length > 0)
         .map(([, quantity, , card, , tags]) => ({
@@ -203,16 +202,16 @@ async function cards(deck: string): Promise<Slot[]> {
             tags: (tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')),
         }))
 
-    let tags: string[] | undefined
+    let groupTags: string[] | undefined
     for (const row of c) {
         if (row.card === '' && row.quantity === '') {
             if (row.tags.length === 0) {
-                tags = undefined
+                groupTags = undefined
             } else {
-                tags = row.tags
+                groupTags = row.tags
             }
-        } else if (tags !== undefined) {
-            row.tags = row.tags.concat(tags)
+        } else if (groupTags !== undefined) {
+            row.tags = row.tags.concat(groupTags)
         }
     }
 

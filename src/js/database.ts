@@ -1,5 +1,5 @@
-import DatabaseWorker from 'worker-loader!./database-worker'
-import { DatabaseMessage, DatabaseResponse } from './database-worker'
+import DatabaseWorker from 'worker-loader!./database.worker'
+import { DatabaseMessage, DatabaseResponse } from './database.worker'
 
 const worker = new DatabaseWorker()
 

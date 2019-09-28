@@ -1,4 +1,3 @@
-import Fuse from 'fuse.js'
 import { get, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
 export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
@@ -30,8 +29,6 @@ export interface LoadingResponse {
 interface QueryArgs {
     [key: string]: string[]
 }
-
-// type Matcher<T> = (a: T, words: string[]) => boolean
 
 interface QueryField<T> {
     field: string[]

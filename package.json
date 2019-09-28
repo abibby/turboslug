@@ -13,11 +13,8 @@
   "author": "Adam Bibby",
   "license": "MIT",
   "devDependencies": {
-    "@types/gh-pages": "^2.0.0",
-    "@types/history": "^4.7.2",
     "@types/node": "^12.6.8",
     "@types/node-fetch": "^2.5.0",
-    "@types/webpack": "^4.32.1",
     "autoprefixer": "^9.6.1",
     "css-loader": "^3.1.0",
     "css-mqpacker": "^7.0.0",
@@ -40,8 +37,7 @@
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
     "workbox-webpack-plugin": "^4.3.1",
-    "worker-loader": "^2.0.0",
-    "worker-plugin": "^3.2.0"
+    "worker-loader": "^2.0.0"
   },
   "dependencies": {
     "decko": "^1.2.0",
