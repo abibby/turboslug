@@ -200,7 +200,7 @@ async function cards(deck: string): Promise<Slot[]> {
         .map(([, quantity, , card, , tags]) => ({
             quantity: quantity,
             card: card,
-            tags: Array.from(new Set((tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')))),
+            tags: (tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')),
         }))
 
     let tags: string[] | undefined
@@ -216,7 +216,10 @@ async function cards(deck: string): Promise<Slot[]> {
         }
     }
 
-    c = c.filter(slot => slot.card !== '')
+    c = c.filter(slot => slot.card !== '').map(slot => ({
+        ...slot,
+        tags: Array.from(new Set(slot.tags)),
+    }))
 
     const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
 
