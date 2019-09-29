@@ -35,14 +35,14 @@ export class LayoutWrapper extends Component<Props, State> {
                 <NavOption onClick={signOut}>Sign Out</NavOption>
             </NavDropdown>
             userNav = [
-                <Link key='my-decks' class='link' href='/deck/me' activeClassName='active'>My Decks</Link>,
+                <Link key='my-decks' class='link' href='/deck/me'>My Decks</Link>,
             ]
         }
         return <div>
             <Nav>
                 <NavLeft>
-                    <Link class='link' href='/' activeClassName='active'>Home</Link>
-                    <Link class='link' href='/help' activeClassName='active'>Help</Link>
+                    <Link class='link' href='/'>Home</Link>
+                    <Link class='link' href='/help'>Help</Link>
                     {userNav}
                 </NavLeft>
                 <NavRight>
@@ -70,9 +70,9 @@ const Layout: FunctionalComponent<{ class?: string }> = props => <div class={`co
 </div>
 export default Layout
 
-const Nav: FunctionalComponent = ({ children }) => <div class='nav'>
+const Nav: FunctionalComponent = ({ children }) => <nav class='nav'>
     {children}
-</div>
+</nav>
 const NavLeft: FunctionalComponent = ({ children }) => <div class='nav-left'>
     {children}
 </div>
