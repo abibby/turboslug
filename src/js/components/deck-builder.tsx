@@ -34,7 +34,12 @@ export default class DeckBuilder extends Component<Props, State> {
     }
     public render(): ComponentChild {
         return <div class='deck-builder' >
-            {this.props.edit && <Input title='Filter' onChange={this.filterChange} />
+            {this.props.edit &&
+                <Input
+                    title='Filter'
+                    onChange={this.filterChange}
+                    value={this.state.filter}
+                />
             }
             <div class='editor-wrapper'>
                 <div className='editor'>
@@ -156,9 +161,12 @@ export default class DeckBuilder extends Component<Props, State> {
                     break
                 case 'Enter':
                 case 'Tab':
+                    const c = this.results[newState.autocompleteSelected]
+                    if (c === undefined) {
+                        break
+                    }
                     e.preventDefault()
                     const { lines, preCard, postCard, currentLine } = this.info(textarea)
-                    const c = this.results[newState.autocompleteSelected]
 
                     newState.deck = lines.map((line, i) => {
                         if (i !== currentLine) {
@@ -257,10 +265,10 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
                     return result.error.toString()
                 }
 
+                props.onNewResults(result.result)
                 if (result.result.length === 0) {
                     return 'no cards'
                 }
-                props.onNewResults(result.result)
                 return <div>
                     <Card card={result.result[props.selected]} />
                     <div class='options' >
