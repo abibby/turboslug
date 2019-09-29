@@ -48,6 +48,7 @@ addEventListener('message', async  e => {
 async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> {
     switch (message.function) {
         case 'findCard':
+            await waitForLoad()
             const card = findCard(message.name)
             return {
                 type: 'function',
@@ -55,6 +56,7 @@ async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> 
                 value: card,
             }
         case 'searchCards':
+            await waitForLoad()
             const cards = searchCards(message.query)
             return {
                 type: 'function',
@@ -229,6 +231,9 @@ async function getCards(index: number): Promise<DBCard[]> {
     return await get(`chunk-${index}`) || []
 }
 
+let loaded = false
+const onLoaded: Array<() => void> = []
+
 async function loadDB(): Promise<void> {
     try {
         await loadNetwork()
@@ -253,7 +258,19 @@ async function loadDB(): Promise<void> {
         i++
     }
     allCards.sort((a, b) => a.name.localeCompare(b.name))
+    loaded = true
+    for (const cb of onLoaded) {
+        cb()
+    }
+}
 
+async function waitForLoad() {
+    if (loaded) {
+        return
+    }
+    return new Promise(resolve => {
+        onLoaded.push(resolve)
+    })
 }
 
 async function loadNetwork(): Promise<void> {

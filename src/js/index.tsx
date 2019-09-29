@@ -6,6 +6,7 @@ import Router from 'preact-router'
 import Loader from './components/loader'
 import EditDeck from './views/edit-deck'
 import Help from './views/help'
+import { LayoutWrapper } from './views/layout'
 import MyDecks from './views/my-decks'
 
 interface State {
@@ -23,21 +24,15 @@ class Index extends Component<{}, State> {
         this.loadDB()
     }
     public render(): ComponentChild {
-        if (!this.state.loaded) {
-            return <div>
-                <div>
-                    Loading card database
-                </div>
-                <Loader progress={this.state.progress} />
-            </div>
-        }
-        return <Router>
-            <Home path='/' />
-            <Help path='/help' />
-            <EditDeck path='/edit/create' />
-            <EditDeck path='/edit/:id/:type?' />
-            <MyDecks path='/deck/me' />
-        </Router>
+        return <LayoutWrapper loading={this.state.progress}>
+            <Router>
+                <Home path='/' />
+                <Help path='/help' />
+                <EditDeck path='/edit/create' />
+                <EditDeck path='/edit/:id/:type?' />
+                <MyDecks path='/deck/me' />
+            </Router>
+        </LayoutWrapper>
     }
     private async loadDB(): Promise<void> {
         await loadDB((count, total) => this.setState({ progress: count / total }))

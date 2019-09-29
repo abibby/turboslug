@@ -5,15 +5,15 @@ import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
 
 interface Props {
-    class?: string
+    loading: number
 }
 interface State {
     user: firebase.User | null
 }
 
-export default class Layout extends Component<Props, State> {
+export class LayoutWrapper extends Component<Props, State> {
     private authChangeUnsubscribe: () => void
-    constructor(props: {}) {
+    constructor(props: Props) {
         super(props)
 
         this.state = {
@@ -35,23 +35,27 @@ export default class Layout extends Component<Props, State> {
                 <NavOption onClick={signOut}>Sign Out</NavOption>
             </NavDropdown>
             userNav = [
-                <Link key='my-decks' class='link' href='/deck/me'>My Decks</Link>,
+                <Link key='my-decks' class='link' href='/deck/me' activeClassName='active'>My Decks</Link>,
             ]
         }
         return <div>
             <Nav>
                 <NavLeft>
-                    <Link class='link' href='/'>Home</Link>
-                    <Link class='link' href='/help'>Help</Link>
+                    <Link class='link' href='/' activeClassName='active'>Home</Link>
+                    <Link class='link' href='/help' activeClassName='active'>Help</Link>
                     {userNav}
                 </NavLeft>
                 <NavRight>
                     {loginLogout}
                 </NavRight>
+                {this.props.loading !== 1 &&
+                    <div
+                        class='nav-loader'
+                        style={{ width: `${this.props.loading * 100}%` }}
+                    />
+                }
             </Nav>
-            <div class={`content ${this.props.class}`}>
-                {this.props.children}
-            </div>
+            {this.props.children}
         </div>
     }
 
@@ -60,6 +64,11 @@ export default class Layout extends Component<Props, State> {
         this.setState({ user: user })
     }
 }
+
+const Layout: FunctionalComponent<{ class?: string }> = props => <div class={`content ${props.class}`}>
+    {props.children}
+</div>
+export default Layout
 
 const Nav: FunctionalComponent = ({ children }) => <div class='nav'>
     {children}

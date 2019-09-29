@@ -1,4 +1,4 @@
-@import './variables';
+@import "./variables";
 
 .nav {
     $padding: 5px;
@@ -46,7 +46,6 @@
         }
 
         &:hover {
-
             .nav-option {
                 display: block;
                 background-color: $surface;
@@ -69,6 +68,14 @@
 
     .nav-right {
         float: right;
+    }
+
+    .nav-loader {
+        height: 3px;
+        background: $danger;
+        position: absolute;
+        top: 0;
+        left: 0;
     }
 }
 
