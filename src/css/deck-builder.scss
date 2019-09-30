@@ -1,4 +1,4 @@
-@import './variables';
+@import "./variables";
 
 .deck-builder {
     .editor-wrapper {
@@ -9,10 +9,10 @@
         position: relative;
 
         .editor {
-
             border: solid 1px $border-color;
             padding: 3px;
             background-color: $surface;
+            color: $on-surface;
 
             position: relative;
             text-align: left;
@@ -84,7 +84,7 @@
                     }
 
                     .tag {
-                        color: $primary-light;
+                        color: $primary;
                     }
 
                     .comment {
@@ -104,6 +104,8 @@
             left: calc(var(--x) * 1ch);
             border: solid #ccc 1px;
             background-color: $surface;
+            color: $on-surface;
+
             z-index: 10;
             width: 500px;
 
@@ -121,6 +123,7 @@
 
                     &.selected {
                         background-color: $primary;
+                        color: $on-primary;
                     }
                 }
             }

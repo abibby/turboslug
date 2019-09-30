@@ -18,6 +18,7 @@
             grid-template-columns: #{$key-image-width / 2} auto;
 
             background-color: $surface;
+            color: $on-surface;
             margin-top: $key-image-width / 2;
             margin-left: $key-image-width / 2 - $border-thickness;
             height: $key-image-width / 2;

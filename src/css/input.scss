@@ -1,4 +1,4 @@
-@import './variables';
+@import "./variables";
 
 .filter {
     $padding: 6px;
@@ -6,6 +6,7 @@
     display: flex;
     border: solid 1px $border-color;
     background-color: $surface;
+    color: $on-surface;
 
     margin-bottom: 10px;
 
@@ -20,5 +21,6 @@
         padding: $padding;
         flex-grow: 9999;
         margin: 0;
+        color: $on-surface;
     }
 }

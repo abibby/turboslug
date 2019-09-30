@@ -1,4 +1,4 @@
-@import './variables';
+@import "./variables";
 
 body {
     background-color: $background;
@@ -9,4 +9,8 @@ body {
 ::placeholder {
     color: $light-text-color;
     opacity: 1;
+}
+
+input {
+    color: $on-background;
 }

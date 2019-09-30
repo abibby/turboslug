@@ -1,34 +1,28 @@
-$mtg-white: #fffcd7;
-$mtg-blue: #abe0f7;
-$mtg-black: #cdc1c1;
-$mtg-red: #faaa8f;
-$mtg-green: #9bd3ae;
+@import "nord/src/sass/nord.scss";
 
-$text-white: rgba(white, 0.8);
-$text-black: rgba(black, 0.8);
+$text-white: $nord4;
+$text-black: $nord1;
 
-$light-text-color: rgba($text-black, 0.4);
+$light-text-color: $nord4;
 
-$background: #eee;
-$on-background: $text-black;
+// $background: $nord5;
+// $on-background: $text-black;
+$background: $nord1;
+$on-background: $text-white;
 
-$surface: #fff;
-$on-surface: $text-black;
+// $surface: $nord6;
+// $on-surface: $text-black;
+$surface: $nord0;
+$on-surface: $text-white;
 
-$border-color: #ddd;
+$border-color: $nord3;
 
-$primary: #01579b;
-$on-primary: $text-white;
-$primary-dark: #002f6c;
+$primary: $nord9;
+$on-primary: $text-black;
+$primary-dark: $nord10;
 $on-primary-dark: $text-white;
-$primary-light: #4f83cc;
-$on-primary-light: $text-black;
 
-$danger: #b71c1c;
-$on-danger: $text-white;
-$danger-dark: #7f0000;
-$on-danger-dark: $text-white;
-$danger-light:#f05545;
-$on-danger-light: $text-black;
+$danger: $nord11;
+$on-danger: $text-black;
 
 $nav-height: 30px;
