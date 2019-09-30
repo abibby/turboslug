@@ -92,7 +92,7 @@
                     }
 
                     &.even {
-                        background-color: rgba(black, 0.03);
+                        background-color: rgba($on-surface, 0.03);
                     }
                 }
             }
