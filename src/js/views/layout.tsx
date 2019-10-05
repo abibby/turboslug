@@ -46,6 +46,7 @@ export class LayoutWrapper extends Component<Props, State> {
                     {userNav}
                 </NavLeft>
                 <NavRight>
+                    <a class='link' href='https://github.com/zwzn/turboslug'>GitHub</a>
                     {loginLogout}
                 </NavRight>
                 {this.props.loading !== 1 &&
