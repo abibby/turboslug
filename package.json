@@ -7,7 +7,9 @@
     "watch": "webpack --watch --display=minimal",
     "serve": "firebase serve",
     "cards": "ts-node build/cards.ts",
-    "publish": "ts-node build/publish.ts",
+    "publish": "firebase deploy",
+    "publish:ci": "firebase deploy --token \"$FIREBASE_TOKEN\"",
+    "clean": "rm -rf dist/*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Adam Bibby",

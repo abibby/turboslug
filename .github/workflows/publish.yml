@@ -19,6 +19,6 @@ jobs:
     - name: npm install, publish
       run: |
         npm install
-        npm run publish
+        npm run publish:ci
       env:
-        CI: true
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
