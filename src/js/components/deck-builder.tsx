@@ -20,6 +20,7 @@ interface State {
 export default class DeckBuilder extends Component<Props, State> {
 
     private results: DBCard[]
+    private textarea: HTMLTextAreaElement
 
     constructor(props: Props) {
         super(props)
@@ -32,6 +33,19 @@ export default class DeckBuilder extends Component<Props, State> {
         }
 
     }
+
+    public componentDidMount(): void {
+        window.addEventListener('click', this.windowClick)
+    }
+    public componentWillUnmount(): void {
+        window.removeEventListener('click', this.windowClick)
+    }
+
+    @bind
+    public windowClick(e: MouseEvent): void {
+        this.setState({ currentCard: undefined })
+    }
+
     public render(): ComponentChild {
         return <div class='deck-builder' >
             {this.props.edit &&
@@ -47,6 +61,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
                     {this.props.edit &&
                         <textarea
+                            ref={e => this.textarea = e}
                             class='text'
                             onInput={this.input}
                             onKeyDown={this.keydown}
@@ -110,10 +125,9 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private input(e: Event): void {
-        const textarea = e.target as HTMLTextAreaElement
-        const deck = textarea.value
+        const deck = this.textarea.value
 
-        const { linePosition, preCard, card, currentLine } = this.info(textarea)
+        const { linePosition, preCard, card, currentLine } = this.info(this.textarea)
 
         let currentCard: string | undefined
         if (linePosition > preCard.length && linePosition <= preCard.length + card.length) {
@@ -130,6 +144,8 @@ export default class DeckBuilder extends Component<Props, State> {
             this.props.onChange(deck)
         }
 
+        console.log('input', deck)
+
         this.setState({
             deck: deck,
             currentCard: currentCard,
@@ -138,8 +154,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private keydown(e: KeyboardEvent): void {
-        const newState: State = { ...this.state }
-        const textarea = e.target as HTMLTextAreaElement
+        let newState: State = { ...this.state }
 
         if (this.state.currentCard !== undefined && !e.shiftKey) {
             switch (e.key) {
@@ -161,35 +176,10 @@ export default class DeckBuilder extends Component<Props, State> {
                     break
                 case 'Enter':
                 case 'Tab':
-                    const c = this.results[newState.autocompleteSelected]
-                    if (c === undefined) {
-                        break
-                    }
-                    e.preventDefault()
-                    const { lines, preCard, postCard, currentLine } = this.info(textarea)
-
-                    newState.deck = lines.map((line, i) => {
-                        if (i !== currentLine) {
-                            return line
-                        }
-                        return preCard + c.name + postCard
-                    }).join('\n')
-
-                    const newLines = newState.deck.split('\n')
-                    let start = 0
-                    for (let i = 0; i < currentLine; i++) {
-                        start += newLines[i].length + 1
-                    }
-                    start += (preCard + c.name).length
-                    textarea.value = newState.deck
-                    textarea.setSelectionRange(start, start)
-
-                    newState.autocompleteSelected = 0
-
-                    newState.currentCard = undefined
-
-                    if (this.props.onChange) {
-                        this.props.onChange(newState.deck)
+                    const s = this.completeCard(this.state)
+                    if (s !== undefined) {
+                        e.preventDefault()
+                        newState = { ...newState, ...s }
                     }
                     break
                 case 'Escape':
@@ -206,7 +196,7 @@ export default class DeckBuilder extends Component<Props, State> {
             e.preventDefault()
             const comment = '// '
 
-            const { lines, currentLine } = this.info(textarea)
+            const { lines, currentLine } = this.info(this.textarea)
             const isComment = lines[currentLine].startsWith(comment)
             newState.deck = lines.map((line, i) => {
                 if (i !== currentLine) {
@@ -218,18 +208,19 @@ export default class DeckBuilder extends Component<Props, State> {
                 }
                 return comment + line
             }).join('\n')
-            let start = textarea.selectionStart
+            let start = this.textarea.selectionStart
             if (isComment) {
-                start += comment.length
-            } else {
                 start -= comment.length
+            } else {
+                start += comment.length
             }
-            textarea.value = newState.deck
-            textarea.setSelectionRange(start, start)
+            this.textarea.value = newState.deck
+            this.textarea.setSelectionRange(start, start)
             if (this.props.onChange) {
                 this.props.onChange(newState.deck)
             }
         }
+        console.log('keydown', newState.deck)
 
         this.setState(newState)
     }
@@ -242,6 +233,41 @@ export default class DeckBuilder extends Component<Props, State> {
     @bind
     private filterChange(value: string): void {
         this.setState({ filter: value })
+    }
+
+    private completeCard(state: State): State | undefined {
+
+        const newState: State = { ...state }
+        const c = this.results[newState.autocompleteSelected]
+        if (c === undefined) {
+            return undefined
+        }
+        const { lines, preCard, postCard, currentLine } = this.info(this.textarea)
+
+        newState.deck = lines.map((line, i) => {
+            if (i !== currentLine) {
+                return line
+            }
+            return preCard + c.name + postCard
+        }).join('\n')
+
+        const newLines = newState.deck.split('\n')
+        let start = 0
+        for (let i = 0; i < currentLine; i++) {
+            start += newLines[i].length + 1
+        }
+        start += (preCard + c.name).length
+        this.textarea.value = newState.deck
+        this.textarea.setSelectionRange(start, start)
+
+        newState.autocompleteSelected = 0
+
+        newState.currentCard = undefined
+
+        if (this.props.onChange) {
+            this.props.onChange(newState.deck)
+        }
+        return newState
     }
 }
 
