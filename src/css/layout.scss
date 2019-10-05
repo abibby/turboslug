@@ -25,6 +25,7 @@
         background: none;
         font-family: inherit;
         font-size: inherit;
+        vertical-align: top;
 
         &:hover {
             background: $primary-dark;
@@ -54,6 +55,9 @@
                 padding: $padding;
                 cursor: pointer;
 
+                &:nth-child(2) {
+                    margin-top: $padding;
+                }
                 &:hover {
                     background: $primary-dark;
                     color: $on-primary-dark;
