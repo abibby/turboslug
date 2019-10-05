@@ -144,8 +144,6 @@ export default class DeckBuilder extends Component<Props, State> {
             this.props.onChange(deck)
         }
 
-        console.log('input', deck)
-
         this.setState({
             deck: deck,
             currentCard: currentCard,
@@ -220,7 +218,6 @@ export default class DeckBuilder extends Component<Props, State> {
                 this.props.onChange(newState.deck)
             }
         }
-        console.log('keydown', newState.deck)
 
         this.setState(newState)
     }
