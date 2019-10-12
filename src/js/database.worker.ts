@@ -274,6 +274,8 @@ async function waitForLoad() {
 }
 
 async function loadNetwork(): Promise<void> {
+    throw new Error('check remove extra chunks')
+
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
     let localChunks: Chunk[] = await getChunks()
     let i = 0
