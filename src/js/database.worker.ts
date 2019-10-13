@@ -1,4 +1,4 @@
-import { clear, del, get, keys, set } from 'idb-keyval'
+import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
 export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
 export interface FindCardMessage {
