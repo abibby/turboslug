@@ -39,6 +39,7 @@ const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
             </tr>)
             .toArray()}
     </table>
+    <ManaCurve deck={props.deck} />
 </div>
 
 export default DeckStats
@@ -80,14 +81,16 @@ function symbolPercentages(deck: Slot[]): Array<[string, number, number]> {
 function nonLandSymbols(slots: Slot[]): Array<[string, number]> {
     const manaSymbols = new Map<string, number>(emptySymbols)
     for (const slot of slots) {
-        for (const symbol of splitSymbols(slot.card.mana_cost)) {
-            if (symbol.match(/^{[WUBRG]\/[WUBRG]}$/)) {
-                const colors = symbol.replace(/[{}\/]/g, '')
-                incrementMap(manaSymbols, `{${colors[0]}}`, slot.quantity)
-                incrementMap(manaSymbols, `{${colors[1]}}`, slot.quantity)
-            }
-            if (symbol.match(/^{[WUBRG]}$/)) {
-                incrementMap(manaSymbols, symbol, slot.quantity)
+        if (!slot.card.type.includes('Land')) {
+            for (const symbol of splitSymbols(slot.card.mana_cost)) {
+                if (symbol.match(/^{[WUBRG]\/[WUBRG]}$/)) {
+                    const colors = symbol.replace(/[{}\/]/g, '')
+                    incrementMap(manaSymbols, `{${colors[0]}}`, slot.quantity)
+                    incrementMap(manaSymbols, `{${colors[1]}}`, slot.quantity)
+                }
+                if (symbol.match(/^{[WUBRG]}$/)) {
+                    incrementMap(manaSymbols, symbol, slot.quantity)
+                }
             }
         }
     }
@@ -120,4 +123,32 @@ function merge(...args: Array<Array<[string, number]>>): Array<[string, ...numbe
         }
     }
     return Array.from(out).map(([symbol, counts]) => [symbol, ...counts])
+}
+
+const ManaCurve: FunctionalComponent<{ deck: Slot[] }> = ({ deck }) => {
+    const byCMC = collect(deck)
+        .filter(slot => !slot.card.type.includes('Land'))
+        .groupBy(slot => slot.card.cmc)
+        .sort(([a], [b]) => a - b)
+        .toArray()
+
+    const max = Math.max(...byCMC.map(([, slots]) => slots.reduce((total, slot) => total + slot.quantity, 0)))
+    return <table class='mana-curve'>
+        <tr>
+            <th>CMC</th>
+            <th>Quantity</th>
+        </tr>
+        {byCMC.map(([cmc, slots]) => <tr key={cmc}>
+            <td>{cmc}</td>
+            <td >
+                <div
+                    class='bar'
+                    style={{
+                        width: `calc(${slots.reduce((total, slot) => total + slot.quantity, 0) / max
+                            } * (100% - ${String(max).length + 1}ch))`,
+                    }}
+                /> {slots.reduce((total, slot) => total + slot.quantity, 0)}
+            </td>
+        </tr>)}
+    </table>
 }

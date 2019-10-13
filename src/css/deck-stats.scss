@@ -1,4 +1,21 @@
-.mana-bar {
-    overflow: hidden;
-    white-space: nowrap;
+@import "./variables";
+
+.deck-stats {
+    .mana-bar {
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    .mana-curve {
+        width: 100%;
+
+        td:first-child {
+            width: 3ch;
+        }
+
+        .bar {
+            display: inline-block;
+            background: $primary;
+            height: 1em;
+        }
+    }
 }
