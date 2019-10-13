@@ -1,4 +1,4 @@
-import { get, set } from 'idb-keyval'
+import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
 export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
 export interface FindCardMessage {
@@ -93,7 +93,7 @@ function searchCards(query: string): DBCard[] {
         },
         set: {
             field: ['set', 's'],
-            matcher: stringMatch,
+            matcher: arrayMatch,
         },
         color_identity: {
             field: ['color', 'c'],
@@ -230,6 +230,16 @@ async function setCards(index: number, cards: DBCard[]): Promise<void> {
 async function getCards(index: number): Promise<DBCard[]> {
     return await get(`chunk-${index}`) || []
 }
+async function clearCards(index: number): Promise<void> {
+    await del(`chunk-${index}`)
+}
+async function cardsIndexes(): Promise<number[]> {
+    return (await keys())
+        .map(String)
+        .filter(k => k.startsWith('chunk-'))
+        .map(k => k.split('-')[1])
+        .map(Number)
+}
 
 let loaded = false
 const onLoaded: Array<() => void> = []
@@ -275,22 +285,22 @@ async function waitForLoad() {
 
 async function loadNetwork(): Promise<void> {
     const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
-    let localChunks: Chunk[] = await getChunks()
+    const localChunks: Chunk[] = await getChunks()
+    const newChunks: Chunk[] = []
     let i = 0
     for (const chunk of chunks) {
         const localChunk = localChunks.find(c => c.index === chunk.index)
 
         if (localChunk !== undefined) {
             if (localChunk.hash === chunk.hash) {
+                newChunks.push(chunk)
                 continue
-            } else {
-                localChunks = localChunks.filter(c => c.index !== chunk.index)
             }
         }
 
         const cards: DBCard[] = await fetch(chunk.path).then(r => r.json())
         setCards(chunk.index, cards)
-        localChunks.push(chunk)
+        newChunks.push(chunk)
 
         updateLoading({
             type: 'partial',
@@ -300,7 +310,13 @@ async function loadNetwork(): Promise<void> {
         })
         i++
     }
-    await setChunks(localChunks)
+
+    for (const index of await cardsIndexes()) {
+        if (index > newChunks.length) {
+            clearCards(index)
+        }
+    }
+    await setChunks(newChunks)
 }
 
 function updateLoading(message: LoadingResponse): void {

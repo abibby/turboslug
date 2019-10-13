@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
 import { Chunk, DBCard } from 'js/database'
+import { groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card, ImageUris } from 'scryfall-sdk'
 
@@ -16,16 +17,20 @@ function* chunk<T>(arr: T[], size: number): Iterable<T[]> {
 }
 
 export async function downloadCards(): Promise<void> {
-    const url = 'https://archive.scryfall.com/json/scryfall-oracle-cards.json'
+    // const url = 'https://archive.scryfall.com/json/scryfall-oracle-cards.json'
+    const url = 'https://archive.scryfall.com/json/scryfall-default-cards.json'
+
     // const url = 'https://www.mtgjson.com/json/AllCards.json'
     const allCards: Card[] = await fetch(url).then(r => r.json())
-    // allCards.sort((a, b) => Math.min(...a.multiverse_ids) - Math.min(...b.multiverse_ids))
+    allCards.sort((a, b) => Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!))
     const chunks: Chunk[] = []
     let i = 0
     await fs.mkdir('dist/cards', { recursive: true })
-    for (const cards of chunk(Object.entries(allCards).map(([, card]) => card), 1000)) {
+    const collectedCards = Object.values(groupBy(Object.values(allCards).filter(validCard), 'name')).map(toDBCard)
+
+    for (const cards of chunk(collectedCards, 1000)) {
         const path = `cards/${i}.json`
-        const content = JSON.stringify(cards.map(toDBCard))
+        const content = JSON.stringify(cards)
         await fs.writeFile('dist/' + path, content)
 
         chunks.push({
@@ -49,32 +54,38 @@ function imageURL(imageUris: ImageUris | null | undefined): string {
     return imageUris.normal
 }
 
-function toDBCard(c: Card): DBCard {
+function toDBCard(cards: Card[]): DBCard {
+    const card = cards[0]
+    const id = card.multiverse_ids![0]
+
     const commonCard = {
-        id: c.id,
-        name: c.name,
-        color_identity: c.color_identity,
-        legalities: Object.entries(c.legalities)
+        id: String(id),
+        name: card.name,
+        color_identity: card.color_identity,
+        legalities: Object.entries(card.legalities)
             .filter(([, legal]) => legal === 'legal')
             .map(([format]) => format),
-        cmc: c.cmc,
-        set: c.set,
+        cmc: card.cmc,
+        set: cards.map(c => c.set),
+        image_url: `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${id}`,
     }
-    if (c.card_faces) {
+    if (card.card_faces) {
         return {
             ...commonCard,
-            oracle_text: c.card_faces[0].oracle_text || '',
-            mana_cost: c.card_faces[0].mana_cost,
-            type: c.card_faces[0].type_line,
-            image_url: imageURL(c.card_faces[0].image_uris),
+            oracle_text: card.card_faces[0].oracle_text || '',
+            mana_cost: card.card_faces[0].mana_cost,
+            type: card.card_faces[0].type_line,
         }
     }
 
     return {
         ...commonCard,
-        oracle_text: c.oracle_text || '',
-        mana_cost: c.mana_cost || '',
-        type: c.type_line || '',
-        image_url: imageURL(c.image_uris),
+        oracle_text: card.oracle_text || '',
+        mana_cost: card.mana_cost || '',
+        type: card.type_line || '',
     }
+}
+
+function validCard(c: Card): boolean {
+    return !!c.multiverse_ids && c.multiverse_ids.length !== 0 && !!c.multiverse_ids[0]
 }
