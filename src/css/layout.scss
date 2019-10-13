@@ -84,11 +84,10 @@
 }
 
 .content {
-    $width: 1000px;
     padding-top: $nav-height;
-    margin: 0 calc(50vw - #{$width / 2});
+    margin: 0 calc(50vw - #{$bp-lg-min / 2});
 
-    @media screen and (max-width: $width) {
+    @media screen and (max-width: $bp-lg-min) {
         margin: 0;
     }
 }
