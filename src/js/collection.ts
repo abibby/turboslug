@@ -78,6 +78,17 @@ export class Collection<T> implements Iterable<T> {
         })
     }
 
+    public filter(callback: (element: T) => boolean): Collection<T> {
+        const itr = this
+        return build(function* (): IterableIterator<T> {
+            for (const element of itr) {
+                if (callback(element)) {
+                    yield element
+                }
+            }
+        })
+    }
+
     public toArray(): T[] {
         return Array.from(this)
     }
