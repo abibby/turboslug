@@ -58,8 +58,9 @@ export default class DeckCollection extends Component<Props, State> {
         </div>
     }
 
-    public componentWillUpdate(previousProps: Props): void {
-        if (!previousProps.query.equal(this.props.query)) {
+    public componentDidUpdate(nextProps: Props): void {
+        if (!nextProps.query.equal(this.props.query)) {
+            console.log('change')
             this.updateQuery()
         }
     }

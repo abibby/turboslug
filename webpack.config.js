@@ -81,7 +81,13 @@ module.exports = (env, argv) => {
                 filename: (devMode ? '[name].css' : '[name].[hash].css'),
                 chunkFilename: (devMode ? '[id].css' : '[id].[hash].css'),
             }),
-            new WorkboxPlugin.GenerateSW(),
+            new WorkboxPlugin.GenerateSW({
+                navigateFallback: '/index.html',
+                runtimeCaching: [{
+                    urlPattern: /^https:\/\/gatherer.wizards.com\/Handlers\/Image\.ashx\?/,
+                    handler: 'StaleWhileRevalidate',
+                }],
+            }),
         ],
         optimization: {
             minimizer: [new UglifyJsPlugin()],
