@@ -16,8 +16,6 @@ export default class MyDecks extends Component<{}, State> {
     }
     public componentDidMount(): void {
         onAuthChange(user => {
-            console.log(user)
-
             if (user === null) {
                 this.setState({ userID: '' })
             } else {
@@ -26,8 +24,6 @@ export default class MyDecks extends Component<{}, State> {
         })
     }
     public render(): ComponentChild {
-        console.log(this.state.userID)
-
         return <Layout>
             <h2>New Deck</h2>
             <Button type='link' href='/edit/create'>Create</Button>
