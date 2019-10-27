@@ -82,8 +82,6 @@ export class QueryBuilder<T> {
     private readonly staticModel: StaticModel<T>
     private readonly query: firebase.firestore.Query
 
-    private readonly key: string[] = []
-
     constructor(staticModel: StaticModel<T>, query: firebase.firestore.Query) {
         this.staticModel = staticModel
         this.query = query
@@ -94,8 +92,6 @@ export class QueryBuilder<T> {
         opStr: firebase.firestore.WhereFilterOp,
         value: T[K],
     ): QueryBuilder<T> {
-        this.addKey('where', fieldPath, opStr, value)
-
         return new QueryBuilder(this.staticModel, this.query.where(fieldPath as string, opStr, value))
     }
 
@@ -103,13 +99,9 @@ export class QueryBuilder<T> {
         fieldPath: keyof T,
         directionStr?: firebase.firestore.OrderByDirection,
     ): QueryBuilder<T> {
-        this.addKey('orderBy', fieldPath, directionStr)
-
         return new QueryBuilder(this.staticModel, this.query.orderBy(fieldPath as string, directionStr))
     }
     public limit(limit: number): QueryBuilder<T> {
-        this.addKey('limit', limit)
-
         return new QueryBuilder(this.staticModel, this.query.limit(limit))
     }
 
@@ -140,11 +132,7 @@ export class QueryBuilder<T> {
     }
 
     public equal(q: QueryBuilder<T>): boolean {
-        return this.key.join('.') === q.key.join('.')
-    }
-
-    private addKey(func: string, ...args: unknown[]): void {
-        this.key.push(`${func}(${args.map(arg => JSON.stringify(arg)).join(', ')})`)
+        return this.query.isEqual(q.query)
     }
 }
 

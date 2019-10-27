@@ -274,7 +274,7 @@ async function loadDB(): Promise<void> {
     }
 }
 
-async function waitForLoad() {
+async function waitForLoad(): Promise<void> {
     if (loaded) {
         return
     }
