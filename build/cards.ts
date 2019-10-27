@@ -1,27 +1,14 @@
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
 import { Chunk, DBCard } from 'js/database'
-import { groupBy } from 'lodash'
+import { chunk, groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card, ImageUris } from 'scryfall-sdk'
 
-function* chunk<T>(arr: T[], size: number): Iterable<T[]> {
-    let temp: T[] = []
-    for (const element of arr) {
-        temp.push(element)
-        if (temp.length >= size) {
-            yield temp
-            temp = []
-        }
-    }
-}
-
 export async function downloadCards(): Promise<void> {
-    // const url = 'https://archive.scryfall.com/json/scryfall-oracle-cards.json'
     const url = 'https://archive.scryfall.com/json/scryfall-default-cards.json'
-
-    // const url = 'https://www.mtgjson.com/json/AllCards.json'
     const allCards: Card[] = await fetch(url).then(r => r.json())
+
     allCards.sort((a, b) => Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!))
     const chunks: Chunk[] = []
     let i = 0
@@ -43,17 +30,6 @@ export async function downloadCards(): Promise<void> {
     await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
-    downloadCards()
-}
-
-function imageURL(imageUris: ImageUris | null | undefined): string {
-    if (imageUris === null || imageUris === undefined) {
-        return ''
-    }
-    return imageUris.normal
-}
-
 function toDBCard(cards: Card[]): DBCard {
     const card = cards[0]
     const id = card.multiverse_ids![0]
@@ -64,7 +40,8 @@ function toDBCard(cards: Card[]): DBCard {
         color_identity: card.color_identity,
         legalities: Object.entries(card.legalities)
             .filter(([, legal]) => legal === 'legal')
-            .map(([format]) => format),
+            .map(([format]) => format)
+            .sort(),
         cmc: card.cmc,
         set: cards.map(c => c.set),
         image_url: `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${id}`,
@@ -87,5 +64,9 @@ function toDBCard(cards: Card[]): DBCard {
 }
 
 function validCard(c: Card): boolean {
-    return !!c.multiverse_ids && c.multiverse_ids.length !== 0 && !!c.multiverse_ids[0]
+    return !!c.multiverse_ids && c.multiverse_ids.length !== 0
+}
+
+if (typeof require !== 'undefined' && require.main === module) {
+    downloadCards()
 }

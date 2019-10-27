@@ -1,8 +1,8 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const WorkboxPlugin = require('workbox-webpack-plugin');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const WorkboxPlugin = require('workbox-webpack-plugin')
 
 const paths = {
     src: path.resolve(__dirname, 'src'),
@@ -10,7 +10,7 @@ const paths = {
     dist: path.resolve(__dirname, 'dist'),
 }
 
-module.exports = (env, argv) => {
+module.exports = (env: unknown, argv: { mode: string }) => {
     const devMode = argv.mode !== 'production'
 
     return {
@@ -37,25 +37,25 @@ module.exports = (env, argv) => {
                             options: {
                                 ident: 'postcss',
                                 plugins: [
-                                    require("css-mqpacker")({
-                                        sort: true
+                                    require('css-mqpacker')({
+                                        sort: true,
                                     }),
                                     require('autoprefixer'),
-                                ]
+                                ],
                             },
                         },
                         {
-                            loader: "sass-loader",
+                            loader: 'sass-loader',
                             options: {
                                 sourceMap: true,
                                 includePaths: [
-                                    'node_modules', 'src', '.'
-                                ]
-                            }
+                                    'node_modules', 'src', '.',
+                                ],
+                            },
                         },
                     ],
                 },
-            ]
+            ],
         },
         output: {
             path: paths.dist,
@@ -66,14 +66,14 @@ module.exports = (env, argv) => {
         resolve: {
             extensions: ['.tsx', '.ts', '.js', '.scss', '.css'],
             modules: [
-                "node_modules",
+                'node_modules',
                 paths.src,
             ],
         },
         plugins: [
             new HtmlWebpackPlugin({
                 template: path.join(paths.src, 'index.html'),
-                filename: "index.html",
+                filename: 'index.html',
             }),
             new MiniCssExtractPlugin({
                 // Options similar to the same options in webpackOptions.output
