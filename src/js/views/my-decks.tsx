@@ -1,7 +1,6 @@
-import undefined from 'firebase/empty-import'
 import Button from 'js/components/button'
 import DeckCollection from 'js/components/deck-collection'
-import { currentUser, onAuthChange } from 'js/firebase'
+import { onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
