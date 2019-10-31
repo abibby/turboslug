@@ -1,5 +1,7 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
+import * as firebase from 'firebase'
+import { names } from './names';
 
 admin.initializeApp()
 
@@ -37,4 +39,15 @@ export const updateDateUpdated = functions.firestore
 
         return change.after.ref
             .set(update, { merge: true })
+    });
+
+export const newUser = functions.auth
+    .user()
+    .onCreate(async user => {
+        await firebase.firestore()
+            .collection('users')
+            .doc(user.uid)
+            .set({
+                name: names[Math.floor(Math.random() * names.length)]
+            })
     });
