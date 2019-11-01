@@ -33,6 +33,9 @@ export class LayoutWrapper extends Component<Props, State> {
             loginLogout = <NavDropdown>
                 <NavDropdownTitle>{this.state.user.displayName}</NavDropdownTitle>
                 <NavOption onClick={signOut}>Sign Out</NavOption>
+                <Link href='/account'>
+                    <NavOption>My Account</NavOption>
+                </Link>
             </NavDropdown>
             userNav = [
                 <Link key='my-decks' class='link' href='/deck/me'>My Decks</Link>,
