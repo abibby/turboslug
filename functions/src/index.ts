@@ -80,6 +80,6 @@ export const newUser = functions.auth
         await db.collection('users')
             .doc(user.uid)
             .set({
-                name: names[Math.floor(Math.random() * names.length)]
+                userName: names[Math.floor(Math.random() * names.length)]
             })
     });
