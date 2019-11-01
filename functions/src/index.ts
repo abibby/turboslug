@@ -1,9 +1,9 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-import * as firebase from 'firebase'
 import { names } from './names';
-import Deck from '../../src/js/orm/deck'
+
 admin.initializeApp()
+const db = admin.firestore()
 
 export const updateDateAdded = functions.firestore
     .document('decks/{deckID}')
@@ -13,8 +13,7 @@ export const updateDateAdded = functions.firestore
         const data = change.data()
         if (data === undefined) return null
 
-        const user = (await firebase.firestore()
-            .collection('users')
+        const user = (await db.collection('users')
             .doc(data.userID)
             .get()).data()
         if (user === undefined) return null
@@ -40,7 +39,7 @@ export const updateDateUpdated = functions.firestore
         if (data.name === previousData.name && data.cards === previousData.cards) return null
 
         const date = admin.firestore.Timestamp.fromMillis(Date.now())
-        const update: Partial<Deck> = {
+        const update: any = {
             updatedAt: date,
         }
         if (data.createdAt === undefined) {
@@ -61,15 +60,13 @@ export const updateUserName = functions.firestore
         if (data === undefined || previousData === undefined) return null
         if (data.userName === previousData.userName) return null
 
-        const decks = await firebase.firestore()
-            .collection('decks')
+        const decks = await db.collection('decks')
             .where('userID', '==', change.after.id)
             .get()
 
         await Promise.all(
             decks.docs.map(
-                deck => firebase.firestore()
-                    .collection('decks')
+                deck => db.collection('decks')
                     .doc(deck.id)
                     .set({ userName: data.userName }, { merge: true })
             )
@@ -80,8 +77,7 @@ export const updateUserName = functions.firestore
 export const newUser = functions.auth
     .user()
     .onCreate(async user => {
-        await firebase.firestore()
-            .collection('users')
+        await db.collection('users')
             .doc(user.uid)
             .set({
                 name: names[Math.floor(Math.random() * names.length)]
