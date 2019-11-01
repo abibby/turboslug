@@ -28,7 +28,6 @@ export default class Deck extends Model {
         const user = currentUser()
         if (user) {
             this.userID = user.uid
-            this.userName = user.displayName || ''
         }
     }
 }

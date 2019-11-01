@@ -36,6 +36,9 @@
     .nav-dropdown {
         display: inline-block;
 
+        a {
+            text-decoration: none;
+        }
         .nav-dropdown-title {
             @extend .link;
 

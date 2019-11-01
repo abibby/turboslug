@@ -4,6 +4,7 @@ import Home from 'js/views/home'
 import { Component, ComponentChild, h, render } from 'preact'
 import Router from 'preact-router'
 import Loader from './components/loader'
+import Account from './views/account'
 import EditDeck from './views/edit-deck'
 import Help from './views/help'
 import { LayoutWrapper } from './views/layout'
@@ -31,6 +32,7 @@ class Index extends Component<{}, State> {
                 <EditDeck path='/edit/create' />
                 <EditDeck path='/edit/:id/:type?' />
                 <MyDecks path='/deck/me' />
+                <Account path='/account' />
             </Router>
         </LayoutWrapper>
     }
