@@ -1,6 +1,11 @@
 @import "./variables";
 
 .deck-builder {
+    .popup {
+        position: absolute;
+        z-index: 100;
+        pointer-events: none;
+    }
     .editor-wrapper {
         font-family: monospace;
         font-size: 16px;

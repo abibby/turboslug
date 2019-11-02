@@ -1,6 +1,6 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, newCard, searchCards } from 'js/database'
+import { DBCard, findCard, newCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -16,11 +16,18 @@ interface State {
     autocompleteSelected: number
     currentCard: string | undefined
     filter: string
+
+    popupCard?: {
+        card: DBCard,
+        y: number,
+    }
 }
 export default class DeckBuilder extends Component<Props, State> {
 
     private results: DBCard[]
     private textarea: HTMLTextAreaElement
+
+    private lastCardID?: string = undefined
 
     constructor(props: Props) {
         super(props)
@@ -37,6 +44,7 @@ export default class DeckBuilder extends Component<Props, State> {
     public componentDidMount(): void {
         window.addEventListener('click', this.windowClick)
     }
+
     public componentWillUnmount(): void {
         window.removeEventListener('click', this.windowClick)
     }
@@ -55,8 +63,14 @@ export default class DeckBuilder extends Component<Props, State> {
                     value={this.state.filter}
                 />
             }
+            {this.state.popupCard &&
+                <Card class='popup' card={this.state.popupCard.card} style={{ top: this.state.popupCard.y }} />
+            }
             <div class='editor-wrapper'>
-                <div className='editor'>
+                <div
+                    className='editor'
+                    onMouseMove={this.mouseMove}
+                >
                     <Deck deck={this.state.deck} />
 
                     {this.props.edit &&
@@ -90,6 +104,39 @@ export default class DeckBuilder extends Component<Props, State> {
         }
     }
 
+    @bind
+    private async mouseMove(e: MouseEvent): Promise<void> {
+        const cardElement = document.elementsFromPoint(e.x, e.y).find(el => el.classList.contains('card'))
+        let card: DBCard | undefined
+        let y = 0
+        if (cardElement !== undefined && cardElement.textContent) {
+            card = await findCard(cardElement.textContent)
+            const scrollTop = (window.pageYOffset !== undefined)
+                ? window.pageYOffset
+                : (document.documentElement || document.body.parentNode || document.body).scrollTop
+            const rect = cardElement.getBoundingClientRect()
+            y = rect.bottom + scrollTop
+
+        }
+
+        if (card === undefined) {
+            if (this.lastCardID !== undefined) {
+                this.setState({ popupCard: undefined })
+            }
+            this.lastCardID = undefined
+        } else {
+            if (card.id !== this.lastCardID) {
+                this.setState({
+                    popupCard: {
+                        card: card,
+                        y: y,
+                    },
+                })
+            }
+            this.lastCardID = card.id
+        }
+    }
+
     // tslint:disable-next-line: typedef
     private info(textarea: HTMLTextAreaElement) {
 
@@ -120,6 +167,7 @@ export default class DeckBuilder extends Component<Props, State> {
             postCard: postCard,
             linePosition: linePosition,
             currentLine: linesBeforeStart.length - 1,
+
         }
     }
 
