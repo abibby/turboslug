@@ -1,6 +1,7 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
 import { DBCard, findCard, newCard, searchCards } from 'js/database'
+import { prices } from 'js/price'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -52,6 +53,7 @@ export default class DeckBuilder extends Component<Props, State> {
     @bind
     public windowClick(e: MouseEvent): void {
         this.setState({ currentCard: undefined })
+        prices(this.state.deck.split('\n').map(row => tokens(row)[3])).then(console.log)
     }
 
     public render(): ComponentChild {
