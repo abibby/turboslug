@@ -18,6 +18,8 @@ interface State {
     currentCard: string | undefined
     filter: string
 
+    prices: Map<string, number>
+
     popupCard?: {
         card: DBCard,
         y: number,
@@ -38,6 +40,7 @@ export default class DeckBuilder extends Component<Props, State> {
             autocompleteSelected: 0,
             currentCard: undefined,
             filter: '',
+            prices: new Map(),
         }
 
     }
@@ -53,7 +56,6 @@ export default class DeckBuilder extends Component<Props, State> {
     @bind
     public windowClick(e: MouseEvent): void {
         this.setState({ currentCard: undefined })
-        prices(this.state.deck.split('\n').map(row => tokens(row)[3])).then(console.log)
     }
 
     public render(): ComponentChild {
@@ -66,7 +68,10 @@ export default class DeckBuilder extends Component<Props, State> {
                 />
             }
             {this.state.popupCard &&
-                <Card class='popup' card={this.state.popupCard.card} style={{ top: this.state.popupCard.y }} />
+                <div class='popup' style={{ top: this.state.popupCard.y }} >
+                    <Card card={this.state.popupCard.card} />
+                    price: ${this.state.prices.get(this.state.popupCard.card.name)}
+                </div>
             }
             <div class='editor-wrapper'>
                 <div
@@ -103,7 +108,25 @@ export default class DeckBuilder extends Component<Props, State> {
             this.setState({
                 deck: this.props.deck,
             })
+            this.loadPrices()
         }
+    }
+
+    private async loadPrices(): Promise<void> {
+        const cards = this.state.deck.split('\n').map(row => tokens(row)[3])
+        const p = await prices(cards)
+
+        this.setState({
+            prices: new Map(
+                cards
+                    .map((name, i) => ({
+                        name: name,
+                        price: p[i],
+                    }))
+                    .filter(card => card.name !== '')
+                    .map(card => [card.name, card.price]),
+            ),
+        })
     }
 
     @bind

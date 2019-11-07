@@ -5,6 +5,11 @@
         position: absolute;
         z-index: 100;
         pointer-events: none;
+
+        border: solid 1px $border-color;
+
+        background-color: $on-surface;
+        color: $surface;
     }
     .editor-wrapper {
         font-family: monospace;
