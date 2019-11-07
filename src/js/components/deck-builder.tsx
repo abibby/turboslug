@@ -27,8 +27,8 @@ interface State {
 }
 export default class DeckBuilder extends Component<Props, State> {
 
-    private results: DBCard[]
-    private textarea: HTMLTextAreaElement
+    private results: DBCard[] = []
+    private textarea: HTMLTextAreaElement | undefined
 
     private lastCardID?: string = undefined
 
@@ -163,10 +163,10 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     // tslint:disable-next-line: typedef
-    private info(textarea: HTMLTextAreaElement) {
+    private info(textarea: HTMLTextAreaElement | undefined) {
 
-        const deck = textarea.value
-        const start = textarea.selectionStart
+        const deck = textarea?.value ?? ''
+        const start = textarea?.selectionStart ?? 0
 
         const lines = deck.split('\n')
         const linesBeforeStart = deck.slice(0, start).split('\n')
@@ -198,7 +198,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private input(e: Event): void {
-        const deck = this.textarea.value
+        const deck = this.textarea?.value ?? ''
 
         const { linePosition, preCard, card, currentLine } = this.info(this.textarea)
 
@@ -279,14 +279,17 @@ export default class DeckBuilder extends Component<Props, State> {
                 }
                 return comment + line
             }).join('\n')
-            let start = this.textarea.selectionStart
+            let start = this.textarea?.selectionStart ?? 0
             if (isComment) {
                 start -= comment.length
             } else {
                 start += comment.length
             }
-            this.textarea.value = newState.deck
-            this.textarea.setSelectionRange(start, start)
+
+            if (this.textarea) {
+                this.textarea.value = newState.deck
+                this.textarea.setSelectionRange(start, start)
+            }
             if (this.props.onChange) {
                 this.props.onChange(newState.deck)
             }
@@ -327,8 +330,11 @@ export default class DeckBuilder extends Component<Props, State> {
             start += newLines[i].length + 1
         }
         start += (preCard + c.name).length
-        this.textarea.value = newState.deck
-        this.textarea.setSelectionRange(start, start)
+
+        if (this.textarea) {
+            this.textarea.value = newState.deck
+            this.textarea.setSelectionRange(start, start)
+        }
 
         newState.autocompleteSelected = 0
 

@@ -157,7 +157,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
-    private authChange(user: firebase.User): void {
+    private authChange(user: firebase.User | null): void {
         this.setState({ user: user })
     }
 

@@ -12,17 +12,15 @@ interface State {
 
 export default class Account extends Component<{}, State> {
 
-    private authCancel: () => void
-    private userCancel: () => void | undefined
+    private authCancel: (() => void) | undefined
+    private userCancel: (() => void) | undefined
     public componentDidMount(): void {
         this.authCancel = onAuthChange(u => {
             if (u === null) {
                 this.setState({ user: undefined })
                 return
             }
-            if (this.userCancel) {
-                this.userCancel()
-            }
+            this.userCancel?.()
             this.userCancel = User.subscribe<User>(u.uid, user => {
                 this.setState({ user: user })
             })
@@ -30,10 +28,8 @@ export default class Account extends Component<{}, State> {
     }
 
     public componentWillUnmount(): void {
-        this.authCancel()
-        if (this.userCancel) {
-            this.userCancel()
-        }
+        this.authCancel?.()
+        this.userCancel?.()
     }
 
     public render(): ComponentChild {
