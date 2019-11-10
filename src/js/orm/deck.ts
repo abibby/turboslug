@@ -3,16 +3,16 @@ import Model, { field } from './model'
 
 export default class Deck extends Model {
     @field('')
-    public name: string
+    public name: string = ''
     @field('')
-    public cards: string
+    public cards: string = ''
     @field('')
-    public keyImageURL: string
+    public keyImageURL: string = ''
 
     @field('')
-    public userID: string
+    public userID: string = ''
     @field('')
-    public userName: string
+    public userName: string = ''
 
     @field(undefined, { readonly: true })
     public createdAt: firebase.firestore.Timestamp | undefined

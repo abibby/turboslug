@@ -5,10 +5,11 @@ import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
-import { findCard, newCard } from 'js/database'
+import { findCard, isCustomCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
+import { prices } from 'js/price'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -27,6 +28,7 @@ interface State {
     slots: Slot[]
     user: firebase.User | null
     deckUserID?: string
+    prices?: Map<string, number>
 }
 
 export default class EditDeck extends Component<Props, State> {
@@ -58,8 +60,8 @@ export default class EditDeck extends Component<Props, State> {
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
 
-            {this.canEdit() &&
-                <div class={'title'}>
+            {this.canEdit()
+                ? <div class={'title'}>
                     <input
                         class={this.state.deck.name === '' ? 'empty' : ''}
                         type='text'
@@ -68,14 +70,14 @@ export default class EditDeck extends Component<Props, State> {
                     />
                     <Icon name='pencil' size='small' />
                 </div>
-                ||
-                <div class='title'>{this.state.deck.name}</div>
+                : <div class='title'>{this.state.deck.name}</div>
             }
 
             <DeckBuilder
                 deck={this.state.deck.cards}
                 onChange={this.deckChange}
                 edit={this.canEdit()}
+                prices={this.state.prices}
             />
 
             <div class='stats-wrapper'>
@@ -83,18 +85,25 @@ export default class EditDeck extends Component<Props, State> {
                     {this.canEdit() && [
                         <Button key='save' type='button' onClick={this.save}>
                             Save
-                        {this.state.deck.name === this.state.savedName
-                                && this.state.deck.cards === this.state.savedDeck ? '' : '*'}
+                            {(this.state.deck.name === this.state.savedName
+                                && this.state.deck.cards === this.state.savedDeck) ? '' : '*'}
                         </Button>,
                         <Button key='delete' type='button' color='danger' onClick={this.delete}>
                             Delete
                         </Button>,
                     ]}
-                    <DeckStats deck={this.state.slots} />
+                    <DeckStats
+                        deck={this.state.slots}
+                        prices={this.state.prices}
+                    />
                 </div>
             </div>
 
-            <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} />
+            <DeckList
+                deck={this.state.slots}
+                groupBy={this.props.matches!.type}
+                prices={this.state.prices}
+            />
         </Layout>
     }
 
@@ -115,6 +124,7 @@ export default class EditDeck extends Component<Props, State> {
         const deck = this.state.deck
         deck.cards = c
         this.setState({ deck: deck })
+        this.loadPrices()
 
         const slots = await cards(c)
         this.setState({ slots: slots })
@@ -129,9 +139,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     private loadDeck(): void {
-        if (this.deckChangeUnsubscribe) {
-            this.deckChangeUnsubscribe()
-        }
+        this.deckChangeUnsubscribe?.()
 
         if (this.props.matches!.id === undefined) {
             this.setState({
@@ -153,11 +161,12 @@ export default class EditDeck extends Component<Props, State> {
 
             const slots = await cards(deck.cards)
             this.setState({ slots: slots })
+            this.loadPrices()
         })
     }
 
     @bind
-    private authChange(user: firebase.User): void {
+    private authChange(user: firebase.User | null): void {
         this.setState({ user: user })
     }
 
@@ -188,6 +197,16 @@ export default class EditDeck extends Component<Props, State> {
             this.save()
         }
     }
+    private async loadPrices(): Promise<void> {
+        this.setState({
+            prices: await prices(
+                this.state.slots
+                    .map(slot => slot.card)
+                    .filter(card => !isCustomCard(card)),
+            ),
+        })
+    }
+
 }
 
 async function cards(deck: string): Promise<Slot[]> {

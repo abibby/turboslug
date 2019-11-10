@@ -16,6 +16,7 @@ const colorLookup = {
 interface Props {
     deck: Slot[]
     groupBy?: string
+    prices?: Map<string, number>
 }
 interface State {
     groupBy: (slot: Slot) => string[]
@@ -56,6 +57,25 @@ export default class DeckList extends Component<Props, State> {
         CMC: slot => [slot.card.cmc + ''],
         None: slot => ['Cards'],
         Tags: slot => slot.tags || [],
+        Price: slot => {
+            const price = this.props.prices?.get(slot.card.name)
+            if (price === undefined) {
+                return ['Unknown']
+            }
+            if (price < 2) {
+                return ['< $2']
+            }
+            if (price < 5) {
+                return ['$2 - $5']
+            }
+            if (price < 20) {
+                return ['$5 - $20']
+            }
+            if (price < 50) {
+                return ['$20 - $50']
+            }
+            return ['> $50']
+        },
     }
 
     constructor(props: Props) {

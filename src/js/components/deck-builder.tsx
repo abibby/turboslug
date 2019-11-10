@@ -1,6 +1,7 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
 import { DBCard, findCard, newCard, searchCards } from 'js/database'
+import { prices } from 'js/price'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -8,8 +9,9 @@ import Input from './input'
 
 interface Props {
     deck?: string
-    onChange?: (deck: string) => void
     edit: boolean
+    prices: Map<string, number>
+    onChange?: (deck: string) => void
 }
 interface State {
     deck: string
@@ -23,9 +25,12 @@ interface State {
     }
 }
 export default class DeckBuilder extends Component<Props, State> {
+    public static defaultProps = {
+        prices: new Map(),
+    }
 
-    private results: DBCard[]
-    private textarea: HTMLTextAreaElement
+    private results: DBCard[] = []
+    private textarea: HTMLTextAreaElement | undefined
 
     private lastCardID?: string = undefined
 
@@ -63,18 +68,24 @@ export default class DeckBuilder extends Component<Props, State> {
                     value={this.state.filter}
                 />
             }
-            {this.state.popupCard &&
-                <Card class='popup' card={this.state.popupCard.card} style={{ top: this.state.popupCard.y }} />
-            }
+            <div
+                class={`popup ${this.state.popupCard ? '' : 'hidden'}`}
+                style={{ top: this.state.popupCard?.y }}
+            >
+                {this.state.popupCard && <Card card={this.state.popupCard.card} />}
+                price: ${this.props.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
+            </div>
             <div class='editor-wrapper'>
                 <div
                     className='editor'
                     onMouseMove={this.mouseMove}
+                    onMouseLeave={this.mouseMove}
                 >
                     <Deck deck={this.state.deck} />
 
                     {this.props.edit &&
                         <textarea
+                            key='deck-builder'
                             ref={e => this.textarea = e}
                             class='text'
                             onInput={this.input}
@@ -98,9 +109,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
     public componentDidUpdate(previousProps: Props): void {
         if (this.props.deck !== undefined && previousProps.deck !== this.props.deck) {
-            this.setState({
-                deck: this.props.deck,
-            })
+            this.setState({ deck: this.props.deck })
         }
     }
 
@@ -138,10 +147,10 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     // tslint:disable-next-line: typedef
-    private info(textarea: HTMLTextAreaElement) {
+    private info(textarea: HTMLTextAreaElement | undefined) {
 
-        const deck = textarea.value
-        const start = textarea.selectionStart
+        const deck = textarea?.value ?? ''
+        const start = textarea?.selectionStart ?? 0
 
         const lines = deck.split('\n')
         const linesBeforeStart = deck.slice(0, start).split('\n')
@@ -173,7 +182,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private input(e: Event): void {
-        const deck = this.textarea.value
+        const deck = this.textarea?.value ?? ''
 
         const { linePosition, preCard, card, currentLine } = this.info(this.textarea)
 
@@ -254,14 +263,17 @@ export default class DeckBuilder extends Component<Props, State> {
                 }
                 return comment + line
             }).join('\n')
-            let start = this.textarea.selectionStart
+            let start = this.textarea?.selectionStart ?? 0
             if (isComment) {
                 start -= comment.length
             } else {
                 start += comment.length
             }
-            this.textarea.value = newState.deck
-            this.textarea.setSelectionRange(start, start)
+
+            if (this.textarea) {
+                this.textarea.value = newState.deck
+                this.textarea.setSelectionRange(start, start)
+            }
             if (this.props.onChange) {
                 this.props.onChange(newState.deck)
             }
@@ -302,8 +314,11 @@ export default class DeckBuilder extends Component<Props, State> {
             start += newLines[i].length + 1
         }
         start += (preCard + c.name).length
-        this.textarea.value = newState.deck
-        this.textarea.setSelectionRange(start, start)
+
+        if (this.textarea) {
+            this.textarea.value = newState.deck
+            this.textarea.setSelectionRange(start, start)
+        }
 
         newState.autocompleteSelected = 0
 
