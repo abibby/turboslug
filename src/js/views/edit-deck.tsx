@@ -58,8 +58,8 @@ export default class EditDeck extends Component<Props, State> {
     public render(): ComponentChild {
         return <Layout class='edit-deck'>
 
-            {this.canEdit() &&
-                <div class={'title'}>
+            {this.canEdit()
+                ? <div class={'title'}>
                     <input
                         class={this.state.deck.name === '' ? 'empty' : ''}
                         type='text'
@@ -68,8 +68,7 @@ export default class EditDeck extends Component<Props, State> {
                     />
                     <Icon name='pencil' size='small' />
                 </div>
-                ||
-                <div class='title'>{this.state.deck.name}</div>
+                : <div class='title'>{this.state.deck.name}</div>
             }
 
             <DeckBuilder
@@ -83,8 +82,8 @@ export default class EditDeck extends Component<Props, State> {
                     {this.canEdit() && [
                         <Button key='save' type='button' onClick={this.save}>
                             Save
-                        {this.state.deck.name === this.state.savedName
-                                && this.state.deck.cards === this.state.savedDeck ? '' : '*'}
+                            {(this.state.deck.name === this.state.savedName
+                                && this.state.deck.cards === this.state.savedDeck) ? '' : '*'}
                         </Button>,
                         <Button key='delete' type='button' color='danger' onClick={this.delete}>
                             Delete

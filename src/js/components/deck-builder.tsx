@@ -67,12 +67,13 @@ export default class DeckBuilder extends Component<Props, State> {
                     value={this.state.filter}
                 />
             }
-            {this.state.popupCard &&
-                <div class='popup' style={{ top: this.state.popupCard.y }} >
-                    <Card card={this.state.popupCard.card} />
-                    price: ${this.state.prices.get(this.state.popupCard.card.name)}
-                </div>
-            }
+            <div
+                class={`popup ${this.state.popupCard ? '' : 'hidden'}`}
+                style={{ top: this.state.popupCard?.y }}
+            >
+                {this.state.popupCard && <Card card={this.state.popupCard.card} />}
+                price: ${this.state.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
+            </div>
             <div class='editor-wrapper'>
                 <div
                     className='editor'
@@ -82,6 +83,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
                     {this.props.edit &&
                         <textarea
+                            key='deck-builder'
                             ref={e => this.textarea = e}
                             class='text'
                             onInput={this.input}

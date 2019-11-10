@@ -1,6 +1,6 @@
 import { get, set, Store } from 'idb-keyval'
 import chunk from 'lodash/chunk'
-import * as scryfall from 'scryfall-sdk'
+import { Card, Cards } from 'scryfall-sdk'
 import { DBCard, findCard } from './database'
 import { day } from './time'
 
@@ -59,13 +59,11 @@ async function setCachePrice(card: string, price: number): Promise<void> {
     await set(card, data, priceCache)
 }
 
-async function searchCards(cards: string[]): Promise<scryfall.Card[]> {
-    console.log(cards)
-
-    const fullCards: scryfall.Card[] = []
+async function searchCards(cards: string[]): Promise<Card[]> {
+    const fullCards: Card[] = []
     for (const cs of chunk(cards, 30)) {
         const query = cs.map(card => `!"${card}"`).join(' or ')
-        fullCards.push(... await scryfall.Cards.search(query).waitForAll())
+        fullCards.push(... await Cards.search(query).waitForAll())
     }
 
     return fullCards
