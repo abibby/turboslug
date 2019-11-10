@@ -96,7 +96,7 @@ export default class EditDeck extends Component<Props, State> {
                 </div>
             </div>
 
-            <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} />
+            <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} prices={this.state.prices} />
         </Layout>
     }
 
@@ -191,20 +191,7 @@ export default class EditDeck extends Component<Props, State> {
         }
     }
     private async loadPrices(): Promise<void> {
-        const cardNames = this.state.deck.cards.split('\n').map(row => tokens(row)[3])
-        const p = await prices(cardNames)
-
-        this.setState({
-            prices: new Map(
-                cardNames
-                    .map((name, i) => ({
-                        name: name,
-                        price: p[i],
-                    }))
-                    .filter(card => card.name !== '')
-                    .map(card => [card.name, card.price]),
-            ),
-        })
+        this.setState({ prices: await prices(this.state.slots.map(slot => slot.card)) })
     }
 
 }

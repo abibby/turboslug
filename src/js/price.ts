@@ -11,18 +11,21 @@ interface CacheEntry {
     date: number
 }
 
-export async function prices(cards: string[]): Promise<number[]> {
-    const realCards = (await Promise.all(cards.map(findCard)))
-        .filter((card): card is DBCard => card !== undefined)
-        .map(card => card.name)
+export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
 
     const cachePriceMap = new Map<string, number>(
-        (await Promise.all(realCards.map(cachePrice)))
-            .filter((price): price is number => price !== undefined)
-            .map((price, i) => [cards[i], price]),
+        (await Promise.all(cards
+            .map(async (card): Promise<[string, number] | undefined> => {
+                const price = await cachePrice(card.name)
+                if (price === undefined) {
+                    return undefined
+                }
+                return [card.name, price]
+            }),
+        )).filter((price): price is [string, number] => price !== undefined),
     )
 
-    const fullCards = await searchCards(realCards.filter(card => cachePriceMap.get(card) === undefined))
+    const fullCards = await searchCards(cards.filter(card => cachePriceMap.get(card.name) === undefined))
 
     await Promise.all(fullCards.map(async card => {
         const price = card?.prices?.usd ?? card?.prices?.usd_foil
@@ -32,16 +35,27 @@ export async function prices(cards: string[]): Promise<number[]> {
         await setCachePrice(card.name, Number(price))
     }))
 
-    return cards.map(card => {
-        const fullCard = fullCards.find(c => c.name === card)
-        const price = fullCard?.prices?.usd ?? fullCard?.prices?.usd_foil ?? undefined
-        if (price !== undefined) {
-            return Number(price)
-        }
-        return cachePriceMap.get(card) ?? 0
-    })
+    return new Map(
+        cards
+            .map((card): [string, number] | undefined => {
+                const fullCard = fullCards.find(c => c.name === card.name)
+                const price = fullCard?.prices?.usd ?? fullCard?.prices?.usd_foil ?? undefined
+                if (price !== undefined) {
+                    return [card.name, Number(price)]
+                }
+                const cPrice = cachePriceMap.get(card.name)
+                if (cPrice !== undefined) {
+                    return [card.name, cPrice]
+                }
+                return undefined
+            })
+            .filter(notNullish),
+    )
 }
 
+function notNullish<T>(v: T | null | undefined): v is T {
+    return v !== undefined && v !== null
+}
 async function cachePrice(card: string): Promise<number | undefined> {
     const price: CacheEntry = await get(card, priceCache)
     if (price === undefined || Date.now() - price.date > day) {
@@ -59,10 +73,10 @@ async function setCachePrice(card: string, price: number): Promise<void> {
     await set(card, data, priceCache)
 }
 
-async function searchCards(cards: string[]): Promise<Card[]> {
+async function searchCards(cards: DBCard[]): Promise<Card[]> {
     const fullCards: Card[] = []
     for (const cs of chunk(cards, 30)) {
-        const query = cs.map(card => `!"${card}"`).join(' or ')
+        const query = cs.map(card => `!"${card.name}"`).join(' or ')
         fullCards.push(... await Cards.search(query).waitForAll())
     }
 

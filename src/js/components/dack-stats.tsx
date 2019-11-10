@@ -12,7 +12,7 @@ interface Props {
 const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
     count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
     price: {props.prices
-        ? '$' + Array.from(props.prices.values()).reduce((total, price) => total + price).toFixed(2)
+        ? '$' + Array.from(props.prices.values()).reduce((total, price) => total + price, 0).toFixed(2)
         : 'loading'
     }<br />
     <table>
