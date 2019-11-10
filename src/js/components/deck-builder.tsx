@@ -9,8 +9,9 @@ import Input from './input'
 
 interface Props {
     deck?: string
-    onChange?: (deck: string) => void
     edit: boolean
+    prices: Map<string, number>
+    onChange?: (deck: string) => void
 }
 interface State {
     deck: string
@@ -18,14 +19,15 @@ interface State {
     currentCard: string | undefined
     filter: string
 
-    prices: Map<string, number>
-
     popupCard?: {
         card: DBCard,
         y: number,
     }
 }
 export default class DeckBuilder extends Component<Props, State> {
+    public static defaultProps = {
+        prices: new Map(),
+    }
 
     private results: DBCard[] = []
     private textarea: HTMLTextAreaElement | undefined
@@ -40,7 +42,6 @@ export default class DeckBuilder extends Component<Props, State> {
             autocompleteSelected: 0,
             currentCard: undefined,
             filter: '',
-            prices: new Map(),
         }
 
     }
@@ -72,7 +73,7 @@ export default class DeckBuilder extends Component<Props, State> {
                 style={{ top: this.state.popupCard?.y }}
             >
                 {this.state.popupCard && <Card card={this.state.popupCard.card} />}
-                price: ${this.state.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
+                price: ${this.props.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
             </div>
             <div class='editor-wrapper'>
                 <div
@@ -107,28 +108,8 @@ export default class DeckBuilder extends Component<Props, State> {
 
     public componentDidUpdate(previousProps: Props): void {
         if (this.props.deck !== undefined && previousProps.deck !== this.props.deck) {
-            this.setState({
-                deck: this.props.deck,
-            })
-            this.loadPrices()
+            this.setState({ deck: this.props.deck })
         }
-    }
-
-    private async loadPrices(): Promise<void> {
-        const cards = this.state.deck.split('\n').map(row => tokens(row)[3])
-        const p = await prices(cards)
-
-        this.setState({
-            prices: new Map(
-                cards
-                    .map((name, i) => ({
-                        name: name,
-                        price: p[i],
-                    }))
-                    .filter(card => card.name !== '')
-                    .map(card => [card.name, card.price]),
-            ),
-        })
     }
 
     @bind

@@ -9,6 +9,7 @@ import { findCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
+import { prices } from 'js/price'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -27,6 +28,7 @@ interface State {
     slots: Slot[]
     user: firebase.User | null
     deckUserID?: string
+    prices: Map<string, number>
 }
 
 export default class EditDeck extends Component<Props, State> {
@@ -42,6 +44,7 @@ export default class EditDeck extends Component<Props, State> {
             savedName: '',
             slots: [],
             user: currentUser(),
+            prices: new Map(),
         }
 
         this.loadDeck()
@@ -75,6 +78,7 @@ export default class EditDeck extends Component<Props, State> {
                 deck={this.state.deck.cards}
                 onChange={this.deckChange}
                 edit={this.canEdit()}
+                prices={this.state.prices}
             />
 
             <div class='stats-wrapper'>
@@ -114,6 +118,7 @@ export default class EditDeck extends Component<Props, State> {
         const deck = this.state.deck
         deck.cards = c
         this.setState({ deck: deck })
+        this.loadPrices()
 
         const slots = await cards(c)
         this.setState({ slots: slots })
@@ -128,9 +133,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     private loadDeck(): void {
-        if (this.deckChangeUnsubscribe) {
-            this.deckChangeUnsubscribe()
-        }
+        this.deckChangeUnsubscribe?.()
 
         if (this.props.matches!.id === undefined) {
             this.setState({
@@ -152,6 +155,7 @@ export default class EditDeck extends Component<Props, State> {
 
             const slots = await cards(deck.cards)
             this.setState({ slots: slots })
+            this.loadPrices()
         })
     }
 
@@ -187,6 +191,23 @@ export default class EditDeck extends Component<Props, State> {
             this.save()
         }
     }
+    private async loadPrices(): Promise<void> {
+        const cardNames = this.state.deck.cards.split('\n').map(row => tokens(row)[3])
+        const p = await prices(cardNames)
+
+        this.setState({
+            prices: new Map(
+                cardNames
+                    .map((name, i) => ({
+                        name: name,
+                        price: p[i],
+                    }))
+                    .filter(card => card.name !== '')
+                    .map(card => [card.name, card.price]),
+            ),
+        })
+    }
+
 }
 
 async function cards(deck: string): Promise<Slot[]> {
