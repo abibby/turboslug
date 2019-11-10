@@ -28,7 +28,7 @@ interface State {
     slots: Slot[]
     user: firebase.User | null
     deckUserID?: string
-    prices: Map<string, number>
+    prices?: Map<string, number>
 }
 
 export default class EditDeck extends Component<Props, State> {
@@ -44,7 +44,6 @@ export default class EditDeck extends Component<Props, State> {
             savedName: '',
             slots: [],
             user: currentUser(),
-            prices: new Map(),
         }
 
         this.loadDeck()
@@ -93,7 +92,7 @@ export default class EditDeck extends Component<Props, State> {
                             Delete
                         </Button>,
                     ]}
-                    <DeckStats deck={this.state.slots} />
+                    <DeckStats deck={this.state.slots} prices={this.state.prices} />
                 </div>
             </div>
 

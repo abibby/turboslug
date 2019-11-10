@@ -6,10 +6,15 @@ import { ManaSymbol, splitSymbols } from './mana-cost'
 
 interface Props {
     deck: Slot[]
+    prices: Map<string, number> | undefined
 }
 
 const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
     count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
+    price: {props.prices
+        ? '$' + Array.from(props.prices.values()).reduce((total, price) => total + price).toFixed(2)
+        : 'loading'
+    }<br />
     <table>
         <tr>
             <td>Non Land</td>
