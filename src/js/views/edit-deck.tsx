@@ -5,7 +5,7 @@ import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
-import { findCard, newCard } from 'js/database'
+import { findCard, isCustomCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
@@ -92,11 +92,18 @@ export default class EditDeck extends Component<Props, State> {
                             Delete
                         </Button>,
                     ]}
-                    <DeckStats deck={this.state.slots} prices={this.state.prices} />
+                    <DeckStats
+                        deck={this.state.slots}
+                        prices={this.state.prices}
+                    />
                 </div>
             </div>
 
-            <DeckList deck={this.state.slots} groupBy={this.props.matches!.type} prices={this.state.prices} />
+            <DeckList
+                deck={this.state.slots}
+                groupBy={this.props.matches!.type}
+                prices={this.state.prices}
+            />
         </Layout>
     }
 
@@ -191,7 +198,13 @@ export default class EditDeck extends Component<Props, State> {
         }
     }
     private async loadPrices(): Promise<void> {
-        this.setState({ prices: await prices(this.state.slots.map(slot => slot.card)) })
+        this.setState({
+            prices: await prices(
+                this.state.slots
+                    .map(slot => slot.card)
+                    .filter(card => !isCustomCard(card)),
+            ),
+        })
     }
 
 }

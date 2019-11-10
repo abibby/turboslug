@@ -85,3 +85,7 @@ export function newCard(name: string): DBCard {
         cmc: 0,
     }
 }
+
+export function isCustomCard(card: DBCard): boolean {
+    return card.id === 'custom-' + card.name
+}

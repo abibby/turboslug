@@ -2,6 +2,7 @@ import 'css/deck-stats.scss'
 import { collect } from 'js/collection'
 import { Slot } from 'js/deck'
 import { FunctionalComponent, h } from 'preact'
+import { Loader } from './loader'
 import { ManaSymbol, splitSymbols } from './mana-cost'
 
 interface Props {
@@ -12,8 +13,10 @@ interface Props {
 const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
     count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
     price: {props.prices
-        ? '$' + Array.from(props.prices.values()).reduce((total, price) => total + price, 0).toFixed(2)
-        : 'loading'
+        ? '$' + props.deck
+            .reduce((total, card) => total + ((props.prices?.get(card.card.name) ?? 0) * card.quantity), 0)
+            .toFixed(2)
+        : <Loader />
     }<br />
     <table>
         <tr>
@@ -24,8 +27,8 @@ const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
             .filter(([, nonLand, land]) => nonLand > 0 || land > 0)
             .map(([symbol, nonLand, land]) => (
                 <tr key={symbol}>
-                    <td><ManaBar symbol={symbol} persentage={nonLand} /></td>
-                    <td><ManaBar symbol={symbol} persentage={land} /></td>
+                    <td><ManaBar symbol={symbol} percentage={nonLand} /></td>
+                    <td><ManaBar symbol={symbol} percentage={land} /></td>
                 </tr>
             ))}
     </table>
@@ -51,11 +54,11 @@ export default DeckStats
 
 interface ManaBarProps {
     symbol: string
-    persentage: number
+    percentage: number
 }
 const ManaBar: FunctionalComponent<ManaBarProps> = props => <div
     class='mana-bar'
-    style={{ marginRight: `${100 - (props.persentage * 100)}%` }}
+    style={{ marginRight: `${100 - (props.percentage * 100)}%` }}
 >
     <ManaSymbol symbol={props.symbol} />
     <ManaSymbol symbol={props.symbol} />

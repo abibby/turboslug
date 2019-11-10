@@ -79,6 +79,7 @@ export default class DeckBuilder extends Component<Props, State> {
                 <div
                     className='editor'
                     onMouseMove={this.mouseMove}
+                    onMouseLeave={this.mouseMove}
                 >
                     <Deck deck={this.state.deck} />
 
