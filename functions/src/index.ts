@@ -64,13 +64,17 @@ export const updateUserName = functions.firestore
             .where('userID', '==', change.after.id)
             .get()
 
-        await Promise.all(
-            decks.docs.map(
-                deck => db.collection('decks')
-                    .doc(deck.id)
-                    .set({ userName: data.userName }, { merge: true })
+        const batch = db.batch()
+
+        for (const deck of decks.docs) {
+            batch.set(
+                db.collection('decks').doc(deck.id),
+                { userName: data.userName },
+                { merge: true },
             )
-        )
+        }
+
+        await batch.commit()
         return null
     });
 
