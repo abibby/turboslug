@@ -68,10 +68,10 @@ export default class Account extends Component<{}, State> {
     }
 
     @bind
-    private submit(e: Event): void {
+    private async submit(e: Event): Promise<void> {
         e.preventDefault()
         if (this.state.user) {
-            this.state.user.save()
+            await this.state.user.save()
             this.setState({
                 oldUserName: this.state.user.userName,
             })
