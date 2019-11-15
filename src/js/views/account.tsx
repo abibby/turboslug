@@ -8,6 +8,7 @@ import { Component, ComponentChild, h } from 'preact'
 
 interface State {
     user?: User
+    oldUserName?: string
 }
 
 export default class Account extends Component<{}, State> {
@@ -17,12 +18,18 @@ export default class Account extends Component<{}, State> {
     public componentDidMount(): void {
         this.authCancel = onAuthChange(u => {
             if (u === null) {
-                this.setState({ user: undefined })
+                this.setState({
+                    user: undefined,
+                    oldUserName: undefined,
+                })
                 return
             }
             this.userCancel?.()
             this.userCancel = User.subscribe<User>(u.uid, user => {
-                this.setState({ user: user })
+                this.setState({
+                    user: user,
+                    oldUserName: user.userName,
+                })
             })
         })
     }
@@ -41,7 +48,12 @@ export default class Account extends Component<{}, State> {
             <h2>My Account</h2>
             <form onSubmit={this.submit}>
                 <Input title='User Name' onChange={this.userNameChange} value={userName} />
-                <Button type='submit'>Save</Button>
+                <Button type='submit'>
+                    Save
+                    {this.state.user?.userName === this.state.oldUserName
+                        ? ''
+                        : '*'}
+                </Button>
             </form>
         </Layout>
     }
@@ -56,10 +68,13 @@ export default class Account extends Component<{}, State> {
     }
 
     @bind
-    private submit(e: Event): void {
+    private async submit(e: Event): Promise<void> {
         e.preventDefault()
         if (this.state.user) {
-            this.state.user.save()
+            await this.state.user.save()
+            this.setState({
+                oldUserName: this.state.user.userName,
+            })
         }
     }
 }
