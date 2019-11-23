@@ -1,10 +1,12 @@
 @import "./variables";
 
 .edit-deck {
+    $gap: 10px;
+
     display: grid;
     grid-template-columns: auto;
     grid-template-rows: auto;
-    grid-gap: 10px;
+    grid-gap: $gap;
     grid-template-areas:
         "title"
         "builder"
@@ -13,9 +15,9 @@
     @media (min-width: $bp-md-min) {
         grid-template-columns: auto 300px;
         grid-template-areas:
-            "title title"
+            "title   title"
             "builder stats"
-            "list stats";
+            "list    list";
     }
 
     > .title {
@@ -39,9 +41,8 @@
             &.empty,
             &:focus {
                 background: $surface;
-                border: solid 1px $border-color;
+                outline: solid 1px $border-color;
                 color: $on-surface;
-                margin: -1px;
             }
         }
 
@@ -67,7 +68,14 @@
 
         .side-bar {
             position: sticky;
-            top: 5px + $nav-height;
+            top: $gap + $nav-height;
+            
+            max-height: calc(100vh - #{($gap * 2) + $nav-height});
+            overflow-y: auto;
+            background-color: $surface;
+            border: solid 1px $border-color;
+            color: $on-surface;
+            padding: 5px;
         }
     }
 
