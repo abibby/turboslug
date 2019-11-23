@@ -3,13 +3,13 @@ import Model, { field } from './model'
 
 export default class User extends Model {
 
-    @field('')
+    @field()
     public userName: string = ''
 
-    @field(undefined, { readonly: true })
+    @field({ readonly: true })
     public createdAt: firebase.firestore.Timestamp | undefined
 
-    @field(undefined, { readonly: true })
+    @field({ readonly: true })
     public updatedAt: firebase.firestore.Timestamp | undefined
 
     protected collection = firestore.collection('users')
