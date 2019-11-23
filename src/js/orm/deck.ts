@@ -1,25 +1,25 @@
 import { currentUser, firestore, onAuthChange } from 'js/firebase'
-import Model, { field } from './model'
+import Model from './model'
 
 export default class Deck extends Model {
-    @field()
+    @Model.field()
     public name: string = ''
-    @field()
+    @Model.field()
     public cards: string = ''
-    @field()
+    @Model.field()
     public keyImageURL: string = ''
-    @field()
+    @Model.field()
     public private: boolean = false
 
-    @field()
+    @Model.field()
     public userID: string = ''
-    @field()
+    @Model.field()
     public userName: string = ''
 
-    @field({ readonly: true })
+    @Model.field({ readonly: true })
     public createdAt: firebase.firestore.Timestamp | undefined
 
-    @field({ readonly: true })
+    @Model.field({ readonly: true })
     public updatedAt: firebase.firestore.Timestamp | undefined
 
     protected collection = firestore.collection('decks')

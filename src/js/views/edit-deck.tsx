@@ -166,8 +166,6 @@ export default class EditDeck extends Component<Props, State> {
         }
 
         this.deckChangeUnsubscribe = Deck.subscribe<Deck>(this.props.matches!.id, async deck => {
-            console.log(deck)
-
             this.setState({
                 deck: deck,
                 savedName: deck.name,

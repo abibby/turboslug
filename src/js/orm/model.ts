@@ -40,6 +40,28 @@ export default abstract class Model {
         })
     }
 
+    public static field(options: FieldOptions = {}): (type: Model, f: string) => void {
+        return (type, f) => {
+            const constructor = type.constructor as StaticModel<Model>
+            constructor.options[f] = options
+            return {
+                get: function (this: Model): any {
+                    if (this.attributes.hasOwnProperty(f)) {
+                        return this.attributes[f]
+                    }
+                    return this.original[f]
+                },
+                set: function (this: Model, value: any): void {
+                    if (this.original[f] === value) {
+                        delete this.attributes[f]
+                    } else {
+                        this.attributes[f] = value
+                    }
+                },
+            }
+        }
+    }
+
     public readonly id: string | undefined
 
     protected abstract collection: firebase.firestore.CollectionReference
@@ -171,26 +193,4 @@ export class QueryBuilder<T extends Model> {
 
 interface FieldOptions {
     readonly?: boolean
-}
-
-export function field(options: FieldOptions = {}): (type: Model, f: string) => void {
-    return (type, f) => {
-        const constructor = type.constructor as StaticModel<Model>
-        constructor.options[f] = options
-        return {
-            get: function (this: Model): any {
-                if (this.attributes.hasOwnProperty(f)) {
-                    return this.attributes[f]
-                }
-                return this.original[f]
-            },
-            set: function (this: Model, value: any): void {
-                if (this.original[f] === value) {
-                    delete this.attributes[f]
-                } else {
-                    this.attributes[f] = value
-                }
-            },
-        }
-    }
 }
