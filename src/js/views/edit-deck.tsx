@@ -172,7 +172,8 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
-        this.state.deck.keyImageURL = this.state.slots[0].card.image_url
+        this.state.deck.keyImageURL = this.state.slots[0]?.card.image_url
+            ?? 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=74252&type=card'
         await this.state.deck.save()
         route(`/edit/${this.state.deck.id}`)
         this.setState({

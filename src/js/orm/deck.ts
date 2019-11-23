@@ -2,29 +2,27 @@ import { currentUser, firestore, onAuthChange } from 'js/firebase'
 import Model, { field } from './model'
 
 export default class Deck extends Model {
-    @field('')
+    @field()
     public name: string = ''
-    @field('')
+    @field()
     public cards: string = ''
-    @field('')
+    @field()
     public keyImageURL: string = ''
 
-    @field('')
+    @field()
     public userID: string = ''
-    @field('')
+    @field()
     public userName: string = ''
 
-    @field(undefined, { readonly: true })
+    @field({ readonly: true })
     public createdAt: firebase.firestore.Timestamp | undefined
 
-    @field(undefined, { readonly: true })
+    @field({ readonly: true })
     public updatedAt: firebase.firestore.Timestamp | undefined
 
     protected collection = firestore.collection('decks')
 
-    constructor() {
-        super()
-
+    protected saving(): void {
         const user = currentUser()
         if (user) {
             this.userID = user.uid

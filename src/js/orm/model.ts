@@ -1,5 +1,4 @@
 export interface StaticModel<T> {
-    defaults: { [field: string]: unknown }
     options: { [field: string]: FieldOptions | undefined }
     new(): T
     builder(): QueryBuilder<T>
@@ -43,19 +42,18 @@ export default abstract class Model {
 
     protected abstract collection: firebase.firestore.CollectionReference
 
-    constructor() {
-        Object.assign(this, (this.constructor as StaticModel<Model>).defaults)
-    }
-
     public async save(): Promise<void> {
         const saveObject: any = {}
-        for (const key of Object.keys((this.constructor as StaticModel<Model>).defaults)) {
+
+        this.saving()
+
+        for (const key of Object.keys((this.constructor as StaticModel<Model>).options)) {
             const value = (this as any)[key]
             const options = (this.constructor as StaticModel<Model>).options[key]
             if (value === undefined) {
                 continue
             }
-            if (options && options.readonly) {
+            if (options?.readonly) {
                 continue
             }
             saveObject[key] = value
@@ -67,13 +65,28 @@ export default abstract class Model {
         } else {
             await this.collection.doc(this.id).set(saveObject, { merge: true })
         }
-
+        this.saved()
     }
     public async delete(): Promise<void> {
+        this.deleting()
         if (this.id === undefined) {
             return
         }
         await this.collection.doc(this.id).delete()
+        this.deleted()
+    }
+
+    protected saving(): void {
+        // this should stay empty
+    }
+    protected saved(): void {
+        // this should stay empty
+    }
+    protected deleting(): void {
+        // this should stay empty
+    }
+    protected deleted(): void {
+        // this should stay empty
     }
 }
 
@@ -140,10 +153,9 @@ interface FieldOptions {
     readonly?: boolean
 }
 
-export function field(def: unknown, options: FieldOptions = {}): (type: Model, f: string) => void {
+export function field(options: FieldOptions = {}): (type: Model, f: string) => void {
     return (type, f) => {
         const constructor = type.constructor as StaticModel<Model>
-        constructor.defaults[f] = def
         constructor.options[f] = options
     }
 }
