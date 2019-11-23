@@ -1,4 +1,4 @@
-export interface StaticModel<T> {
+export interface StaticModel<T extends Model> {
     options: { [field: string]: FieldOptions | undefined }
     new(): T
     builder(): QueryBuilder<T>
@@ -20,6 +20,7 @@ export default abstract class Model {
             ...doc.data(),
             id: doc.id,
         })
+        m.postSave()
         return m
     }
 
@@ -34,13 +35,39 @@ export default abstract class Model {
                 ...doc.data(),
                 id: doc.id,
             })
+            m.postSave()
             callback(m)
         })
+    }
+
+    public static field(options: FieldOptions = {}): (type: Model, f: string) => void {
+        return (type, f) => {
+            const constructor = type.constructor as StaticModel<Model>
+            constructor.options[f] = options
+            return {
+                get: function (this: Model): any {
+                    if (this.attributes.hasOwnProperty(f)) {
+                        return this.attributes[f]
+                    }
+                    return this.original[f]
+                },
+                set: function (this: Model, value: any): void {
+                    if (this.original[f] === value) {
+                        delete this.attributes[f]
+                    } else {
+                        this.attributes[f] = value
+                    }
+                },
+            }
+        }
     }
 
     public readonly id: string | undefined
 
     protected abstract collection: firebase.firestore.CollectionReference
+
+    private original: { [key: string]: any } = {}
+    private attributes: { [key: string]: any } = {}
 
     public async save(): Promise<void> {
         const saveObject: any = {}
@@ -65,7 +92,16 @@ export default abstract class Model {
         } else {
             await this.collection.doc(this.id).set(saveObject, { merge: true })
         }
+        this.postSave()
         this.saved()
+    }
+    public postSave(): void {
+        this.original = {
+            ...this.original,
+            ...this.attributes,
+        }
+        this.attributes = {}
+
     }
     public async delete(): Promise<void> {
         this.deleting()
@@ -74,6 +110,10 @@ export default abstract class Model {
         }
         await this.collection.doc(this.id).delete()
         this.deleted()
+    }
+
+    public hasChanges(): boolean {
+        return Object.keys(this.attributes).length > 0
     }
 
     protected saving(): void {
@@ -90,7 +130,7 @@ export default abstract class Model {
     }
 }
 
-export class QueryBuilder<T> {
+export class QueryBuilder<T extends Model> {
 
     private readonly staticModel: StaticModel<T>
     private readonly query: firebase.firestore.Query
@@ -127,6 +167,7 @@ export class QueryBuilder<T> {
                 ...doc.data(),
                 id: doc.id,
             })
+            model.postSave()
             return model
         })
     }
@@ -139,6 +180,7 @@ export class QueryBuilder<T> {
                     ...doc.data(),
                     id: doc.id,
                 })
+                model.postSave()
                 return model
             }))
         })
@@ -151,11 +193,4 @@ export class QueryBuilder<T> {
 
 interface FieldOptions {
     readonly?: boolean
-}
-
-export function field(options: FieldOptions = {}): (type: Model, f: string) => void {
-    return (type, f) => {
-        const constructor = type.constructor as StaticModel<Model>
-        constructor.options[f] = options
-    }
 }

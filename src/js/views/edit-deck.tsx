@@ -5,6 +5,7 @@ import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
+import Toggle from 'js/components/toggle'
 import { findCard, isCustomCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
@@ -85,12 +86,18 @@ export default class EditDeck extends Component<Props, State> {
                     {this.canEdit() && [
                         <Button key='save' type='button' onClick={this.save}>
                             Save
-                            {(this.state.deck.name === this.state.savedName
-                                && this.state.deck.cards === this.state.savedDeck) ? '' : '*'}
+                            {this.state.deck.hasChanges() && '*'}
                         </Button>,
                         <Button key='delete' type='button' color='danger' onClick={this.delete}>
                             Delete
                         </Button>,
+                        <span key='private'>
+                            {' Private '}
+                            <Toggle
+                                value={this.state.deck.private}
+                                onChange={this.privateChange}
+                            />
+                        </span>,
                     ]}
                     <DeckStats
                         deck={this.state.slots}
@@ -135,6 +142,13 @@ export default class EditDeck extends Component<Props, State> {
         const input = e.target as HTMLInputElement
         const deck = this.state.deck
         deck.name = input.value
+        this.setState({ deck: deck })
+    }
+
+    @bind
+    private privateChange(value: boolean): void {
+        const deck = this.state.deck
+        deck.private = value
         this.setState({ deck: deck })
     }
 
@@ -236,15 +250,13 @@ async function cards(deck: string): Promise<Slot[]> {
     }
 
     c = c.filter(slot => slot.card !== '').map(slot => ({
-        ...slot,
-        tags: Array.from(new Set(slot.tags)),
+        ...slot, tags: Array.from(new Set(slot.tags)),
     }))
 
     const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
 
     return c.map((card, i) => ({
-        ...card,
-        card: dbCards[i],
+        ...card, card: dbCards[i],
         quantity: card.quantity !== '' ? Number(card.quantity) : 1,
     }))
 }
