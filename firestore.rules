@@ -9,9 +9,13 @@ service cloud.firestore {
     }
     
     match /decks/{deckName} {
-      allow read;
+      allow read: if resource.data.userID == request.auth.uid 
+        || resource.data.private == false;
+
       allow update, delete: if resource.data.userID == request.auth.uid;
-      allow create: if request.auth.uid != null && request.resource.data.userID == request.auth.uid; 
+
+      allow create: if request.auth.uid != null 
+        && request.resource.data.userID == request.auth.uid; 
     }
   }
 }

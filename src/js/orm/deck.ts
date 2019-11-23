@@ -8,6 +8,8 @@ export default class Deck extends Model {
     public cards: string = ''
     @field()
     public keyImageURL: string = ''
+    @field()
+    public private: boolean = false
 
     @field()
     public userID: string = ''

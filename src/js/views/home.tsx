@@ -10,7 +10,13 @@ export default class Home extends Component {
             <h2>New Deck</h2>
             <Button type='link' href='/edit/create'>Create</Button>
             <h2>New Decks</h2>
-            <DeckCollection query={Deck.builder<Deck>().orderBy('createdAt', 'desc').limit(15)} />
+            <DeckCollection
+                query={Deck.builder<Deck>()
+                    .orderBy('createdAt', 'desc')
+                    .where('private', '==', false)
+                    .limit(15)
+                }
+            />
         </Layout>
     }
 }
