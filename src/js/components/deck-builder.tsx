@@ -101,6 +101,8 @@ export default class DeckBuilder extends Component<Props, State> {
                         name={this.state.filter + ' ' + this.state.currentCard || ''}
                         selected={this.state.autocompleteSelected}
                         onNewResults={this.autocompleteNewResults}
+                        onSelect={this.autocompleteSelect}
+                        onMouseEnter={this.autocompleteMouseEnter}
                     />
                 }
             </div>
@@ -111,6 +113,19 @@ export default class DeckBuilder extends Component<Props, State> {
         if (this.props.deck !== undefined && previousProps.deck !== this.props.deck) {
             this.setState({ deck: this.props.deck })
         }
+    }
+
+    @bind
+    private autocompleteSelect(card: DBCard): void {
+        const s = this.completeCard(this.state)
+        if (s !== undefined) {
+            this.setState(s)
+        }
+    }
+
+    @bind
+    private autocompleteMouseEnter(i: number): void {
+        this.setState({ autocompleteSelected: i })
     }
 
     @bind
@@ -336,6 +351,8 @@ interface AutocompleteProps {
     selected: number
     hidden: boolean
     onNewResults: (results: DBCard[]) => void
+    onSelect: (card: DBCard) => void
+    onMouseEnter: (i: number) => void
 }
 
 const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
@@ -361,6 +378,8 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
                         {result.result.map((c, i) => <div
                             key={c.id}
                             class={`option ${i === props.selected ? 'selected' : ''}`}
+                            onClick={bindFunc(props.onSelect, c)}
+                            onMouseEnter={bindFunc(props.onMouseEnter, i)}
                         >
                             {c.name}
                         </div>)}
@@ -370,6 +389,9 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
         />
     </div>
 )
+function bindFunc<AX extends any[]>(cb: (...args: AX) => void, ...args: AX): () => void {
+    return () => cb(...args)
+}
 
 const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
 export function tokens(src: string): string[] {
