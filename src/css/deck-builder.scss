@@ -135,6 +135,8 @@
                     text-overflow: ellipsis;
                     overflow: hidden;
 
+                    cursor: pointer;
+
                     &.selected {
                         background-color: $primary;
                         color: $on-primary;
