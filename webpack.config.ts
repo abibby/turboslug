@@ -1,3 +1,4 @@
+// tslint:disable:no-var-requires
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -10,13 +11,13 @@ const paths = {
     dist: path.resolve(__dirname, 'dist'),
 }
 
-module.exports = (env: unknown, argv: { mode: string }) => {
+const config: import('webpack').ConfigurationFactory = (env, argv) => {
     const devMode = argv.mode !== 'production'
 
     return {
         entry: path.join(paths.js, 'index.tsx'),
         mode: devMode ? 'development' : 'production',
-        devtool: devMode ? 'source-map' : '',
+        devtool: devMode ? 'source-map' : undefined,
         module: {
             rules: [
                 {
@@ -94,3 +95,5 @@ module.exports = (env: unknown, argv: { mode: string }) => {
         },
     }
 }
+
+module.exports = config
