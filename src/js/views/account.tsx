@@ -25,7 +25,7 @@ export default class Account extends Component<{}, State> {
                 return
             }
             this.userCancel?.()
-            this.userCancel = User.subscribe<User>(u.uid, user => {
+            this.userCancel = User.subscribe(u.uid, user => {
                 this.setState({
                     user: user,
                     oldUserName: user.userName,

@@ -33,7 +33,7 @@ interface State {
 }
 
 export default class EditDeck extends Component<Props, State> {
-    private authChangeUnsubscribe: () => void
+    private authChangeUnsubscribe: (() => void) | undefined
     private deckChangeUnsubscribe: (() => void) | undefined
 
     constructor(props: {}) {
@@ -47,6 +47,9 @@ export default class EditDeck extends Component<Props, State> {
             user: currentUser(),
         }
 
+    }
+
+    public componentDidMount(): void {
         this.loadDeck()
         this.authChangeUnsubscribe = onAuthChange(this.authChange)
 
@@ -54,7 +57,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     public componentWillUnmount(): void {
-        this.authChangeUnsubscribe()
+        this.authChangeUnsubscribe?.()
 
         window.removeEventListener('keydown', this.keydown)
     }

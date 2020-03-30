@@ -1,12 +1,16 @@
+import { useEffect, useState } from 'preact/hooks'
+
+export interface FieldOptions {
+    readonly?: boolean
+}
+
 export interface StaticModel<T extends Model> {
     options: { [field: string]: FieldOptions | undefined }
     new(): T
-    builder(): QueryBuilder<T>
 }
 
 export default abstract class Model {
-    public static defaults: { [field: string]: unknown } = {}
-    public static options: { [field: string]: FieldOptions | undefined } = {}
+    public static options: { [field: string]: FieldOptions | undefined }
 
     public static builder<T extends Model>(this: StaticModel<T>): QueryBuilder<T> {
         const m = new this()
@@ -43,6 +47,9 @@ export default abstract class Model {
     public static field(options: FieldOptions = {}): (type: Model, f: string) => void {
         return (type, f) => {
             const constructor = type.constructor as StaticModel<Model>
+            if (constructor.options === undefined) {
+                constructor.options = {}
+            }
             constructor.options[f] = options
             return {
                 get: function (this: Model): any {
@@ -64,7 +71,7 @@ export default abstract class Model {
 
     public readonly id: string | undefined
 
-    protected abstract collection: firebase.firestore.CollectionReference
+    protected abstract readonly collection: firebase.firestore.CollectionReference
 
     private original: { [key: string]: any } = {}
     private attributes: { [key: string]: any } = {}
@@ -116,6 +123,13 @@ export default abstract class Model {
         return Object.keys(this.attributes).length > 0
     }
 
+    public toJSON(): unknown {
+        return {
+            ...this.original,
+            ...this.attributes,
+        }
+    }
+
     protected saving(): void {
         // this should stay empty
     }
@@ -134,10 +148,12 @@ export class QueryBuilder<T extends Model> {
 
     private readonly staticModel: StaticModel<T>
     private readonly query: firebase.firestore.Query
+    private readonly key: Set<string>
 
     constructor(staticModel: StaticModel<T>, query: firebase.firestore.Query) {
         this.staticModel = staticModel
         this.query = query
+        this.key = new Set<string>()
     }
 
     public where<K extends keyof T>(
@@ -145,16 +161,19 @@ export class QueryBuilder<T extends Model> {
         opStr: firebase.firestore.WhereFilterOp,
         value: T[K],
     ): QueryBuilder<T> {
+        this.key.add(`where ${JSON.stringify(fieldPath)} ${opStr} ${JSON.stringify(value)}`)
         return new QueryBuilder(this.staticModel, this.query.where(fieldPath as string, opStr, value))
     }
 
     public orderBy(
         fieldPath: keyof T,
-        directionStr?: firebase.firestore.OrderByDirection,
+        directionStr: firebase.firestore.OrderByDirection = 'asc',
     ): QueryBuilder<T> {
+        this.key.add(`orderBy ${JSON.stringify(fieldPath)} ${directionStr}`)
         return new QueryBuilder(this.staticModel, this.query.orderBy(fieldPath as string, directionStr))
     }
     public limit(limit: number): QueryBuilder<T> {
+        this.key.add(`limit ${limit}`)
         return new QueryBuilder(this.staticModel, this.query.limit(limit))
     }
 
@@ -189,8 +208,24 @@ export class QueryBuilder<T extends Model> {
     public equal(q: QueryBuilder<T>): boolean {
         return this.query.isEqual(q.query)
     }
+
+    public hash(): string {
+        return Array.from(this.key).sort().join(' ')
+    }
 }
 
-interface FieldOptions {
-    readonly?: boolean
+export function useQuery<T extends Model>(q: QueryBuilder<T>): T[] | undefined {
+    const [list, changeList] = useState<T[] | undefined>(undefined)
+
+    useEffect(() => q.subscribe(changeList), [q.hash()])
+
+    return list
+}
+
+export function useModel<T extends Model>(id: string, m: StaticModel<T>): T | undefined {
+    const [list, changeList] = useState<T | undefined>(undefined)
+
+    useEffect(() => (m as any).subscribe(id, changeList), [id])
+
+    return list
 }

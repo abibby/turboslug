@@ -70,7 +70,7 @@ export default class DeckBuilder extends Component<Props, State> {
             }
             <div
                 class={`popup ${this.state.popupCard ? '' : 'hidden'}`}
-                style={{ top: this.state.popupCard?.y }}
+                style={{ top: this.state.popupCard?.y ?? '' }}
             >
                 {this.state.popupCard && <Card card={this.state.popupCard.card} />}
                 price: ${this.props.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
@@ -86,7 +86,7 @@ export default class DeckBuilder extends Component<Props, State> {
                     {this.props.edit &&
                         <textarea
                             key='deck-builder'
-                            ref={e => this.textarea = e}
+                            ref={e => this.textarea = e ?? undefined}
                             class='text'
                             onInput={this.input}
                             onKeyDown={this.keydown}

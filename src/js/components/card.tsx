@@ -1,6 +1,6 @@
 import 'css/card.scss'
 import { DBCard } from 'js/database'
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
 import ManaCost from './mana-cost'
 
 interface Props {

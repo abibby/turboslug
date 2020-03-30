@@ -9,6 +9,7 @@ import EditDeck from './views/edit-deck'
 import Help from './views/help'
 import { LayoutWrapper } from './views/layout'
 import MyDecks from './views/my-decks'
+import { PlayTest } from './views/playtest'
 
 interface State {
     progress: number
@@ -31,6 +32,7 @@ class Index extends Component<{}, State> {
                 <Help path='/help' />
                 <EditDeck path='/edit/create' />
                 <EditDeck path='/edit/:id/:type?' />
+                <PlayTest path='/playtest/:id' />
                 <MyDecks path='/deck/me' />
                 <Account path='/account' />
             </Router>

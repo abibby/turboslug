@@ -1,6 +1,6 @@
 import 'css/mana-cost.scss'
 import symbols from 'data/symbols.json'
-import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h, JSX } from 'preact'
 
 interface SymbolProps {
     symbol: string

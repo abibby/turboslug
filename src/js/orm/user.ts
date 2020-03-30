@@ -12,6 +12,6 @@ export default class User extends Model {
     @Model.field({ readonly: true })
     public updatedAt: firebase.firestore.Timestamp | undefined
 
-    protected collection = firestore.collection('users')
+    protected readonly collection = firestore.collection('users')
 
 }
