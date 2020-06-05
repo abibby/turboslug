@@ -1,0 +1,35 @@
+.playtest {
+    margin: 0;
+    --card-width: 150px;
+
+    .battlefield {
+        display: grid;
+        grid-template-areas: 
+            "creatures other"
+            "land      land";
+
+        grid-gap: 10px;
+
+        .land,
+        .creatures,
+        .other {
+            display: flex;
+            height: calc(var(--card-width) * 1.4);
+        }
+        .land {
+            grid-area: land;
+        }
+        .creatures {
+            grid-area: creatures;
+        }
+        .other {
+            grid-area: other;
+            flex-direction: row-reverse;
+        }
+    }
+    .hand {
+        position: fixed;
+        display: flex;
+        bottom: 0;
+    }
+}

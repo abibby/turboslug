@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'preact/hooks'
 import DatabaseWorker from 'worker-loader!./database.worker'
 import { DatabaseMessage, DatabaseResponse } from './database.worker'
 
@@ -88,4 +89,19 @@ export function newCard(name: string): DBCard {
 
 export function isCustomCard(card: DBCard): boolean {
     return card.id === 'custom-' + card.name
+}
+
+export function useCards(names: string[]): DBCard[] | undefined {
+    const [cards, setCards] = useState<DBCard[] | undefined>(undefined)
+    useEffect(() => {
+        Promise.all(names.map(n => findCard(n))).then(cs => {
+            setCards(cs.map((c, i) => {
+                if (c === undefined) {
+                    return newCard(names[i])
+                }
+                return c
+            }))
+        })
+    }, [JSON.stringify(names)])
+    return cards
 }

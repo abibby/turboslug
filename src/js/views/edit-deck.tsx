@@ -15,6 +15,12 @@ import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
 
+export interface RawSlot {
+    quantity: number
+    card: string
+    tags: string[]
+}
+
 interface Props {
     matches?: {
         id?: string,
@@ -227,7 +233,7 @@ export default class EditDeck extends Component<Props, State> {
 
 }
 
-async function cards(deck: string): Promise<Slot[]> {
+export function cardNames(deck: string): RawSlot[] {
     let c = deck
         .split('\n')
         .filter(row => !row.startsWith('//'))
@@ -256,10 +262,19 @@ async function cards(deck: string): Promise<Slot[]> {
         ...slot, tags: Array.from(new Set(slot.tags)),
     }))
 
+    return c.map((card, i) => ({
+        ...card,
+        quantity: card.quantity !== '' ? Number(card.quantity) : 1,
+    }))
+}
+
+async function cards(deck: string): Promise<Slot[]> {
+    const c = cardNames(deck)
+
     const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
 
     return c.map((card, i) => ({
-        ...card, card: dbCards[i],
-        quantity: card.quantity !== '' ? Number(card.quantity) : 1,
+        ...card,
+        card: dbCards[i],
     }))
 }

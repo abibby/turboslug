@@ -1,5 +1,10 @@
+:root {
+    --card-width: 200px;
+}
+
 .card {
     position: relative;
+    width: var(--card-width);
 
     img {
         position: absolute;
@@ -20,9 +25,10 @@
         color: black;
         border: solid black 8px;
         border-radius: 8px;
-        width: 185px;
-        height: 264px;
+        width: var(--card-width);
+        height: calc(var(--card-width) * 1.4);
         font-size: 10px;
+        box-sizing: border-box;
 
         .title {
             grid-area: title;
