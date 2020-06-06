@@ -76,6 +76,27 @@
             border: solid 1px $border-color;
             color: $on-surface;
             padding: 5px;
+
+            .copied::before{
+                display: block;
+                content: "copied";
+                position: absolute;
+                color: $on-surface;
+                transform: translate(0, -30px);
+
+                @keyframes move-up {
+                    from {
+                        transform: translate(0, 0);
+                        opacity: 100%;
+                    }
+                    to {
+                        transform: translate(0, -30px);
+                        opacity: 0%;
+                    }
+                }
+                animation-name: move-up;
+                animation-duration: 0.6s;
+            }
         }
     }
 

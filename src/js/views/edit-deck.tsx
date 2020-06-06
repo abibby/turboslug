@@ -11,6 +11,7 @@ import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
 import { prices } from 'js/price'
+import { sleep } from 'js/time'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -30,6 +31,7 @@ interface State {
     user: firebase.User | null
     deckUserID?: string
     prices?: Map<string, number>
+    showCopied: boolean
 }
 
 export default class EditDeck extends Component<Props, State> {
@@ -45,6 +47,7 @@ export default class EditDeck extends Component<Props, State> {
             savedName: '',
             slots: [],
             user: currentUser(),
+            showCopied: false,
         }
 
         this.loadDeck()
@@ -98,6 +101,13 @@ export default class EditDeck extends Component<Props, State> {
                                 onChange={this.privateChange}
                             />
                         </span>,
+                        <Button
+                            key='export'
+                            class={this.state.showCopied ? 'copied' : ''}
+                            onClick={this.exportDeck}
+                        >
+                            Export
+                        </Button>,
                     ]}
                     <DeckStats
                         deck={this.state.slots}
@@ -124,6 +134,15 @@ export default class EditDeck extends Component<Props, State> {
         return this.props.matches!.id === undefined
             || (this.state.user !== null
                 && this.state.deckUserID === this.state.user.uid)
+    }
+
+    @bind
+    private async exportDeck(): Promise<void> {
+        const deck = this.state.slots.map(s => `${s.quantity} ${s.card.name}`).join('\n')
+        await navigator.clipboard.writeText(deck)
+        this.setState({ showCopied: true })
+        await sleep(600)
+        this.setState({ showCopied: false })
     }
 
     @bind
