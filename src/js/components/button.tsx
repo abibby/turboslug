@@ -3,6 +3,7 @@ import { Component, ComponentChild, h } from 'preact'
 
 type Props = {
     color: 'default' | 'danger',
+    class?: string,
 } & ({
     type: 'submit',
 } | {
@@ -22,8 +23,8 @@ export default class Button extends Component<Props> {
     public render(): ComponentChild {
 
         const attrs = {
-            class: `button ${this.props.color}`,
             ...this.props,
+            class: `button ${this.props.color} ${this.props.class}`,
         }
 
         if (this.props.type === 'link') {
