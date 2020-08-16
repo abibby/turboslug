@@ -3,10 +3,22 @@ import { promises as fs } from 'fs'
 import { Chunk, DBCard } from 'js/database'
 import { chunk, groupBy } from 'lodash'
 import fetch from 'node-fetch'
-import { Card, ImageUris } from 'scryfall-sdk'
+import { Card } from 'scryfall-sdk'
+
+interface BulkData {
+  data: Array<{
+      type: string
+      download_uri: string;
+  }>
+}
 
 export async function downloadCards(): Promise<void> {
-    const url = 'https://archive.scryfall.com/json/scryfall-default-cards.json'
+    const bulk: BulkData = await fetch('https://api.scryfall.com/bulk-data').then(r => r.json())
+
+    const url = bulk.data.find(d => d.type === 'default_cards')?.download_uri
+    if (url === undefined) {
+        throw new Error('Could not find default cards download URI')
+    }
     const allCards: Card[] = await fetch(url).then(r => r.json())
 
     allCards.sort((a, b) => Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!))
