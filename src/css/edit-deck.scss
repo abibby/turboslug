@@ -1,4 +1,4 @@
-@import "./variables";
+@import './variables';
 
 .edit-deck {
     $gap: 10px;
@@ -8,16 +8,16 @@
     grid-template-rows: auto;
     grid-gap: $gap;
     grid-template-areas:
-        "title"
-        "builder"
-        "stats"
-        "list";
+        'title'
+        'builder'
+        'stats'
+        'list';
     @media (min-width: $bp-md-min) {
         grid-template-columns: auto 300px;
         grid-template-areas:
-            "title   title"
-            "builder stats"
-            "list    list";
+            'title   title'
+            'builder stats'
+            'list    list';
     }
 
     > .title {
@@ -69,17 +69,16 @@
         .side-bar {
             position: sticky;
             top: $gap + $nav-height;
-            
-            max-height: calc(100vh - #{($gap * 2) + $nav-height});
+
             overflow-y: auto;
             background-color: $surface;
             border: solid 1px $border-color;
             color: $on-surface;
             padding: 5px;
 
-            .copied::before{
+            .copied::before {
                 display: block;
-                content: "copied";
+                content: 'copied';
                 position: absolute;
                 color: $on-surface;
                 transform: translate(0, -30px);
@@ -96,6 +95,12 @@
                 }
                 animation-name: move-up;
                 animation-duration: 0.6s;
+            }
+
+            @media (min-width: $bp-md-min) {
+                // TODO: find out why this isn't lined up
+                // max-height: calc(100vh - #{($gap * 2) + $nav-height});
+                max-height: calc(100vh - 64px);
             }
         }
     }
