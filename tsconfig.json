@@ -9,19 +9,13 @@
         "jsx": "react",
         "jsxFactory": "h",
         "paths": {
-            "*": [
-                "types/*",
-                "src/*"
-            ]
+            "*": ["types/*", "src/*"]
         },
         "experimentalDecorators": true,
         "pretty": true,
         "strictNullChecks": true,
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "strict": true,
-    },
-    "exclude": [
-        "node_modules",
-    ]
+        "strict": true
+    }
 }

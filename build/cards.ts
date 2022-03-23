@@ -6,26 +6,33 @@ import fetch from 'node-fetch'
 import { Card } from 'scryfall-sdk'
 
 interface BulkData {
-  data: Array<{
-      type: string
-      download_uri: string;
-  }>
+    data: Array<{
+        type: string
+        download_uri: string
+    }>
 }
 
 export async function downloadCards(): Promise<void> {
-    const bulk: BulkData = await fetch('https://api.scryfall.com/bulk-data').then(r => r.json())
+    const bulk = (await fetch('https://api.scryfall.com/bulk-data').then(r =>
+        r.json(),
+    )) as BulkData
 
     const url = bulk.data.find(d => d.type === 'default_cards')?.download_uri
     if (url === undefined) {
         throw new Error('Could not find default cards download URI')
     }
-    const allCards: Card[] = await fetch(url).then(r => r.json())
+    const allCards = (await fetch(url).then(r => r.json())) as Card[]
 
-    allCards.sort((a, b) => Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!))
+    allCards.sort(
+        (a, b) =>
+            Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!),
+    )
     const chunks: Chunk[] = []
     let i = 0
     await fs.mkdir('dist/cards', { recursive: true })
-    const collectedCards = Object.values(groupBy(Object.values(allCards).filter(validCard), 'name')).map(toDBCard)
+    const collectedCards = Object.values(
+        groupBy(Object.values(allCards).filter(validCard), 'name'),
+    ).map(toDBCard)
 
     for (const cards of chunk(collectedCards, 1000)) {
         const path = `cards/${i}.json`
