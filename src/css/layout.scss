@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 @import "./variables";
 
 .nav {
@@ -88,7 +90,7 @@
 
 .content {
     padding-top: $nav-height;
-    margin: 0 calc(50vw - #{$bp-lg-min / 2});
+    margin: 0 calc(50vw - #{math.div($bp-lg-min, 2)});
 
     @media screen and (max-width: $bp-lg-min) {
         margin: 0;

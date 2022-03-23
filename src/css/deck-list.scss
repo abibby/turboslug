@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 @import './variables';
 
 /// Stroke font-character
@@ -55,7 +57,7 @@
 
         .card {
             width: $width;
-            height: floor($width / 6.5);
+            height: floor(math.div($width, 6.5));
 
             .backup-card {
                 pointer-events: none;
@@ -63,7 +65,7 @@
 
             img {
                 width: $width;
-                border-radius: floor($width / 22);
+                border-radius: floor(math.div($width, 22));
                 pointer-events: none;
             }
         }
