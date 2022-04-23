@@ -6,7 +6,7 @@
     "build": "webpack --mode production",
     "watch": "webpack --watch --display=minimal",
     "serve": "firebase serve",
-    "cards": "ts-node build/cards.ts",
+    "cards": "ts-node functions/src/cards.ts",
     "publish": "firebase deploy",
     "publish:ci": "firebase deploy --token \"$FIREBASE_TOKEN\"",
     "clean": "rm -rf dist/*",

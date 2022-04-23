@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
+import { downloadCards } from './cards'
 import { names } from './names'
 
 admin.initializeApp()
@@ -91,3 +92,10 @@ export const newUser = functions.auth.user().onCreate(async user => {
             userName: names[Math.floor(Math.random() * names.length)],
         })
 })
+
+// 3am on sunday morning
+export const updateCards = functions.pubsub
+    .schedule('0 3 * * 0')
+    .onRun(async () => {
+        await downloadCards()
+    })

@@ -1,9 +1,13 @@
+import { Bucket } from '@google-cloud/storage'
 import { createHash } from 'crypto'
+import { getStorage } from 'firebase-admin/storage'
 import { promises as fs } from 'fs'
-import { Chunk, DBCard } from 'js/database'
 import { chunk, groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card } from 'scryfall-sdk'
+// import { Chunk, DBCard } from '../../common/interfaces'
+type Chunk = any
+type DBCard = any
 
 interface BulkData {
     data: Array<{
@@ -34,10 +38,16 @@ export async function downloadCards(): Promise<void> {
         groupBy(Object.values(allCards).filter(validCard), 'name'),
     ).map(toDBCard)
 
+    console.log(`found ${collectedCards.length} cards`)
+
+    const storage = getStorage()
+    const bucket = storage.bucket()
     for (const cards of chunk(collectedCards, 1000)) {
         const path = `cards/${i}.json`
         const content = JSON.stringify(cards)
-        await fs.writeFile('dist/' + path, content)
+        // await fs.writeFile('dist/' + path, content)
+        await writeFile(bucket, path, content)
+        console.log(`saved batch ${i}`)
 
         chunks.push({
             hash: createHash('sha256').update(content).digest('hex'),
@@ -46,14 +56,15 @@ export async function downloadCards(): Promise<void> {
         })
         i++
     }
-    await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
+    // await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
+    await writeFile(bucket, 'cards/chunks.json', JSON.stringify(chunks))
 }
 
 function toDBCard(cards: Card[]): DBCard {
     const card = cards[0]
     const id = card.multiverse_ids![0]
 
-    const commonCard = {
+    const commonCard: Omit<DBCard, 'oracle_text' | 'mana_cost' | 'type'> = {
         id: String(id),
         name: card.name,
         color_identity: card.color_identity,
@@ -63,22 +74,29 @@ function toDBCard(cards: Card[]): DBCard {
             .sort(),
         cmc: card.cmc,
         set: cards.map(c => c.set),
-        image_url: `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${id}`,
+        image_urls: Object.fromEntries(
+            cards.map(c => [
+                c.set,
+                `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${
+                    c.multiverse_ids![0]
+                }`,
+            ]),
+        ),
     }
     if (card.card_faces) {
         return {
             ...commonCard,
-            oracle_text: card.card_faces[0].oracle_text || '',
-            mana_cost: card.card_faces[0].mana_cost,
+            oracle_text: card.card_faces[0].oracle_text ?? '',
+            mana_cost: card.card_faces[0].mana_cost ?? '',
             type: card.card_faces[0].type_line,
         }
     }
 
     return {
         ...commonCard,
-        oracle_text: card.oracle_text || '',
-        mana_cost: card.mana_cost || '',
-        type: card.type_line || '',
+        oracle_text: card.oracle_text ?? '',
+        mana_cost: card.mana_cost ?? '',
+        type: card.type_line ?? '',
     }
 }
 
@@ -86,6 +104,10 @@ function validCard(c: Card): boolean {
     return !!c.multiverse_ids && c.multiverse_ids.length !== 0
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
-    downloadCards()
+async function writeFile(
+    bucket: Bucket,
+    path: string,
+    content: string | Buffer,
+): Promise<void> {
+    await bucket.file(path).save(content)
 }

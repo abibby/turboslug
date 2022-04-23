@@ -6,7 +6,7 @@ import DeckBuilder, { tokens } from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
 import Toggle from 'js/components/toggle'
-import { findCard, isCustomCard, newCard } from 'js/database'
+import { cardImage, findCard, isCustomCard, newCard } from 'js/database'
 import { Slot } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
@@ -18,8 +18,8 @@ import { route } from 'preact-router'
 
 interface Props {
     matches?: {
-        id?: string,
-        type?: string,
+        id?: string
+        type?: string
     }
 }
 
@@ -62,66 +62,77 @@ export default class EditDeck extends Component<Props, State> {
         window.removeEventListener('keydown', this.keydown)
     }
     public render(): ComponentChild {
-        return <Layout class='edit-deck'>
+        return (
+            <Layout class='edit-deck'>
+                {this.canEdit() ? (
+                    <div class={'title'}>
+                        <input
+                            class={this.state.deck.name === '' ? 'empty' : ''}
+                            type='text'
+                            value={this.state.deck.name}
+                            onInput={this.titleChange}
+                        />
+                        <Icon name='pencil' size='small' />
+                    </div>
+                ) : (
+                    <div class='title'>{this.state.deck.name}</div>
+                )}
 
-            {this.canEdit()
-                ? <div class={'title'}>
-                    <input
-                        class={this.state.deck.name === '' ? 'empty' : ''}
-                        type='text'
-                        value={this.state.deck.name}
-                        onInput={this.titleChange}
-                    />
-                    <Icon name='pencil' size='small' />
+                <DeckBuilder
+                    deck={this.state.deck.cards}
+                    onChange={this.deckChange}
+                    edit={this.canEdit()}
+                    prices={this.state.prices}
+                />
+
+                <div class='stats-wrapper'>
+                    <div class='side-bar'>
+                        {this.canEdit() && [
+                            <Button
+                                key='save'
+                                type='button'
+                                onClick={this.save}
+                            >
+                                Save
+                                {this.state.deck.hasChanges() && '*'}
+                            </Button>,
+                            <Button
+                                key='delete'
+                                type='button'
+                                color='danger'
+                                onClick={this.delete}
+                            >
+                                Delete
+                            </Button>,
+                            <span key='private'>
+                                {' Private '}
+                                <Toggle
+                                    value={this.state.deck.private}
+                                    onChange={this.privateChange}
+                                />
+                            </span>,
+                            <Button
+                                key='export'
+                                class={this.state.showCopied ? 'copied' : ''}
+                                onClick={this.exportDeck}
+                            >
+                                Export
+                            </Button>,
+                        ]}
+                        <DeckStats
+                            deck={this.state.slots}
+                            prices={this.state.prices}
+                        />
+                    </div>
                 </div>
-                : <div class='title'>{this.state.deck.name}</div>
-            }
 
-            <DeckBuilder
-                deck={this.state.deck.cards}
-                onChange={this.deckChange}
-                edit={this.canEdit()}
-                prices={this.state.prices}
-            />
-
-            <div class='stats-wrapper'>
-                <div class='side-bar'>
-                    {this.canEdit() && [
-                        <Button key='save' type='button' onClick={this.save}>
-                            Save
-                            {this.state.deck.hasChanges() && '*'}
-                        </Button>,
-                        <Button key='delete' type='button' color='danger' onClick={this.delete}>
-                            Delete
-                        </Button>,
-                        <span key='private'>
-                            {' Private '}
-                            <Toggle
-                                value={this.state.deck.private}
-                                onChange={this.privateChange}
-                            />
-                        </span>,
-                        <Button
-                            key='export'
-                            class={this.state.showCopied ? 'copied' : ''}
-                            onClick={this.exportDeck}
-                        >
-                            Export
-                        </Button>,
-                    ]}
-                    <DeckStats
-                        deck={this.state.slots}
-                        prices={this.state.prices}
-                    />
-                </div>
-            </div>
-
-            <DeckList
-                deck={this.state.slots}
-                groupBy={this.props.matches!.type}
-                prices={this.state.prices}
-            />
-        </Layout>
+                <DeckList
+                    deck={this.state.slots}
+                    groupBy={this.props.matches!.type}
+                    prices={this.state.prices}
+                />
+            </Layout>
+        )
     }
 
     public componentDidUpdate(previousProps: Props): void {
@@ -131,14 +142,18 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     private canEdit(): boolean {
-        return this.props.matches!.id === undefined
-            || (this.state.user !== null
-                && this.state.deckUserID === this.state.user.uid)
+        return (
+            this.props.matches!.id === undefined ||
+            (this.state.user !== null &&
+                this.state.deckUserID === this.state.user.uid)
+        )
     }
 
     @bind
     private async exportDeck(): Promise<void> {
-        const deck = this.state.slots.map(s => `${s.quantity} ${s.card.name}`).join('\n')
+        const deck = this.state.slots
+            .map(s => `${s.quantity} ${s.card.name}`)
+            .join('\n')
         await navigator.clipboard.writeText(deck)
         this.setState({ showCopied: true })
         await sleep(600)
@@ -184,18 +199,21 @@ export default class EditDeck extends Component<Props, State> {
             return
         }
 
-        this.deckChangeUnsubscribe = Deck.subscribe<Deck>(this.props.matches!.id, async deck => {
-            this.setState({
-                deck: deck,
-                savedName: deck.name,
-                savedDeck: deck.cards,
-                deckUserID: deck.userID,
-            })
+        this.deckChangeUnsubscribe = Deck.subscribe<Deck>(
+            this.props.matches!.id,
+            async deck => {
+                this.setState({
+                    deck: deck,
+                    savedName: deck.name,
+                    savedDeck: deck.cards,
+                    deckUserID: deck.userID,
+                })
 
-            const slots = await cards(deck.cards)
-            this.setState({ slots: slots })
-            this.loadPrices()
-        })
+                const slots = await cards(deck.cards)
+                this.setState({ slots: slots })
+                this.loadPrices()
+            },
+        )
     }
 
     @bind
@@ -205,8 +223,9 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
-        this.state.deck.keyImageURL = this.state.slots[0]?.card.image_url
-            ?? 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=74252&type=card'
+        this.state.deck.keyImageURL =
+            cardImage(this.state.slots[0]?.card) ??
+            'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=74252&type=card'
         await this.state.deck.save()
         route(`/edit/${this.state.deck.id}`)
         this.setState({
@@ -240,7 +259,6 @@ export default class EditDeck extends Component<Props, State> {
             ),
         })
     }
-
 }
 
 async function cards(deck: string): Promise<Slot[]> {
@@ -252,7 +270,9 @@ async function cards(deck: string): Promise<Slot[]> {
         .map(([, quantity, , card, , tags]) => ({
             quantity: quantity,
             card: card,
-            tags: (tags.match(/#[^\s]*/g) || []).map(tag => tag.slice(1).replace(/_/g, ' ')),
+            tags: (tags.match(/#[^\s]*/g) || []).map(tag =>
+                tag.slice(1).replace(/_/g, ' '),
+            ),
         }))
 
     let groupTags: string[] | undefined
@@ -268,14 +288,20 @@ async function cards(deck: string): Promise<Slot[]> {
         }
     }
 
-    c = c.filter(slot => slot.card !== '').map(slot => ({
-        ...slot, tags: Array.from(new Set(slot.tags)),
-    }))
+    c = c
+        .filter(slot => slot.card !== '')
+        .map(slot => ({
+            ...slot,
+            tags: Array.from(new Set(slot.tags)),
+        }))
 
-    const dbCards = await Promise.all(c.map(async card => (await findCard(card.card)) || newCard(card.card)))
+    const dbCards = await Promise.all(
+        c.map(async card => (await findCard(card.card)) || newCard(card.card)),
+    )
 
     return c.map((card, i) => ({
-        ...card, card: dbCards[i],
+        ...card,
+        card: dbCards[i],
         quantity: card.quantity !== '' ? Number(card.quantity) : 1,
     }))
 }
