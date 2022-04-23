@@ -1,6 +1,17 @@
-import * as firebase from 'firebase/app'
-import 'firebase/auth'
-import 'firebase/firestore'
+import { initializeApp } from 'firebase/app'
+import {
+    browserLocalPersistence,
+    ErrorFn,
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    Unsubscribe,
+    User,
+} from 'firebase/auth'
+import {
+    enableMultiTabIndexedDbPersistence,
+    getFirestore,
+} from 'firebase/firestore'
 
 const firebaseConfig = {
     apiKey: 'AIzaSyBB8L89aHFYnpUuQwV_MElk5Q2GeV2Piys',
@@ -13,31 +24,31 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig)
+initializeApp(firebaseConfig)
 
-export const firestore = firebase.firestore()
-const auth = firebase.auth()
-const provider = new firebase.auth.GoogleAuthProvider()
+export const firestore = getFirestore()
+const auth = getAuth()
+const provider = new GoogleAuthProvider()
 
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-firestore.enablePersistence({ synchronizeTabs: true })
+auth.setPersistence(browserLocalPersistence)
+enableMultiTabIndexedDbPersistence(firestore)
 
 export async function signIn(): Promise<void> {
-    const result = await auth.signInWithPopup(provider)
+    const result = await signInWithPopup(auth, provider)
     const user = result.user
     if (user === null) {
         return
     }
 }
 
-export function currentUser(): firebase.User | null {
+export function currentUser(): User | null {
     return auth.currentUser
 }
 
 export function onAuthChange(
-    nextOrObserver: (a: firebase.User | null) => void,
-    error?: (a: firebase.auth.Error) => void,
-): firebase.Unsubscribe {
+    nextOrObserver: (a: User | null) => void,
+    error?: ErrorFn,
+): Unsubscribe {
     return auth.onAuthStateChanged(nextOrObserver, error)
 }
 export function signOut(): Promise<void> {

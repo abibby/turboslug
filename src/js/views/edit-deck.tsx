@@ -1,5 +1,6 @@
 import 'css/edit-deck.scss'
 import { bind } from 'decko'
+import { User } from 'firebase/auth'
 import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
@@ -17,10 +18,7 @@ import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
 
 interface Props {
-    matches?: {
-        id?: string
-        type?: string
-    }
+    matches?: { id?: string; type?: string }
 }
 
 interface State {
@@ -28,7 +26,7 @@ interface State {
     savedDeck: string
     savedName: string
     slots: Slot[]
-    user: firebase.User | null
+    user: User | null
     deckUserID?: string
     prices?: Map<string, number>
     showCopied: boolean
@@ -217,7 +215,7 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
-    private authChange(user: firebase.User | null): void {
+    private authChange(user: User | null): void {
         this.setState({ user: user })
     }
 
