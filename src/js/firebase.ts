@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app'
 import {
-    browserLocalPersistence,
     ErrorFn,
     getAuth,
     GoogleAuthProvider,
@@ -8,10 +7,8 @@ import {
     Unsubscribe,
     User,
 } from 'firebase/auth'
-import {
-    enableMultiTabIndexedDbPersistence,
-    getFirestore,
-} from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
     apiKey: 'AIzaSyBB8L89aHFYnpUuQwV_MElk5Q2GeV2Piys',
@@ -27,11 +24,12 @@ const firebaseConfig = {
 initializeApp(firebaseConfig)
 
 export const firestore = getFirestore()
+export const storage = getStorage()
 const auth = getAuth()
 const provider = new GoogleAuthProvider()
 
-auth.setPersistence(browserLocalPersistence)
-enableMultiTabIndexedDbPersistence(firestore)
+// auth.setPersistence(indexedDBLocalPersistence)
+// enableMultiTabIndexedDbPersistence(firestore)
 
 export async function signIn(): Promise<void> {
     const result = await signInWithPopup(auth, provider)
