@@ -1,33 +1,20 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
+import { Chunk, DBCard } from '../../functions/src/interfaces'
 import { DatabaseMessage, DatabaseResponse } from './database.worker'
 
+export { Chunk, DBCard }
+
 const worker = new DatabaseWorker()
-
-export interface DBCard {
-    id: string
-    name: string
-    oracle_text: string,
-    mana_cost: string
-    set: string[]
-    type: string
-    image_url: string
-    color_identity: Array<'W' | 'U' | 'B' | 'R' | 'G'>
-    legalities: string[]
-    cmc: number
-}
-
-export interface Chunk {
-    index: number
-    hash: string
-    path: string
-}
 
 async function runFunction(message: DatabaseMessage): Promise<any> {
     return new Promise(resolve => {
         const onMessage = (e: MessageEvent) => {
             const response: DatabaseResponse = e.data
 
-            if (response.type === 'function' && JSON.stringify(response.message) === JSON.stringify(message)) {
+            if (
+                response.type === 'function' &&
+                JSON.stringify(response.message) === JSON.stringify(message)
+            ) {
                 resolve(response.value)
                 worker.removeEventListener('message', onMessage)
             }
@@ -51,7 +38,9 @@ export async function searchCards(query: string): Promise<DBCard[]> {
     })
 }
 
-export async function loadDB(progress?: (count: number, total: number) => void): Promise<void> {
+export async function loadDB(
+    progress?: (count: number, total: number) => void,
+): Promise<void> {
     let onProgress: ((e: MessageEvent) => void) | undefined
     if (progress) {
         onProgress = e => {
@@ -79,7 +68,7 @@ export function newCard(name: string): DBCard {
         mana_cost: '',
         set: [],
         type: 'Unknown',
-        image_url: '',
+        image_urls: {},
         color_identity: [],
         legalities: [],
         cmc: 0,
@@ -88,4 +77,8 @@ export function newCard(name: string): DBCard {
 
 export function isCustomCard(card: DBCard): boolean {
     return card.id === 'custom-' + card.name
+}
+
+export function cardImage(card: DBCard, set?: string): string {
+    return card.image_urls[set ?? ''] ?? card.image_urls[card.set[0]]
 }

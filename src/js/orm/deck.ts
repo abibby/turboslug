@@ -1,4 +1,5 @@
-import { currentUser, firestore, onAuthChange } from 'js/firebase'
+import { collection, Timestamp } from 'firebase/firestore'
+import { currentUser, firestore } from 'js/firebase'
 import Model from './model'
 
 export default class Deck extends Model {
@@ -17,12 +18,12 @@ export default class Deck extends Model {
     public userName: string = ''
 
     @Model.field({ readonly: true })
-    public createdAt: firebase.firestore.Timestamp | undefined
+    public createdAt: Timestamp | undefined
 
     @Model.field({ readonly: true })
-    public updatedAt: firebase.firestore.Timestamp | undefined
+    public updatedAt: Timestamp | undefined
 
-    protected collection = firestore.collection('decks')
+    protected collection = collection(firestore, 'decks')
 
     protected saving(): void {
         const user = currentUser()

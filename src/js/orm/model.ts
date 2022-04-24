@@ -1,6 +1,24 @@
+import { OrderByDirection, WhereFilterOp } from '@google-cloud/firestore'
+import {
+    addDoc,
+    CollectionReference,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    onSnapshot,
+    orderBy,
+    Query,
+    query,
+    queryEqual,
+    setDoc,
+    where,
+} from 'firebase/firestore'
+
 export interface StaticModel<T extends Model> {
     options: { [field: string]: FieldOptions | undefined }
-    new(): T
+    new (): T
     builder(): QueryBuilder<T>
 }
 
@@ -8,17 +26,23 @@ export default abstract class Model {
     public static defaults: { [field: string]: unknown } = {}
     public static options: { [field: string]: FieldOptions | undefined } = {}
 
-    public static builder<T extends Model>(this: StaticModel<T>): QueryBuilder<T> {
+    public static builder<T extends Model>(
+        this: StaticModel<T>,
+    ): QueryBuilder<T> {
         const m = new this()
         return new QueryBuilder(this, m.collection)
     }
 
-    public static async find<T extends Model>(this: StaticModel<T>, id: string): Promise<T | null> {
+    public static async find<T extends Model>(
+        this: StaticModel<T>,
+        id: string,
+    ): Promise<T | null> {
         const m = new this()
-        const doc = await m.collection.doc(id).get()
+
+        const d = await getDoc(doc(m.collection, id))
         Object.assign(m, {
-            ...doc.data(),
-            id: doc.id,
+            ...d.data(),
+            id: d.id,
         })
         m.postSave()
         return m
@@ -29,18 +53,20 @@ export default abstract class Model {
         id: string,
         callback: (models: T) => void,
     ): () => void {
-        return (new this()).collection.doc(id).onSnapshot(doc => {
+        return onSnapshot(doc(new this().collection, id), d => {
             const m = new this()
             Object.assign(m, {
-                ...doc.data(),
-                id: doc.id,
+                ...d.data(),
+                id: d.id,
             })
             m.postSave()
             callback(m)
         })
     }
 
-    public static field(options: FieldOptions = {}): (type: Model, f: string) => void {
+    public static field(
+        options: FieldOptions = {},
+    ): (type: Model, f: string) => void {
         return (type, f) => {
             const constructor = type.constructor as StaticModel<Model>
             constructor.options[f] = options
@@ -64,7 +90,7 @@ export default abstract class Model {
 
     public readonly id: string | undefined
 
-    protected abstract collection: firebase.firestore.CollectionReference
+    protected abstract collection: CollectionReference
 
     private original: { [key: string]: any } = {}
     private attributes: { [key: string]: any } = {}
@@ -74,9 +100,13 @@ export default abstract class Model {
 
         this.saving()
 
-        for (const key of Object.keys((this.constructor as StaticModel<Model>).options)) {
+        for (const key of Object.keys(
+            (this.constructor as StaticModel<Model>).options,
+        )) {
             const value = (this as any)[key]
-            const options = (this.constructor as StaticModel<Model>).options[key]
+            const options = (this.constructor as StaticModel<Model>).options[
+                key
+            ]
             if (value === undefined) {
                 continue
             }
@@ -87,10 +117,13 @@ export default abstract class Model {
         }
 
         if (this.id === undefined) {
-            const docRef = await this.collection.add(saveObject);
-            (this as any).id = docRef.id
+            const docRef = await addDoc(this.collection, saveObject)
+            const self = this as any
+            self.id = docRef.id
         } else {
-            await this.collection.doc(this.id).set(saveObject, { merge: true })
+            await setDoc(doc(this.collection, this.id), saveObject, {
+                merge: true,
+            })
         }
         this.postSave()
         this.saved()
@@ -101,14 +134,14 @@ export default abstract class Model {
             ...this.attributes,
         }
         this.attributes = {}
-
     }
+
     public async delete(): Promise<void> {
         this.deleting()
         if (this.id === undefined) {
             return
         }
-        await this.collection.doc(this.id).delete()
+        await deleteDoc(doc(this.collection, this.id))
         this.deleted()
     }
 
@@ -131,41 +164,46 @@ export default abstract class Model {
 }
 
 export class QueryBuilder<T extends Model> {
-
     private readonly staticModel: StaticModel<T>
-    private readonly query: firebase.firestore.Query
+    private readonly query: Query
 
-    constructor(staticModel: StaticModel<T>, query: firebase.firestore.Query) {
+    constructor(staticModel: StaticModel<T>, q: Query) {
         this.staticModel = staticModel
-        this.query = query
+        this.query = q
     }
 
     public where<K extends keyof T>(
         fieldPath: K,
-        opStr: firebase.firestore.WhereFilterOp,
+        opStr: WhereFilterOp,
         value: T[K],
     ): QueryBuilder<T> {
-        return new QueryBuilder(this.staticModel, this.query.where(fieldPath as string, opStr, value))
+        return new QueryBuilder(
+            this.staticModel,
+            query(this.query, where(fieldPath as string, opStr, value)),
+        )
     }
 
     public orderBy(
         fieldPath: keyof T,
-        directionStr?: firebase.firestore.OrderByDirection,
+        directionStr?: OrderByDirection,
     ): QueryBuilder<T> {
-        return new QueryBuilder(this.staticModel, this.query.orderBy(fieldPath as string, directionStr))
+        return new QueryBuilder(
+            this.staticModel,
+            query(this.query, orderBy(fieldPath as string, directionStr)),
+        )
     }
-    public limit(limit: number): QueryBuilder<T> {
-        return new QueryBuilder(this.staticModel, this.query.limit(limit))
+    public limit(l: number): QueryBuilder<T> {
+        return new QueryBuilder(this.staticModel, query(this.query, limit(l)))
     }
 
     public async get(): Promise<T[]> {
-        const ref = await this.query.get()
+        const ref = await getDocs(this.query)
 
-        return ref.docs.map(doc => {
+        return ref.docs.map(d => {
             const model = new this.staticModel()
             Object.assign(model, {
-                ...doc.data(),
-                id: doc.id,
+                ...d.data(),
+                id: d.id,
             })
             model.postSave()
             return model
@@ -173,21 +211,23 @@ export class QueryBuilder<T extends Model> {
     }
 
     public subscribe(callback: (models: T[]) => void): () => void {
-        return this.query.onSnapshot(ref => {
-            callback(ref.docs.map(doc => {
-                const model = new this.staticModel()
-                Object.assign(model, {
-                    ...doc.data(),
-                    id: doc.id,
-                })
-                model.postSave()
-                return model
-            }))
+        return onSnapshot(this.query, ref => {
+            callback(
+                ref.docs.map(d => {
+                    const model = new this.staticModel()
+                    Object.assign(model, {
+                        ...d.data(),
+                        id: d.id,
+                    })
+                    model.postSave()
+                    return model
+                }),
+            )
         })
     }
 
     public equal(q: QueryBuilder<T>): boolean {
-        return this.query.isEqual(q.query)
+        return queryEqual(this.query, q.query)
     }
 }
 

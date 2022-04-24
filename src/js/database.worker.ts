@@ -1,6 +1,12 @@
+import { getBlob, ref } from 'firebase/storage'
 import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
-export type DatabaseMessage = FindCardMessage | SearchCardsMessage | LoadDBMessage
+import { storage } from './firebase'
+
+export type DatabaseMessage =
+    | FindCardMessage
+    | SearchCardsMessage
+    | LoadDBMessage
 export interface FindCardMessage {
     function: 'findCard'
     name: string
@@ -41,11 +47,13 @@ type QueryDefinition<T> = {
 
 const allCards: DBCard[] = []
 
-addEventListener('message', async  e => {
+addEventListener('message', async e => {
     postMessage(await runFunction(e.data), undefined as any)
 })
 
-async function runFunction(message: DatabaseMessage): Promise<DatabaseResponse> {
+async function runFunction(
+    message: DatabaseMessage,
+): Promise<DatabaseResponse> {
     switch (message.function) {
         case 'findCard':
             await waitForLoad()
@@ -129,12 +137,19 @@ function stringMatch(found: string, search: string[]): boolean {
 }
 
 function colorMatch(found: string[], search: string[]): boolean {
-    return arrayExactMatch(found, search.flatMap(s => s.split('')))
+    return arrayExactMatch(
+        found,
+        search.flatMap(s => s.split('')),
+    )
 }
 
 function arrayExactMatch(found: string[], search: string[]): boolean {
     for (const sColor of search) {
-        if (found.find(fColor => fColor.toLowerCase() === sColor.toLowerCase()) === undefined) {
+        if (
+            found.find(
+                fColor => fColor.toLowerCase() === sColor.toLowerCase(),
+            ) === undefined
+        ) {
             return false
         }
     }
@@ -201,8 +216,9 @@ function queryFilter<T extends object>(
     map: QueryDefinition<T>,
 ): (card: T) => boolean {
     return card => {
-        for (const [key, field] of Object.entries(map) as Iterable<[string, QueryField<any>]>) {
-
+        for (const [key, field] of Object.entries(map) as Iterable<
+            [string, QueryField<any>]
+        >) {
             for (const f of field.field) {
                 if (args[f] === undefined) {
                     continue
@@ -222,13 +238,13 @@ async function setChunks(chunks: Chunk[]): Promise<void> {
     await set('chunks', chunks)
 }
 async function getChunks(): Promise<Chunk[]> {
-    return await get('chunks') || []
+    return (await get('chunks')) || []
 }
 async function setCards(index: number, cards: DBCard[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
 async function getCards(index: number): Promise<DBCard[]> {
-    return await get(`chunk-${index}`) || []
+    return (await get(`chunk-${index}`)) || []
 }
 async function clearCards(index: number): Promise<void> {
     await del(`chunk-${index}`)
@@ -284,7 +300,7 @@ async function waitForLoad(): Promise<void> {
 }
 
 async function loadNetwork(): Promise<void> {
-    const chunks: Chunk[] = await fetch('cards/chunks.json').then(r => r.json())
+    const chunks: Chunk[] = await readFile('cards/chunks.json')
     const localChunks: Chunk[] = await getChunks()
     const newChunks: Chunk[] = []
     let i = 0
@@ -298,7 +314,7 @@ async function loadNetwork(): Promise<void> {
             }
         }
 
-        const cards: DBCard[] = await fetch(chunk.path).then(r => r.json())
+        const cards: DBCard[] = await readFile(chunk.path)
         setCards(chunk.index, cards)
         newChunks.push(chunk)
 
@@ -317,6 +333,12 @@ async function loadNetwork(): Promise<void> {
         }
     }
     await setChunks(newChunks)
+}
+
+async function readFile(path: string) {
+    return await getBlob(ref(storage, path))
+        .then(b => b.text())
+        .then(b => JSON.parse(b))
 }
 
 function updateLoading(message: LoadingResponse): void {
