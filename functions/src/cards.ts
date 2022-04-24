@@ -5,9 +5,7 @@ import { promises as fs } from 'fs'
 import { chunk, groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card } from 'scryfall-sdk'
-// import { Chunk, DBCard } from '../../common/interfaces'
-type Chunk = any
-type DBCard = any
+import { Chunk, DBCard } from './interfaces'
 
 interface BulkData {
     data: Array<{
@@ -38,16 +36,12 @@ export async function downloadCards(): Promise<void> {
         groupBy(Object.values(allCards).filter(validCard), 'name'),
     ).map(toDBCard)
 
-    console.log(`found ${collectedCards.length} cards`)
-
     const storage = getStorage()
     const bucket = storage.bucket()
     for (const cards of chunk(collectedCards, 1000)) {
         const path = `cards/${i}.json`
         const content = JSON.stringify(cards)
-        // await fs.writeFile('dist/' + path, content)
         await writeFile(bucket, path, content)
-        console.log(`saved batch ${i}`)
 
         chunks.push({
             hash: createHash('sha256').update(content).digest('hex'),
@@ -56,7 +50,6 @@ export async function downloadCards(): Promise<void> {
         })
         i++
     }
-    // await fs.writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
     await writeFile(bucket, 'cards/chunks.json', JSON.stringify(chunks))
 }
 

@@ -1,5 +1,5 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
-import { Chunk, DBCard } from '../../common/interfaces'
+import { Chunk, DBCard } from '../../functions/src/interfaces'
 import { DatabaseMessage, DatabaseResponse } from './database.worker'
 
 export { Chunk, DBCard }
