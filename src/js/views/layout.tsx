@@ -2,7 +2,7 @@ import 'css/layout.scss'
 import { bind } from 'decko'
 import { User } from 'firebase/auth'
 import { currentUser, onAuthChange, signIn, signOut } from 'js/firebase'
-import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h, JSX } from 'preact'
 import { Link } from 'preact-router'
 
 interface Props {
