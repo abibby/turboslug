@@ -31,10 +31,20 @@ export async function findCard(name: string): Promise<DBCard | undefined> {
     })
 }
 
-export async function searchCards(query: string): Promise<DBCard[]> {
+export interface SearchOptions {
+    limit: number
+    offset: number
+}
+
+export async function searchCards(
+    query: string,
+    options: Partial<SearchOptions> = {},
+): Promise<DBCard[]> {
     return runFunction({
         function: 'searchCards',
         query: query,
+        limit: options.limit ?? 15,
+        offset: options.offset ?? 0,
     })
 }
 
