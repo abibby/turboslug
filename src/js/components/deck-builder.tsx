@@ -1,7 +1,6 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, findCard, newCard, searchCards } from 'js/database'
-import { prices } from 'js/price'
+import { DBCard, findCard, searchCards } from 'js/database'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -20,8 +19,8 @@ interface State {
     filter: string
 
     popupCard?: {
-        card: DBCard,
-        y: number,
+        card: DBCard
+        y: number
     }
 }
 export default class DeckBuilder extends Component<Props, State> {
@@ -30,7 +29,7 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     private results: DBCard[] = []
-    private textarea: HTMLTextAreaElement | undefined
+    private textarea: HTMLTextAreaElement | null = null
 
     private lastCardID?: string = undefined
 
@@ -43,7 +42,6 @@ export default class DeckBuilder extends Component<Props, State> {
             currentCard: undefined,
             filter: '',
         }
-
     }
 
     public componentDidMount(): void {
@@ -60,57 +58,71 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     public render(): ComponentChild {
-        return <div class='deck-builder' >
-            {this.props.edit &&
-                <Input
-                    title='Filter'
-                    onChange={this.filterChange}
-                    value={this.state.filter}
-                />
-            }
-            <div
-                class={`popup ${this.state.popupCard ? '' : 'hidden'}`}
-                style={{ top: this.state.popupCard?.y }}
-            >
-                {this.state.popupCard && <Card card={this.state.popupCard.card} />}
-                price: ${this.props.prices.get(this.state.popupCard?.card.name ?? '')?.toFixed(2)}
-            </div>
-            <div class='editor-wrapper'>
-                <div
-                    className='editor'
-                    onMouseMove={this.mouseMove}
-                    onMouseLeave={this.mouseMove}
-                >
-                    <Deck deck={this.state.deck} />
-
-                    {this.props.edit &&
-                        <textarea
-                            key='deck-builder'
-                            ref={e => this.textarea = e}
-                            class='text'
-                            onInput={this.input}
-                            onKeyDown={this.keydown}
-                            value={this.state.deck}
-                            spellcheck={false}
-                        />
-                    }
-                </div>
-                {this.props.edit &&
-                    <Autocomplete
-                        hidden={this.state.currentCard === undefined}
-                        name={this.state.filter + ' ' + this.state.currentCard || ''}
-                        selected={this.state.autocompleteSelected}
-                        onNewResults={this.autocompleteNewResults}
-                        onSelect={this.autocompleteSelect}
-                        onMouseEnter={this.autocompleteMouseEnter}
+        return (
+            <div class='deck-builder'>
+                {this.props.edit && (
+                    <Input
+                        title='Filter'
+                        onChange={this.filterChange}
+                        value={this.state.filter}
                     />
-                }
+                )}
+                <div
+                    class={`popup ${this.state.popupCard ? '' : 'hidden'}`}
+                    style={{ top: this.state.popupCard?.y }}
+                >
+                    {this.state.popupCard && (
+                        <Card card={this.state.popupCard.card} />
+                    )}
+                    price: $
+                    {this.props.prices
+                        .get(this.state.popupCard?.card.name ?? '')
+                        ?.toFixed(2)}
+                </div>
+                <div class='editor-wrapper'>
+                    <div
+                        className='editor'
+                        onMouseMove={this.mouseMove}
+                        onMouseLeave={this.mouseMove}
+                    >
+                        <Deck deck={this.state.deck} />
+
+                        {this.props.edit && (
+                            <textarea
+                                key='deck-builder'
+                                ref={e => (this.textarea = e)}
+                                class='text'
+                                onInput={this.input}
+                                onKeyDown={this.keydown}
+                                value={this.state.deck}
+                                spellcheck={false}
+                            />
+                        )}
+                    </div>
+                    {this.props.edit && (
+                        <Autocomplete
+                            hidden={this.state.currentCard === undefined}
+                            name={
+                                this.state.filter +
+                                    ' ' +
+                                    this.state.currentCard || ''
+                            }
+                            selected={this.state.autocompleteSelected}
+                            onNewResults={this.autocompleteNewResults}
+                            onSelect={this.autocompleteSelect}
+                            onMouseEnter={this.autocompleteMouseEnter}
+                        />
+                    )}
+                </div>
             </div>
-        </div>
+        )
     }
 
     public componentDidUpdate(previousProps: Props): void {
-        if (this.props.deck !== undefined && previousProps.deck !== this.props.deck) {
+        if (
+            this.props.deck !== undefined &&
+            previousProps.deck !== this.props.deck
+        ) {
             this.setState({ deck: this.props.deck })
         }
     }
@@ -130,17 +142,23 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private async mouseMove(e: MouseEvent): Promise<void> {
-        const cardElement = document.elementsFromPoint(e.x, e.y).find(el => el.classList.contains('card'))
+        const cardElement = document
+            .elementsFromPoint(e.x, e.y)
+            .find(el => el.classList.contains('card'))
         let card: DBCard | undefined
         let y = 0
         if (cardElement !== undefined && cardElement.textContent) {
             card = await findCard(cardElement.textContent)
-            const scrollTop = (window.pageYOffset !== undefined)
-                ? window.pageYOffset
-                : (document.documentElement || document.body.parentNode || document.body).scrollTop
+            const scrollTop =
+                window.pageYOffset !== undefined
+                    ? window.pageYOffset
+                    : (
+                          document.documentElement ||
+                          document.body.parentNode ||
+                          document.body
+                      ).scrollTop
             const rect = cardElement.getBoundingClientRect()
             y = rect.bottom + scrollTop
-
         }
 
         if (card === undefined) {
@@ -162,14 +180,14 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     // tslint:disable-next-line: typedef
-    private info(textarea: HTMLTextAreaElement | undefined) {
-
+    private info(textarea: HTMLTextAreaElement | null) {
         const deck = textarea?.value ?? ''
         const start = textarea?.selectionStart ?? 0
 
         const lines = deck.split('\n')
         const linesBeforeStart = deck.slice(0, start).split('\n')
-        const linePosition = linesBeforeStart[linesBeforeStart.length - 1].length
+        const linePosition =
+            linesBeforeStart[linesBeforeStart.length - 1].length
         const currentLine = lines[linesBeforeStart.length - 1]
         let preCard: string
         let card: string
@@ -191,7 +209,6 @@ export default class DeckBuilder extends Component<Props, State> {
             postCard: postCard,
             linePosition: linePosition,
             currentLine: linesBeforeStart.length - 1,
-
         }
     }
 
@@ -199,14 +216,20 @@ export default class DeckBuilder extends Component<Props, State> {
     private input(e: Event): void {
         const deck = this.textarea?.value ?? ''
 
-        const { linePosition, preCard, card, currentLine } = this.info(this.textarea)
+        const { linePosition, preCard, card, currentLine } = this.info(
+            this.textarea,
+        )
 
         let currentCard: string | undefined
-        if (linePosition > preCard.length && linePosition <= preCard.length + card.length) {
+        if (
+            linePosition > preCard.length &&
+            linePosition <= preCard.length + card.length
+        ) {
             currentCard = card
         }
 
-        const autocomplete = document.querySelector<HTMLElement>('.autocomplete')
+        const autocomplete =
+            document.querySelector<HTMLElement>('.autocomplete')
         if (autocomplete) {
             autocomplete.style.setProperty('--x', String(linePosition))
             autocomplete.style.setProperty('--y', String(currentLine))
@@ -259,7 +282,6 @@ export default class DeckBuilder extends Component<Props, State> {
                 default:
                     newState.autocompleteSelected = 0
             }
-
         }
 
         if (e.key === '/' && e.ctrlKey) {
@@ -268,16 +290,18 @@ export default class DeckBuilder extends Component<Props, State> {
 
             const { lines, currentLine } = this.info(this.textarea)
             const isComment = lines[currentLine].startsWith(comment)
-            newState.deck = lines.map((line, i) => {
-                if (i !== currentLine) {
-                    return line
-                }
+            newState.deck = lines
+                .map((line, i) => {
+                    if (i !== currentLine) {
+                        return line
+                    }
 
-                if (isComment) {
-                    return line.slice(comment.length)
-                }
-                return comment + line
-            }).join('\n')
+                    if (isComment) {
+                        return line.slice(comment.length)
+                    }
+                    return comment + line
+                })
+                .join('\n')
             let start = this.textarea?.selectionStart ?? 0
             if (isComment) {
                 start -= comment.length
@@ -308,20 +332,23 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     private completeCard(state: State): State | undefined {
-
         const newState: State = { ...state }
         const c = this.results[newState.autocompleteSelected]
         if (c === undefined) {
             return undefined
         }
-        const { lines, preCard, postCard, currentLine } = this.info(this.textarea)
+        const { lines, preCard, postCard, currentLine } = this.info(
+            this.textarea,
+        )
 
-        newState.deck = lines.map((line, i) => {
-            if (i !== currentLine) {
-                return line
-            }
-            return preCard + c.name + postCard
-        }).join('\n')
+        newState.deck = lines
+            .map((line, i) => {
+                if (i !== currentLine) {
+                    return line
+                }
+                return preCard + c.name + postCard
+            })
+            .join('\n')
 
         const newLines = newState.deck.split('\n')
         let start = 0
@@ -356,7 +383,7 @@ interface AutocompleteProps {
 }
 
 const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
-    <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`} >
+    <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`}>
         <Async
             promise={searchCards(props.name)}
             // tslint:disable-next-line: jsx-no-lambda
@@ -368,28 +395,40 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
                     return result.error.toString()
                 }
 
-                props.onNewResults(result.result)
-                if (result.result.length === 0) {
+                props.onNewResults(result.result.results)
+                if (result.result.results.length === 0) {
                     return 'no cards'
                 }
-                return <div>
-                    <Card card={result.result[props.selected]} />
-                    <div class='options' >
-                        {result.result.map((c, i) => <div
-                            key={c.id}
-                            class={`option ${i === props.selected ? 'selected' : ''}`}
-                            onClick={bindFunc(props.onSelect, c)}
-                            onMouseEnter={bindFunc(props.onMouseEnter, i)}
-                        >
-                            {c.name}
-                        </div>)}
+                return (
+                    <div>
+                        <Card card={result.result.results[props.selected]} />
+                        <div class='options'>
+                            {result.result.results.map((c, i) => (
+                                <div
+                                    key={c.id}
+                                    class={`option ${
+                                        i === props.selected ? 'selected' : ''
+                                    }`}
+                                    onClick={bindFunc(props.onSelect, c)}
+                                    onMouseEnter={bindFunc(
+                                        props.onMouseEnter,
+                                        i,
+                                    )}
+                                >
+                                    {c.name}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )
             }}
         />
     </div>
 )
-function bindFunc<AX extends any[]>(cb: (...args: AX) => void, ...args: AX): () => void {
+function bindFunc<AX extends any[]>(
+    cb: (...args: AX) => void,
+    ...args: AX
+): () => void {
     return () => cb(...args)
 }
 
@@ -402,25 +441,32 @@ export function tokens(src: string): string[] {
     return matches.slice(1)
 }
 
-const Deck: FunctionalComponent<{ deck: string }> = props => <div class='deck' >
-    {props.deck.split('\n').map((row, i) => <Row key={i} row={row} even={i % 2 === 0} />)}
-</div>
+const Deck: FunctionalComponent<{ deck: string }> = props => (
+    <div class='deck'>
+        {props.deck.split('\n').map((row, i) => (
+            <Row key={i} row={row} even={i % 2 === 0} />
+        ))}
+    </div>
+)
 
-const Row: FunctionalComponent<{ row: string, even: boolean }> = props => {
+const Row: FunctionalComponent<{ row: string; even: boolean }> = props => {
     if (props.row.startsWith('//')) {
-        return <div class={`row ${props.even ? 'even' : 'odd'}`} >
-            <span className='comment'>{props.row}</span>
-        </div>
+        return (
+            <div class={`row ${props.even ? 'even' : 'odd'}`}>
+                <span className='comment'>{props.row}</span>
+            </div>
+        )
     }
     const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
-    return <div class={`row ${props.even ? 'even' : 'odd'}`} >
-        {s1}
-        <span class='quantity'>{quantity}</span>
-        {s2}
-        <span class='card'>{card}</span>
-        {s3}
-        <Tags tags={tags} />
-        {/* <Async
+    return (
+        <div class={`row ${props.even ? 'even' : 'odd'}`}>
+            {s1}
+            <span class='quantity'>{quantity}</span>
+            {s2}
+            <span class='card'>{card}</span>
+            {s3}
+            <Tags tags={tags} />
+            {/* <Async
             promise={findCard(card)}
             // tslint:disable-next-line: jsx-no-lambda
             result={({ loading, error, result }) => {
@@ -434,16 +480,24 @@ const Row: FunctionalComponent<{ row: string, even: boolean }> = props => {
                 return <span class='mana-cost warning' />
             }}
         /> */}
-    </div>
+        </div>
+    )
 }
 
 const Tags: FunctionalComponent<{ tags: string }> = props => {
-    return <span class='tags'>
-        {props.tags.split(' ').flatMap(tag => {
-            if (tag.startsWith('#')) {
-                return [<span key={tag} class='tag'>{tag}</span>, ' ']
-            }
-            return tag + ' '
-        })}
-    </span>
+    return (
+        <span class='tags'>
+            {props.tags.split(' ').flatMap(tag => {
+                if (tag.startsWith('#')) {
+                    return [
+                        <span key={tag} class='tag'>
+                            {tag}
+                        </span>,
+                        ' ',
+                    ]
+                }
+                return tag + ' '
+            })}
+        </span>
+    )
 }

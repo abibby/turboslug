@@ -1,0 +1,17 @@
+@import './variables';
+
+.search-page {
+    .input {
+        background-color: $light;
+        color: $on-light;
+    }
+
+    .list {
+        $width: 200px;
+        $gap: 15px;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax($width, 1fr));
+        grid-gap: $gap;
+    }
+}

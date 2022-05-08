@@ -3,12 +3,12 @@ import { loadDB } from 'js/database'
 import Home from 'js/views/home'
 import { Component, ComponentChild, h, render } from 'preact'
 import Router from 'preact-router'
-import { Loader } from './components/loader'
 import Account from './views/account'
 import EditDeck from './views/edit-deck'
 import Help from './views/help'
 import { LayoutWrapper } from './views/layout'
 import MyDecks from './views/my-decks'
+import { Search } from './views/search'
 
 interface State {
     progress: number
@@ -25,19 +25,24 @@ class Index extends Component<{}, State> {
         this.loadDB()
     }
     public render(): ComponentChild {
-        return <LayoutWrapper loading={this.state.progress}>
-            <Router>
-                <Home path='/' />
-                <Help path='/help' />
-                <EditDeck path='/edit/create' />
-                <EditDeck path='/edit/:id/:type?' />
-                <MyDecks path='/deck/me' />
-                <Account path='/account' />
-            </Router>
-        </LayoutWrapper>
+        return (
+            <LayoutWrapper loading={this.state.progress}>
+                <Router>
+                    <Home path='/' />
+                    <Help path='/help' />
+                    <EditDeck path='/edit/create' />
+                    <EditDeck path='/edit/:id/:type?' />
+                    <MyDecks path='/deck/me' />
+                    <Account path='/account' />
+                    <Search path='/search' />
+                </Router>
+            </LayoutWrapper>
+        )
     }
     private async loadDB(): Promise<void> {
-        await loadDB((count, total) => this.setState({ progress: count / total }))
+        await loadDB((count, total) =>
+            this.setState({ progress: count / total }),
+        )
         this.setState({ loaded: true })
     }
 }

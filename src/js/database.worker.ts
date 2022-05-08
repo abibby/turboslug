@@ -14,6 +14,8 @@ export interface FindCardMessage {
 export interface SearchCardsMessage {
     function: 'searchCards'
     query: string
+    skip: number
+    take: number
 }
 export interface LoadDBMessage {
     function: 'loadDB'
@@ -45,6 +47,11 @@ type QueryDefinition<T> = {
     [P in keyof T]?: QueryField<T[P]>
 }
 
+export interface Paginated<T> {
+    total: number
+    results: T[]
+}
+
 const allCards: DBCard[] = []
 
 addEventListener('message', async e => {
@@ -65,7 +72,7 @@ async function runFunction(
             }
         case 'searchCards':
             await waitForLoad()
-            const cards = searchCards(message.query)
+            const cards = searchCards(message)
             return {
                 type: 'function',
                 message: message,
@@ -85,8 +92,8 @@ function findCard(name: string): DBCard | undefined {
     return allCards.find(card => card.name === name)
 }
 
-function searchCards(query: string): DBCard[] {
-    const filter = queryFilter<DBCard>(parseQuery(query), {
+function searchCards(options: SearchCardsMessage): Paginated<DBCard> {
+    const filter = queryFilter<DBCard>(parseQuery(options.query), {
         name: {
             field: ['default'],
             matcher: stringMatch,
@@ -116,15 +123,17 @@ function searchCards(query: string): DBCard[] {
     let count = 0
     for (const card of allCards) {
         if (filter(card)) {
-            cards.push(card)
+            if (count >= options.skip && count < options.skip + options.take) {
+                cards.push(card)
+            }
             count++
-        }
-        if (count >= 15) {
-            break
         }
     }
 
-    return cards
+    return {
+        total: count,
+        results: cards,
+    }
 }
 
 function stringMatch(found: string, search: string[]): boolean {
