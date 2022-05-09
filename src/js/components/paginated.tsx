@@ -50,6 +50,7 @@ const PaginatorButtons: FunctionalComponent<PaginatorButtonsProps> = props => {
     }
     return (
         <div>
+            {/* maybe use links instead of buttons */}
             {pages.map(p => (
                 <button
                     key={p}
@@ -57,6 +58,7 @@ const PaginatorButtons: FunctionalComponent<PaginatorButtonsProps> = props => {
                     class={classNames('page-link', {
                         active: p === props.page,
                     })}
+                    disabled={p === props.page}
                 >
                     {p + 1}
                 </button>

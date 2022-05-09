@@ -118,6 +118,10 @@ function searchCards(options: SearchCardsMessage): Paginated<DBCard> {
             field: ['legal', 'l'],
             matcher: arrayExactMatch,
         },
+        cmc: {
+            field: ['cmc', 'mana-value', 'mv'],
+            matcher: numberMatch,
+        },
     })
     const cards: DBCard[] = []
     let count = 0
@@ -140,6 +144,50 @@ function stringMatch(found: string, search: string[]): boolean {
     for (const word of search) {
         if (!found.toLowerCase().includes(word.toLowerCase())) {
             return false
+        }
+    }
+    return true
+}
+
+function numberMatch(found: number, search: string[]): boolean {
+    for (const word of search) {
+        const [, operator, valueStr] = word.match(/^([<>!]=?)?(\d+)$/) ?? []
+        console.log(operator, valueStr)
+
+        const value = Number(valueStr)
+        if (valueStr !== undefined) {
+            switch (operator) {
+                case '>':
+                    if (found <= value) {
+                        return false
+                    }
+                    break
+                case '>=':
+                    if (found < value) {
+                        return false
+                    }
+                    break
+                case '<':
+                    if (found >= value) {
+                        return false
+                    }
+                    break
+                case '<=':
+                    if (found > value) {
+                        return false
+                    }
+                    break
+                case '!':
+                case '!=':
+                    if (found === value) {
+                        return false
+                    }
+                    break
+                default:
+                    if (found !== value) {
+                        return false
+                    }
+            }
         }
     }
     return true
@@ -192,7 +240,6 @@ function* tokens(q: string): Iterable<string> {
                 current = ''
                 break
             case ':':
-            case '=':
                 if (current !== '') {
                     yield current + c
                 }
