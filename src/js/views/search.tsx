@@ -39,7 +39,7 @@ export const Search: FunctionalComponent = () => {
                 onInput={bindValue(inputChange)}
                 value={search}
             />
-            {cards.total}
+            Found {cards.total} {cards.total === 1 ? 'card' : 'cards'}
             <PaginatedList
                 paginator={cards}
                 perPage={perPage}
@@ -48,7 +48,13 @@ export const Search: FunctionalComponent = () => {
             >
                 <div class='list'>
                     {cards.results.map(c => (
-                        <Card key={c.id} card={c} />
+                        <a
+                            key={c.id}
+                            href={`https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${c.id}`}
+                            target='_blank'
+                        >
+                            <Card card={c} />
+                        </a>
                     ))}
                 </div>
             </PaginatedList>
