@@ -18,10 +18,7 @@ interface State {
     currentCard: string | undefined
     filter: string
 
-    popupCard?: {
-        card: DBCard
-        y: number
-    }
+    popupCard?: { card: DBCard; y: number }
 }
 export default class DeckBuilder extends Component<Props, State> {
     public static defaultProps = {
@@ -395,15 +392,15 @@ const Autocomplete: FunctionalComponent<AutocompleteProps> = props => (
                     return result.error.toString()
                 }
 
-                props.onNewResults(result.result)
-                if (result.result.length === 0) {
+                props.onNewResults(result.result.results)
+                if (result.result.results.length === 0) {
                     return 'no cards'
                 }
                 return (
                     <div>
-                        <Card card={result.result[props.selected]} />
+                        <Card card={result.result.results[props.selected]} />
                         <div class='options'>
-                            {result.result.map((c, i) => (
+                            {result.result.results.map((c, i) => (
                                 <div
                                     key={c.id}
                                     class={`option ${

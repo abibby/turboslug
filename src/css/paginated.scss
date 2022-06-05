@@ -1,0 +1,23 @@
+@import './variables';
+
+.paginated-list {
+    .paginator-buttons {
+        margin: 10px 0;
+
+        .page-link {
+            border: none;
+            outline: none;
+            background: none;
+            color: $primary;
+
+            &.active {
+                background-color: $primary;
+                color: $background;
+            }
+        }
+
+        .ellipsis {
+            color: $primary;
+        }
+    }
+}
