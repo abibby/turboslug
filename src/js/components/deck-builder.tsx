@@ -18,10 +18,7 @@ interface State {
     currentCard: string | undefined
     filter: string
 
-    popupCard?: {
-        card: DBCard
-        y: number
-    }
+    popupCard?: { card: DBCard; y: number }
 }
 export default class DeckBuilder extends Component<Props, State> {
     public static defaultProps = {

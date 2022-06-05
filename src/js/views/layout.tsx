@@ -62,6 +62,9 @@ export class LayoutWrapper extends Component<Props, State> {
                         <Link class='link' href='/help'>
                             Help
                         </Link>
+                        <Link class='link' href='/search'>
+                            Search
+                        </Link>
                         {userNav}
                     </NavLeft>
                     <NavRight>

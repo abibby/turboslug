@@ -1,5 +1,6 @@
 import { bind } from '@zwzn/spicy'
 import classNames from 'classnames'
+import 'css/paginated.scss'
 import { Paginated } from 'js/database.worker'
 import { FunctionalComponent, h } from 'preact'
 
@@ -14,7 +15,7 @@ export const PaginatedList: FunctionalComponent<PaginatedListProps> = props => {
     const pageCount = Math.ceil(props.paginator.total / props.perPage)
 
     return (
-        <div>
+        <div class='paginated-list'>
             <PaginatorButtons
                 page={props.page}
                 pageCount={pageCount}
@@ -49,20 +50,32 @@ const PaginatorButtons: FunctionalComponent<PaginatorButtonsProps> = props => {
         pages.push(props.pageCount - 1)
     }
     return (
-        <div>
+        <div class='paginator-buttons'>
             {/* maybe use links instead of buttons */}
-            {pages.map(p => (
-                <button
-                    key={p}
-                    onClick={bind(p, props.onPageChange)}
-                    class={classNames('page-link', {
-                        active: p === props.page,
-                    })}
-                    disabled={p === props.page}
-                >
-                    {p + 1}
-                </button>
-            ))}
+            {pages.flatMap((p, i) => {
+                const button = (
+                    <button
+                        key={p}
+                        onClick={bind(p, props.onPageChange)}
+                        class={classNames('page-link', {
+                            active: p === props.page,
+                        })}
+                        disabled={p === props.page}
+                    >
+                        {p + 1}
+                    </button>
+                )
+                const lastPage = pages[i - 1]
+                if (lastPage !== undefined && lastPage !== p - 1) {
+                    return [
+                        <span key={p - 0.5} class='ellipsis'>
+                            ...
+                        </span>,
+                        button,
+                    ]
+                }
+                return button
+            })}
         </div>
     )
 }
