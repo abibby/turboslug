@@ -2,7 +2,7 @@ import 'css/deck-list.scss'
 import { bind } from 'decko'
 import { collect, range } from 'js/collection'
 import { Slot } from 'js/deck'
-import { Component, ComponentChild, FunctionalComponent, h, options } from 'preact'
+import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Card from './card'
 
 const colorLookup = {
@@ -54,7 +54,7 @@ export default class DeckList extends Component<Props, State> {
                     return ['Gold']
             }
         },
-        CMC: slot => [slot.card.cmc + ''],
+        CMC: slot => [String(slot.card.cmc)],
         None: slot => ['Cards'],
         Tags: slot => slot.tags || [],
         Price: slot => {
@@ -63,7 +63,7 @@ export default class DeckList extends Component<Props, State> {
                 return ['Unknown']
             }
             if (price < 2) {
-                return ['< $2']
+                return ['$0 - $2']
             }
             if (price < 5) {
                 return ['$2 - $5']
@@ -74,15 +74,17 @@ export default class DeckList extends Component<Props, State> {
             if (price < 50) {
                 return ['$20 - $50']
             }
-            return ['> $50']
+            return ['$50+']
         },
     }
 
     constructor(props: Props) {
         super(props)
 
-        const groupByEntry = Object.entries(this.groups)
-            .find(([name]) => (this.props.groupBy || '').toLowerCase() === name.toLowerCase())
+        const groupByEntry = Object.entries(this.groups).find(
+            ([name]) =>
+                (this.props.groupBy || '').toLowerCase() === name.toLowerCase(),
+        )
 
         let groupBy = this.groups.Type
         if (groupByEntry) {
@@ -94,23 +96,47 @@ export default class DeckList extends Component<Props, State> {
     }
 
     public render(): ComponentChild {
-        return <div class='deck-list'>
-            <div>
-                Group by:
-                <select onChange={this.groupChange}>
-                    {Object.entries(this.groups).map(([name]) => <option key={name}>{name}</option>)}
-                </select>
+        return (
+            <div class='deck-list'>
+                <div>
+                    Group by:
+                    <select onChange={this.groupChange}>
+                        {Object.entries(this.groups).map(([name]) => (
+                            <option key={name}>{name}</option>
+                        ))}
+                    </select>
+                </div>
+                {collect(
+                    this.props.deck.filter(
+                        slot => slot.card.id !== '' && slot.card.name !== '',
+                    ),
+                )
+                    .multiGroupBy(this.state.groupBy)
+                    .sort(([a], [b]) =>
+                        a.localeCompare(b, 'en', { numeric: true }),
+                    )
+                    .map(([name, deck]) => (
+                        <div key={name}>
+                            <h2>
+                                {name} (
+                                {deck.reduce(
+                                    (total, slot) => total + slot.quantity,
+                                    0,
+                                )}
+                                )
+                            </h2>
+                            <CardList
+                                deck={deck
+                                    .toArray()
+                                    .sort((a, b) =>
+                                        a.card.name.localeCompare(b.card.name),
+                                    )}
+                            />
+                        </div>
+                    ))
+                    .toArray()}
             </div>
-            {collect(this.props.deck.filter(slot => slot.card.id !== '' && slot.card.name !== ''))
-                .multiGroupBy(this.state.groupBy)
-                .sortBy(([name]) => name)
-                .map(([name, deck]) => (
-                    <div key={name}>
-                        <h2>{name} ({deck.reduce((total, slot) => total + slot.quantity, 0)})</h2>
-                        <CardList deck={deck.toArray().sort((a, b) => a.card.name.localeCompare(b.card.name))} />
-                    </div>
-                )).toArray()}
-        </div>
+        )
     }
 
     @bind
@@ -120,14 +146,17 @@ export default class DeckList extends Component<Props, State> {
     }
 }
 
-const CardList: FunctionalComponent<{ deck: Slot[] }> = props => <div class='deck-list-group'>
-    {props.deck.map(slot => (
-        <div
-            key={slot.card.id}
-            class='slot'
-        >
-            {slot.quantity > 4 ? <div class='quantity'>&times;{slot.quantity}</div> : null}
-            {range(Math.min(slot.quantity, 4)).map(i => <Card key={i} card={slot.card} />).toArray()}
-        </div>
-    ))}
-</div>
+const CardList: FunctionalComponent<{ deck: Slot[] }> = props => (
+    <div class='deck-list-group'>
+        {props.deck.map(slot => (
+            <div key={slot.card.id} class='slot'>
+                {slot.quantity > 4 ? (
+                    <div class='quantity'>&times;{slot.quantity}</div>
+                ) : null}
+                {range(Math.min(slot.quantity, 4))
+                    .map(i => <Card key={i} card={slot.card} />)
+                    .toArray()}
+            </div>
+        ))}
+    </div>
+)
