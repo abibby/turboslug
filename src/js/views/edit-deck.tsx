@@ -163,10 +163,10 @@ export default class EditDeck extends Component<Props, State> {
         const deck = this.state.deck
         deck.cards = c
         this.setState({ deck: deck })
-        this.loadPrices()
 
         const slots = await cards(c)
         this.setState({ slots: slots })
+        this.loadPrices(slots)
     }
 
     @bind
@@ -209,7 +209,7 @@ export default class EditDeck extends Component<Props, State> {
 
                 const slots = await cards(deck.cards)
                 this.setState({ slots: slots })
-                this.loadPrices()
+                this.loadPrices(slots)
             },
         )
     }
@@ -248,10 +248,10 @@ export default class EditDeck extends Component<Props, State> {
             this.save()
         }
     }
-    private async loadPrices(): Promise<void> {
+    private async loadPrices(slots: Slot[]): Promise<void> {
         this.setState({
             prices: await prices(
-                this.state.slots
+                slots
                     .map(slot => slot.card)
                     .filter(card => !isCustomCard(card)),
             ),
