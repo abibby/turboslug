@@ -1,6 +1,11 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
 import { Chunk, DBCard } from '../../functions/src/interfaces'
-import { DatabaseMessage, DatabaseResponse, Paginated } from './database.worker'
+import {
+    DatabaseMessage,
+    DatabaseResponse,
+    Paginated,
+    SearchCardsMessage,
+} from './database.worker'
 
 export { Chunk, DBCard }
 
@@ -33,14 +38,16 @@ export async function findCard(name: string): Promise<DBCard | undefined> {
 
 export async function searchCards(
     query: string,
-    take: number = 15,
-    skip: number = 0,
+    options: Partial<Omit<SearchCardsMessage, 'function' | 'query'>> = {},
 ): Promise<Paginated<DBCard>> {
     return runFunction({
         function: 'searchCards',
         query: query,
-        take: take,
-        skip: skip,
+        take: 15,
+        skip: 0,
+        sort: 'name',
+        order: 'asc',
+        ...options,
     })
 }
 

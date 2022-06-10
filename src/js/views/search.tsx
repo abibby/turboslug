@@ -2,6 +2,7 @@ import { bindValue } from '@zwzn/spicy'
 import 'css/search-page.scss'
 import Card from 'js/components/card'
 import { PaginatedList } from 'js/components/paginated'
+import { Select } from 'js/components/select'
 import { DBCard, searchCards } from 'js/database'
 import { Paginated } from 'js/database.worker'
 import { useQueryState } from 'js/hooks/use-query-state'
@@ -11,7 +12,9 @@ import { useCallback, useEffect, useState } from 'preact/hooks'
 
 export const Search: FunctionalComponent = () => {
     const [search, setSearch] = useQueryState('query', '')
-    const [pageStr, setPage] = useQueryState('page', '')
+    const [sort, setSort] = useQueryState('sort', 'name')
+    const [order, setOrder] = useQueryState('order', 'asc')
+    const [pageStr, setPage] = useQueryState('page', '0')
     const page = Number(pageStr)
     const perPage = 16
     const [cards, setCards] = useState<Paginated<DBCard>>({
@@ -19,10 +22,15 @@ export const Search: FunctionalComponent = () => {
         results: [],
     })
     useEffect(() => {
-        searchCards(search, perPage, page * perPage).then(c => {
+        searchCards(search, {
+            take: perPage,
+            skip: page * perPage,
+            sort: sort as keyof DBCard,
+            order: order as 'asc' | 'desc',
+        }).then(c => {
             setCards(c)
         })
-    }, [search, page, perPage])
+    }, [search, page, perPage, sort, order])
     const inputChange = useCallback(
         (query: string) => {
             setSearch(query)
@@ -30,6 +38,16 @@ export const Search: FunctionalComponent = () => {
         },
         [setSearch, setPage],
     )
+
+    const sortOptions = [
+        ['name', 'Name'],
+        ['cmc', 'Mana Value'],
+    ] as const
+    const orderOptions = [
+        ['asc', 'Ascending'],
+        ['desc', 'Descending'],
+    ] as const
+
     return (
         <Layout class='search-page'>
             <h1>Search</h1>
@@ -39,6 +57,14 @@ export const Search: FunctionalComponent = () => {
                 onInput={bindValue(inputChange)}
                 value={search}
             />
+            <div>
+                <Select options={sortOptions} onChange={setSort} value={sort} />
+                <Select
+                    options={orderOptions}
+                    onChange={setOrder}
+                    value={order}
+                />
+            </div>
             Found {cards.total} {cards.total === 1 ? 'card' : 'cards'}
             <PaginatedList
                 paginator={cards}

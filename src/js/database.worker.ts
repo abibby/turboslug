@@ -16,6 +16,8 @@ export interface SearchCardsMessage {
     query: string
     skip: number
     take: number
+    sort: keyof DBCard
+    order: 'asc' | 'desc'
 }
 export interface LoadDBMessage {
     function: 'loadDB'
@@ -125,7 +127,13 @@ function searchCards(options: SearchCardsMessage): Paginated<DBCard> {
     })
     const cards: DBCard[] = []
     let count = 0
-    for (const card of allCards) {
+    let sortedCards = allCards
+
+    if (options.sort !== 'name') {
+        sortedCards = allCards.sort(byKey(options.sort, options.order))
+    }
+
+    for (const card of sortedCards) {
         if (filter(card)) {
             if (count >= options.skip && count < options.skip + options.take) {
                 cards.push(card)
@@ -139,7 +147,45 @@ function searchCards(options: SearchCardsMessage): Paginated<DBCard> {
         results: cards,
     }
 }
+const collator = Intl.Collator(undefined, { numeric: true })
 
+export function byKey<T>(
+    col: keyof T,
+    order: 'asc' | 'desc' = 'asc',
+    naturalSort = false,
+): (a: T, b: T) => number {
+    return (a, b): number => {
+        let ret = 0
+        if (naturalSort) {
+            const aCol = a[col]
+            const bCol = b[col]
+
+            if (aCol === bCol) {
+                return 0
+            }
+            if (aCol === undefined || aCol === null) {
+                return 1
+            }
+            if (bCol === undefined || bCol === null) {
+                return -1
+            }
+
+            ret = collator.compare(String(aCol), String(bCol))
+        } else {
+            if (a[col] === b[col]) {
+                return 0
+            } else if (a[col] > b[col]) {
+                ret = 1
+            } else {
+                ret = -1
+            }
+        }
+        if (order === 'desc') {
+            ret = -ret
+        }
+        return ret
+    }
+}
 function stringMatch(found: string, search: string[]): boolean {
     for (const word of search) {
         if (!found.toLowerCase().includes(word.toLowerCase())) {
