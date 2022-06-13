@@ -1,24 +1,29 @@
 name: Publish
 
 on:
-  push:
-    branches:
-      - master
+    push:
+        branches:
+            - master
+    schedule:
+        # Every Sunday at 3:00 am
+        - cron: '0 3 * * SUN'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - name: npm install, publish
-        run: |
-          npm install
-          npm --prefix "functions" install
-          npm run publish:ci
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  ref: master
+            - name: Use Node.js 16.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.x
+            - name: npm install, publish
+              run: |
+                  npm ci
+                  npm --prefix "functions" install
+                  npm run publish:ci
+              env:
+                  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

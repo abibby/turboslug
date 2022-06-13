@@ -1,7 +1,7 @@
-import { getBlob, ref } from 'firebase/storage'
+// import { getBlob, ref } from 'firebase/storage'
 import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
-import { storage } from './firebase'
+// import { storage } from './firebase'
 import { sleep } from './time'
 
 export type DatabaseMessage =
@@ -201,13 +201,27 @@ async function searchCards(
                 matcher: numberMatch,
             },
         ],
+        [
+            'power',
+            {
+                field: ['power', 'p'],
+                matcher: numberMatch,
+            },
+        ],
+        [
+            'toughness',
+            {
+                field: ['toughness', 'd'],
+                matcher: numberMatch,
+            },
+        ],
     ])
     const cards: DBCard[] = []
     let count = 0
     let sortedCards = allCards
 
     if (options.sort !== 'name') {
-        sortedCards = allCards.sort(byKey(options.sort, options.order))
+        sortedCards = allCards.sort(byKey(options.sort, options.order, true))
     }
 
     for (let i = 0; i < sortedCards.length; i++) {
@@ -287,10 +301,13 @@ function stringMatch(found: string, search: string[]): boolean {
     return true
 }
 
-function numberMatch(found: number, search: string[]): boolean {
+function numberMatch(found: number | string | null, search: string[]): boolean {
+    if (found === null) {
+        return false
+    }
+    found = Number(found)
     for (const word of search) {
         const [, operator, valueStr] = word.match(/^([<>!]=?)?(\d+)$/) ?? []
-        console.log(operator, valueStr)
 
         const value = Number(valueStr)
         if (valueStr !== undefined) {
@@ -556,9 +573,7 @@ async function loadNetwork(): Promise<void> {
 }
 
 async function readFile(path: string) {
-    return await getBlob(ref(storage, path))
-        .then(b => b.text())
-        .then(b => JSON.parse(b))
+    return await fetch(path).then(b => b.json())
 }
 
 function updateLoading(message: LoadingResponse): void {

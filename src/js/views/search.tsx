@@ -55,6 +55,8 @@ export const Search: FunctionalComponent = () => {
     const sortOptions = [
         ['name', 'Name'],
         ['cmc', 'Mana Value'],
+        ['power', 'Power'],
+        ['toughness', 'Toughness'],
     ] as const
     const orderOptions = [
         ['asc', 'Ascending'],
