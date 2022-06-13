@@ -62,9 +62,9 @@ interface QueryField<T> {
     matcher: (a: T, words: string[]) => boolean
 }
 
-type QueryDefinition<T> = {
-    [P in keyof T]?: QueryField<T[P]>
-}
+type QueryThing<T, K extends keyof T> = [K, QueryField<T[K]>]
+
+type QueryDefinition<T> = Array<{ [K in keyof T]: QueryThing<T, K> }[keyof T]>
 
 export interface Paginated<T> {
     total: number
@@ -144,36 +144,64 @@ function findCard(name: string): DBCard | undefined {
 async function searchCards(
     options: SearchCardsMessage,
 ): Promise<Paginated<DBCard>> {
-    const filter = queryFilter<DBCard>(parseQuery(options.query), {
-        name: {
-            field: ['default'],
-            matcher: stringMatch,
-        },
-        oracle_text: {
-            field: ['oracle', 'o'],
-            matcher: stringMatch,
-        },
-        type: {
-            field: ['type', 't'],
-            matcher: stringMatch,
-        },
-        set: {
-            field: ['set', 's'],
-            matcher: arrayMatch,
-        },
-        color_identity: {
-            field: ['color', 'c'],
-            matcher: colorMatch,
-        },
-        legalities: {
-            field: ['legal', 'l'],
-            matcher: arrayExactMatch,
-        },
-        cmc: {
-            field: ['cmc', 'mana-value', 'mv'],
-            matcher: numberMatch,
-        },
-    })
+    const filter = queryFilter<DBCard>(parseQuery(options.query), [
+        [
+            'name',
+            {
+                field: ['default'],
+                matcher: stringMatch,
+            },
+        ],
+        [
+            'oracle_text',
+            {
+                field: ['oracle', 'o'],
+                matcher: stringMatch,
+            },
+        ],
+        [
+            'type',
+            {
+                field: ['type', 't'],
+                matcher: stringMatch,
+            },
+        ],
+        [
+            'set',
+            {
+                field: ['set', 's'],
+                matcher: arrayMatch,
+            },
+        ],
+        [
+            'color_identity',
+            {
+                field: ['color', 'c'],
+                matcher: colorMatch,
+            },
+        ],
+        [
+            'color_identity',
+            {
+                field: ['commander', 'edh'],
+                matcher: commanderColorMatch,
+            },
+        ],
+        [
+            'legalities',
+            {
+                field: ['legal', 'l'],
+                matcher: arrayExactMatch,
+            },
+        ],
+        [
+            'cmc',
+            {
+                field: ['cmc', 'mana-value', 'mv'],
+                matcher: numberMatch,
+            },
+        ],
+    ])
     const cards: DBCard[] = []
     let count = 0
     let sortedCards = allCards
@@ -323,6 +351,14 @@ function colorMatch(found: string[], search: string[]): boolean {
         }),
     )
 }
+function commanderColorMatch(found: string[], search: string[]): boolean {
+    const searchColors = search.flatMap(s => s.split(''))
+    const colors = ['w', 'u', 'b', 'r', 'g']
+        .filter(c => !searchColors.includes(c))
+        .map(c => '!' + c)
+
+    return arrayExactMatch(found, colors)
+}
 
 function arrayExactMatch(found: string[], search: string[]): boolean {
     for (let term of search) {
@@ -402,9 +438,7 @@ function queryFilter<T extends object>(
     map: QueryDefinition<T>,
 ): (card: T) => boolean {
     return card => {
-        for (const [key, field] of Object.entries(map) as Iterable<
-            [string, QueryField<any>]
-        >) {
+        for (const [key, field] of map) {
             for (const f of field.field) {
                 if (args[f] === undefined) {
                     continue
