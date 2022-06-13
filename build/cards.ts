@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
 import { mkdir, writeFile } from 'fs/promises'
-import { chunk, groupBy } from 'lodash'
+import { groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card } from 'scryfall-sdk'
 import { Chunk, DBCard } from '../src/js/database'
@@ -28,23 +28,22 @@ export async function downloadCards(): Promise<void> {
             Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!),
     )
     const chunks: Chunk[] = []
-    let i = 0
     await mkdir('dist/cards', { recursive: true })
     const collectedCards = Object.values(
         groupBy(Object.values(allCards).filter(validCard), 'name'),
     ).map(toDBCard)
 
-    for (const cards of chunk(collectedCards, 1000)) {
-        const path = `cards/${i}.json`
+    const cardsBySet = Object.entries(groupBy(collectedCards, a => a.set[0]))
+    for (const [set, cards] of cardsBySet) {
+        const path = `cards/${set}.json`
         const content = JSON.stringify(cards)
         await writeFile('dist/' + path, content)
 
         chunks.push({
             hash: createHash('sha256').update(content).digest('hex'),
             path: path,
-            index: i,
+            index: set,
         })
-        i++
     }
     await writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
 }

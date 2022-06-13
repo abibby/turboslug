@@ -23,7 +23,7 @@ export interface DBCard {
 }
 
 export interface Chunk {
-    index: number
+    index: string
     hash: string
     path: string
 }

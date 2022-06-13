@@ -477,21 +477,20 @@ async function setChunks(chunks: Chunk[]): Promise<void> {
 async function getChunks(): Promise<Chunk[]> {
     return (await get('chunks')) || []
 }
-async function setCards(index: number, cards: DBCard[]): Promise<void> {
+async function setCards(index: string, cards: DBCard[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
-async function getCards(index: number): Promise<DBCard[]> {
+async function getCards(index: string): Promise<DBCard[]> {
     return (await get(`chunk-${index}`)) || []
 }
-async function clearCards(index: number): Promise<void> {
+async function clearCards(index: string): Promise<void> {
     await del(`chunk-${index}`)
 }
-async function cardsIndexes(): Promise<number[]> {
+async function cardsIndexes(): Promise<string[]> {
     return (await keys())
         .map(String)
         .filter(k => k.startsWith('chunk-'))
         .map(k => k.split('-')[1])
-        .map(Number)
 }
 
 let loaded = false
@@ -509,15 +508,19 @@ async function loadDB(): Promise<void> {
     const chunks = await getChunks()
     let i = 0
     for (const chunk of chunks) {
-        const cards = await getCards(chunk.index)
-        allCards.push(...cards)
+        try {
+            const cards = await getCards(chunk.index)
+            allCards.push(...cards)
 
-        updateLoading({
-            type: 'partial',
-            name: 'loadDB',
-            current: i + 1,
-            total: chunks.length,
-        })
+            updateLoading({
+                type: 'partial',
+                name: 'loadDB',
+                current: i + 1,
+                total: chunks.length,
+            })
+        } catch (e) {
+            console.error(e)
+        }
         i++
     }
     allCards.sort((a, b) => a.name.localeCompare(b.name))
@@ -565,10 +568,11 @@ async function loadNetwork(): Promise<void> {
     }
 
     for (const index of await cardsIndexes()) {
-        if (index > newChunks.length) {
+        if (!newChunks.map(c => c.index).includes(index)) {
             clearCards(index)
         }
     }
+
     await setChunks(newChunks)
 }
 
