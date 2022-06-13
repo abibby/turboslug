@@ -8,7 +8,7 @@ import { Paginated } from 'js/database.worker'
 import { useQueryState } from 'js/hooks/use-query-state'
 import Layout from 'js/views/layout'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 export const Search: FunctionalComponent = () => {
     const [search, setSearch] = useQueryState('query', '')
@@ -21,15 +21,28 @@ export const Search: FunctionalComponent = () => {
         total: 0,
         results: [],
     })
+    const abort = useRef<AbortController | null>(null)
     useEffect(() => {
-        searchCards(search, {
-            take: perPage,
-            skip: page * perPage,
-            sort: sort as keyof DBCard,
-            order: order as 'asc' | 'desc',
-        }).then(c => {
-            setCards(c)
-        })
+        abort.current?.abort()
+        abort.current = new AbortController()
+
+        searchCards(
+            search,
+            {
+                take: perPage,
+                skip: page * perPage,
+                sort: sort as keyof DBCard,
+                order: order as 'asc' | 'desc',
+            },
+            abort.current,
+        )
+            .then(c => {
+                abort.current = null
+                setCards(c)
+            })
+            .catch(e => {
+                abort.current = null
+            })
     }, [search, page, perPage, sort, order])
     const inputChange = useCallback(
         (query: string) => {
