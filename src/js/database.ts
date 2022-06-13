@@ -1,24 +1,46 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
 import { Chunk, DBCard } from '../../functions/src/interfaces'
-import { DatabaseMessage, DatabaseResponse, Paginated } from './database.worker'
+import {
+    AbortMessage,
+    DatabaseMessage,
+    DatabaseResponse,
+    Paginated,
+    SearchCardsMessage,
+} from './database.worker'
 
 export { Chunk, DBCard }
 
 const worker = new DatabaseWorker()
 
-async function runFunction(message: DatabaseMessage): Promise<any> {
-    return new Promise(resolve => {
+let messageId = 0
+
+async function runFunction(
+    message: DatabaseMessage,
+    abortController?: AbortController,
+): Promise<any> {
+    return new Promise((resolve, reject) => {
         const onMessage = (e: MessageEvent) => {
             const response: DatabaseResponse = e.data
 
-            if (
-                response.type === 'function' &&
-                JSON.stringify(response.message) === JSON.stringify(message)
-            ) {
+            if (response.type === 'function' && response.id === message.id) {
                 resolve(response.value)
                 worker.removeEventListener('message', onMessage)
+            } else if (
+                response.type === 'abort' &&
+                response.id === message.id
+            ) {
+                worker.removeEventListener('message', onMessage)
+                reject(new Error('AbortError'))
+                return
             }
         }
+        abortController?.signal.addEventListener('abort', () => {
+            const cancelMessage: AbortMessage = {
+                function: 'abort',
+                id: message.id,
+            }
+            worker.postMessage(cancelMessage)
+        })
         worker.addEventListener('message', onMessage)
         worker.postMessage(message)
     })
@@ -27,21 +49,29 @@ async function runFunction(message: DatabaseMessage): Promise<any> {
 export async function findCard(name: string): Promise<DBCard | undefined> {
     return runFunction({
         function: 'findCard',
+        id: messageId++,
         name: name,
     })
 }
 
 export async function searchCards(
     query: string,
-    take: number = 15,
-    skip: number = 0,
+    options: Partial<Omit<SearchCardsMessage, 'function' | 'query'>> = {},
+    abortController?: AbortController,
 ): Promise<Paginated<DBCard>> {
-    return runFunction({
-        function: 'searchCards',
-        query: query,
-        take: take,
-        skip: skip,
-    })
+    return runFunction(
+        {
+            function: 'searchCards',
+            id: messageId++,
+            query: query,
+            take: 15,
+            skip: 0,
+            sort: 'name',
+            order: 'asc',
+            ...options,
+        },
+        abortController,
+    )
 }
 
 export async function loadDB(
@@ -60,6 +90,7 @@ export async function loadDB(
     }
     await runFunction({
         function: 'loadDB',
+        id: messageId++,
     })
     if (onProgress) {
         worker.removeEventListener('message', onProgress)
