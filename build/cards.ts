@@ -1,11 +1,9 @@
-import { Bucket } from '@google-cloud/storage'
 import { createHash } from 'crypto'
-import { getStorage } from 'firebase-admin/storage'
-import { promises as fs } from 'fs'
-import { chunk, groupBy } from 'lodash'
+import { mkdir, writeFile } from 'fs/promises'
+import { groupBy } from 'lodash'
 import fetch from 'node-fetch'
 import { Card } from 'scryfall-sdk'
-import { Chunk, DBCard } from './interfaces'
+import { Chunk, DBCard } from '../src/js/database'
 
 interface BulkData {
     data: Array<{
@@ -30,27 +28,24 @@ export async function downloadCards(): Promise<void> {
             Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!),
     )
     const chunks: Chunk[] = []
-    let i = 0
-    await fs.mkdir('dist/cards', { recursive: true })
+    await mkdir('dist/cards', { recursive: true })
     const collectedCards = Object.values(
         groupBy(Object.values(allCards).filter(validCard), 'name'),
     ).map(toDBCard)
 
-    const storage = getStorage()
-    const bucket = storage.bucket()
-    for (const cards of chunk(collectedCards, 1000)) {
-        const path = `cards/${i}.json`
+    const cardsBySet = Object.entries(groupBy(collectedCards, a => a.set[0]))
+    for (const [set, cards] of cardsBySet) {
+        const path = `cards/${set}.json`
         const content = JSON.stringify(cards)
-        await writeFile(bucket, path, content)
+        await writeFile('dist/' + path, content)
 
         chunks.push({
             hash: createHash('sha256').update(content).digest('hex'),
             path: path,
-            index: i,
+            index: set,
         })
-        i++
     }
-    await writeFile(bucket, 'cards/chunks.json', JSON.stringify(chunks))
+    await writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
 }
 
 function toDBCard(cards: Card[]): DBCard {
@@ -75,6 +70,8 @@ function toDBCard(cards: Card[]): DBCard {
                 }`,
             ]),
         ),
+        power: card.power ?? null,
+        toughness: card.toughness ?? null,
     }
     if (card.card_faces) {
         return {
@@ -97,10 +94,6 @@ function validCard(c: Card): boolean {
     return !!c.multiverse_ids && c.multiverse_ids.length !== 0
 }
 
-async function writeFile(
-    bucket: Bucket,
-    path: string,
-    content: string | Buffer,
-): Promise<void> {
-    await bucket.file(path).save(content)
+if (typeof require !== 'undefined' && require.main === module) {
+    downloadCards()
 }

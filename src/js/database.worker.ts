@@ -1,7 +1,7 @@
-import { getBlob, ref } from 'firebase/storage'
+// import { getBlob, ref } from 'firebase/storage'
 import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
-import { storage } from './firebase'
+// import { storage } from './firebase'
 import { sleep } from './time'
 
 export type DatabaseMessage =
@@ -201,13 +201,27 @@ async function searchCards(
                 matcher: numberMatch,
             },
         ],
+        [
+            'power',
+            {
+                field: ['power', 'p'],
+                matcher: numberMatch,
+            },
+        ],
+        [
+            'toughness',
+            {
+                field: ['toughness', 'd'],
+                matcher: numberMatch,
+            },
+        ],
     ])
     const cards: DBCard[] = []
     let count = 0
     let sortedCards = allCards
 
     if (options.sort !== 'name') {
-        sortedCards = allCards.sort(byKey(options.sort, options.order))
+        sortedCards = allCards.sort(byKey(options.sort, options.order, true))
     }
 
     for (let i = 0; i < sortedCards.length; i++) {
@@ -287,10 +301,13 @@ function stringMatch(found: string, search: string[]): boolean {
     return true
 }
 
-function numberMatch(found: number, search: string[]): boolean {
+function numberMatch(found: number | string | null, search: string[]): boolean {
+    if (found === null) {
+        return false
+    }
+    found = Number(found)
     for (const word of search) {
         const [, operator, valueStr] = word.match(/^([<>!]=?)?(\d+)$/) ?? []
-        console.log(operator, valueStr)
 
         const value = Number(valueStr)
         if (valueStr !== undefined) {
@@ -460,21 +477,20 @@ async function setChunks(chunks: Chunk[]): Promise<void> {
 async function getChunks(): Promise<Chunk[]> {
     return (await get('chunks')) || []
 }
-async function setCards(index: number, cards: DBCard[]): Promise<void> {
+async function setCards(index: string, cards: DBCard[]): Promise<void> {
     await set(`chunk-${index}`, cards)
 }
-async function getCards(index: number): Promise<DBCard[]> {
+async function getCards(index: string): Promise<DBCard[]> {
     return (await get(`chunk-${index}`)) || []
 }
-async function clearCards(index: number): Promise<void> {
+async function clearCards(index: string): Promise<void> {
     await del(`chunk-${index}`)
 }
-async function cardsIndexes(): Promise<number[]> {
+async function cardsIndexes(): Promise<string[]> {
     return (await keys())
         .map(String)
         .filter(k => k.startsWith('chunk-'))
         .map(k => k.split('-')[1])
-        .map(Number)
 }
 
 let loaded = false
@@ -492,15 +508,19 @@ async function loadDB(): Promise<void> {
     const chunks = await getChunks()
     let i = 0
     for (const chunk of chunks) {
-        const cards = await getCards(chunk.index)
-        allCards.push(...cards)
+        try {
+            const cards = await getCards(chunk.index)
+            allCards.push(...cards)
 
-        updateLoading({
-            type: 'partial',
-            name: 'loadDB',
-            current: i + 1,
-            total: chunks.length,
-        })
+            updateLoading({
+                type: 'partial',
+                name: 'loadDB',
+                current: i + 1,
+                total: chunks.length,
+            })
+        } catch (e) {
+            console.error(e)
+        }
         i++
     }
     allCards.sort((a, b) => a.name.localeCompare(b.name))
@@ -548,17 +568,16 @@ async function loadNetwork(): Promise<void> {
     }
 
     for (const index of await cardsIndexes()) {
-        if (index > newChunks.length) {
+        if (!newChunks.map(c => c.index).includes(index)) {
             clearCards(index)
         }
     }
+
     await setChunks(newChunks)
 }
 
 async function readFile(path: string) {
-    return await getBlob(ref(storage, path))
-        .then(b => b.text())
-        .then(b => JSON.parse(b))
+    return await fetch(path).then(b => b.json())
 }
 
 function updateLoading(message: LoadingResponse): void {

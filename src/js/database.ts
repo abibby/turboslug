@@ -1,5 +1,4 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
-import { Chunk, DBCard } from '../../functions/src/interfaces'
 import {
     AbortMessage,
     DatabaseMessage,
@@ -8,7 +7,26 @@ import {
     SearchCardsMessage,
 } from './database.worker'
 
-export { Chunk, DBCard }
+export interface DBCard {
+    id: string
+    name: string
+    oracle_text: string
+    mana_cost: string
+    set: string[]
+    type: string
+    image_urls: Record<string, string>
+    color_identity: Array<'W' | 'U' | 'B' | 'R' | 'G'>
+    legalities: string[]
+    cmc: number
+    power: string | null
+    toughness: string | null
+}
+
+export interface Chunk {
+    index: string
+    hash: string
+    path: string
+}
 
 const worker = new DatabaseWorker()
 
@@ -109,6 +127,8 @@ export function newCard(name: string): DBCard {
         color_identity: [],
         legalities: [],
         cmc: 0,
+        power: null,
+        toughness: null,
     }
 }
 
