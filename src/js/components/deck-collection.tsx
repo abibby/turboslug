@@ -96,7 +96,11 @@ const DeckElement: FunctionalComponent<{ deck: Deck }> = ({ deck }) => (
     <div class='deck-element'>
         <Link href={`/edit/${deck.id}`}>
             <div class='key-image'>
-                <img src={deck.keyImageURL} alt='key image' />
+                <img
+                    src={deck.keyImageURL}
+                    alt='key image'
+                    crossOrigin='crossorigin'
+                />
             </div>
             <div class='title'>{deck.name}</div>
             <div class='author'>by {deck.userName || deck.userID}</div>

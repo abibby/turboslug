@@ -66,12 +66,7 @@ function toDBCard(cards: Card[]): DBCard {
         cmc: card.cmc,
         set: cards.map(c => c.set),
         image_urls: Object.fromEntries(
-            cards.map(c => [
-                c.set,
-                `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${
-                    c.multiverse_ids![0]
-                }`,
-            ]),
+            cards.map(c => [c.set, c.image_uris?.large ?? '']),
         ),
         power: card.power ?? null,
         toughness: card.toughness ?? null,
