@@ -19,7 +19,11 @@ const Card: FunctionalComponent<Props & JSX.HTMLAttributes> = ({
                 <div className='type'>{card.type}</div>
                 <div className='text'>{card.oracle_text}</div>
             </div>
-            <img src={cardImage(card)} alt={card.name} />
+            <img
+                src={cardImage(card)}
+                alt={card.name}
+                crossOrigin='crossorigin'
+            />
         </div>
     )
 export default Card
