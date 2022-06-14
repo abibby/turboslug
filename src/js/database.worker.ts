@@ -1,15 +1,12 @@
 // import { getBlob, ref } from 'firebase/storage'
 import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
-// import { storage } from './firebase'
-import { sleep } from './time'
 import { byKey, notNullish } from './util'
 
 export type DatabaseMessage =
     | FindCardMessage
     | SearchCardsMessage
     | LoadDBMessage
-    | AbortMessage
 
 export interface FindCardMessage {
     function: 'findCard'
@@ -29,11 +26,6 @@ export interface LoadDBMessage {
     function: 'loadDB'
     id: number
 }
-export interface AbortMessage {
-    function: 'abort'
-    id: number
-}
-
 export type DatabaseResponse =
     | FunctionResponse
     | LoadingResponse
@@ -80,10 +72,14 @@ class AbortError extends Error {
 
 const allCards: DBCard[] = []
 
-const canceled = new Set<number>()
+let abortBuffer: Uint8Array | undefined
 
 addEventListener('message', async event => {
     try {
+        if (event.data instanceof SharedArrayBuffer) {
+            abortBuffer = new Uint8Array(event.data)
+            return
+        }
         const result = await runFunction(event.data)
         if (result === undefined) {
             return
@@ -126,14 +122,6 @@ async function runFunction(
                 type: 'function',
                 id: message.id,
                 value: undefined,
-            }
-        case 'abort':
-            canceled.add(message.id)
-            console.log('canceled')
-
-            return {
-                type: 'abort',
-                id: message.id,
             }
     }
 }
@@ -233,10 +221,14 @@ async function searchCards(
     }
 
     for (let i = 0; i < sortedCards.length; i++) {
-        if (i % 1000 === 0) {
-            await sleep(0)
-            if (canceled.has(options.id)) {
-                canceled.delete(options.id)
+        if (i % 100 === 0) {
+            if (
+                abortBuffer !== undefined &&
+                Atomics.load(
+                    abortBuffer,
+                    options.id % abortBuffer.byteLength,
+                ) !== 0
+            ) {
                 throw new AbortError(options.id)
             }
         }

@@ -1,6 +1,5 @@
 import DatabaseWorker from 'worker-loader!./database.worker'
 import {
-    AbortMessage,
     DatabaseMessage,
     DatabaseResponse,
     Paginated,
@@ -30,6 +29,9 @@ export interface Chunk {
 }
 
 const worker = new DatabaseWorker()
+const sharedAbortBuffer = new SharedArrayBuffer(256)
+const abortBuffer = new Uint8Array(sharedAbortBuffer)
+worker.postMessage(sharedAbortBuffer)
 
 let messageId = 0
 
@@ -44,22 +46,19 @@ async function runFunction(
             if (response.type === 'function' && response.id === message.id) {
                 resolve(response.value)
                 worker.removeEventListener('message', onMessage)
-            } else if (
-                response.type === 'abort' &&
-                response.id === message.id
-            ) {
-                worker.removeEventListener('message', onMessage)
+                return
+            }
+
+            if (response.type === 'abort' && response.id === message.id) {
                 reject(new Error('AbortError'))
+                worker.removeEventListener('message', onMessage)
                 return
             }
         }
         abortController?.signal.addEventListener('abort', () => {
-            const cancelMessage: AbortMessage = {
-                function: 'abort',
-                id: message.id,
-            }
-            worker.postMessage(cancelMessage)
+            Atomics.store(abortBuffer, message.id % abortBuffer.byteLength, 1)
         })
+        Atomics.store(abortBuffer, message.id % abortBuffer.byteLength, 0)
         worker.addEventListener('message', onMessage)
         worker.postMessage(message)
     })
