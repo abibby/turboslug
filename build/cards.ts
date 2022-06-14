@@ -34,8 +34,10 @@ export async function downloadCards(): Promise<void> {
     ).map(toDBCard)
 
     const cardsBySet = Object.entries(groupBy(collectedCards, a => a.set[0]))
+
+    let i = 0
     for (const [set, cards] of cardsBySet) {
-        const path = `cards/${set}.json`
+        const path = `cards/${i}.json`
         const content = JSON.stringify(cards)
         await writeFile('dist/' + path, content)
 
@@ -44,6 +46,7 @@ export async function downloadCards(): Promise<void> {
             path: path,
             index: set,
         })
+        i++
     }
     await writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
 }
@@ -72,6 +75,7 @@ function toDBCard(cards: Card[]): DBCard {
         ),
         power: card.power ?? null,
         toughness: card.toughness ?? null,
+        scryfall_url: card.scryfall_uri,
     }
     if (card.card_faces) {
         return {

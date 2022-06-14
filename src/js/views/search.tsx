@@ -89,11 +89,7 @@ export const Search: FunctionalComponent = () => {
             >
                 <div class='list'>
                     {cards.results.map(c => (
-                        <a
-                            key={c.id}
-                            href={`https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${c.id}`}
-                            target='_blank'
-                        >
+                        <a key={c.id} href={c.scryfall_url} target='_blank'>
                             <Card card={c} />
                         </a>
                     ))}

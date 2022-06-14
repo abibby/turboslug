@@ -20,6 +20,7 @@ export interface DBCard {
     cmc: number
     power: string | null
     toughness: string | null
+    scryfall_url: string
 }
 
 export interface Chunk {
@@ -129,6 +130,7 @@ export function newCard(name: string): DBCard {
         cmc: 0,
         power: null,
         toughness: null,
+        scryfall_url: '',
     }
 }
 
