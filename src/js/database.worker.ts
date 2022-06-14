@@ -3,6 +3,7 @@ import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
 // import { storage } from './firebase'
 import { sleep } from './time'
+import { byKey, notNullish } from './util'
 
 export type DatabaseMessage =
     | FindCardMessage
@@ -215,6 +216,13 @@ async function searchCards(
                 matcher: numberMatch,
             },
         ],
+        [
+            'mana_cost',
+            {
+                field: ['mana-const', 'mc'],
+                matcher: manaCostMatch,
+            },
+        ],
     ])
     const cards: DBCard[] = []
     let count = 0
@@ -248,45 +256,7 @@ async function searchCards(
         results: cards,
     }
 }
-const collator = Intl.Collator(undefined, { numeric: true })
 
-export function byKey<T>(
-    col: keyof T,
-    order: 'asc' | 'desc' = 'asc',
-    naturalSort = false,
-): (a: T, b: T) => number {
-    return (a, b): number => {
-        let ret = 0
-        if (naturalSort) {
-            const aCol = a[col]
-            const bCol = b[col]
-
-            if (aCol === bCol) {
-                return 0
-            }
-            if (aCol === undefined || aCol === null) {
-                return 1
-            }
-            if (bCol === undefined || bCol === null) {
-                return -1
-            }
-
-            ret = collator.compare(String(aCol), String(bCol))
-        } else {
-            if (a[col] === b[col]) {
-                return 0
-            } else if (a[col] > b[col]) {
-                ret = 1
-            } else {
-                ret = -1
-            }
-        }
-        if (order === 'desc') {
-            ret = -ret
-        }
-        return ret
-    }
-}
 function stringMatch(found: string, search: string[]): boolean {
     for (let word of search) {
         const not = word.startsWith('!')
@@ -299,6 +269,47 @@ function stringMatch(found: string, search: string[]): boolean {
         }
     }
     return true
+}
+
+function exactStringMatch(found: string, search: string[]): boolean {
+    for (let word of search) {
+        const not = word.startsWith('!')
+        if (not) {
+            word = word.slice(1)
+        }
+
+        if ((found.toLowerCase() === word.toLowerCase()) === not) {
+            return false
+        }
+    }
+    return true
+}
+
+function manaCostMatch(found: string, search: string[]): boolean {
+    return exactStringMatch(
+        found,
+        search
+            .map(s => {
+                const matches = s
+                    .toLowerCase()
+                    .match('^(!)?(\\d+)?([wubrg]+)?$')
+                if (matches === null) {
+                    return undefined
+                }
+                const [, not, generic, colored] = matches
+
+                const cost =
+                    (not ?? '') +
+                    (generic ? `{${generic}}` : '') +
+                    (colored ?? '')
+                        .split('')
+                        .map(c => `{${c}}`)
+                        .join('')
+
+                return cost
+            })
+            .filter(notNullish),
+    )
 }
 
 function numberMatch(found: number | string | null, search: string[]): boolean {
