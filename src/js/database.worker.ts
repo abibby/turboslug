@@ -76,9 +76,11 @@ let abortBuffer: Uint8Array | undefined
 
 addEventListener('message', async event => {
     try {
-        if (event.data instanceof SharedArrayBuffer) {
-            abortBuffer = new Uint8Array(event.data)
-            return
+        if (crossOriginIsolated) {
+            if (event.data instanceof SharedArrayBuffer) {
+                abortBuffer = new Uint8Array(event.data)
+                return
+            }
         }
         const result = await runFunction(event.data)
         if (result === undefined) {
@@ -92,7 +94,9 @@ addEventListener('message', async event => {
                 id: event.data.id,
             }
             postMessage(abortResponse, undefined as any)
+            return
         }
+        throw e
     }
 })
 

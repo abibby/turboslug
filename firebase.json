@@ -23,7 +23,7 @@
     ],
     "headers": [
       {
-        "source": "**",
+        "source": "change to '**'",
         "headers": [
           {
             "key": "Cross-Origin-Opener-Policy",

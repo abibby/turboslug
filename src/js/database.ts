@@ -29,9 +29,12 @@ export interface Chunk {
 }
 
 const worker = new DatabaseWorker()
-const sharedAbortBuffer = new SharedArrayBuffer(256)
-const abortBuffer = new Uint8Array(sharedAbortBuffer)
-worker.postMessage(sharedAbortBuffer)
+let abortBuffer: Uint8Array | undefined
+if (crossOriginIsolated) {
+    const sharedAbortBuffer = new SharedArrayBuffer(256)
+    abortBuffer = new Uint8Array(sharedAbortBuffer)
+    worker.postMessage(sharedAbortBuffer)
+}
 
 let messageId = 0
 
@@ -56,9 +59,17 @@ async function runFunction(
             }
         }
         abortController?.signal.addEventListener('abort', () => {
-            Atomics.store(abortBuffer, message.id % abortBuffer.byteLength, 1)
+            if (abortBuffer !== undefined) {
+                Atomics.store(
+                    abortBuffer,
+                    message.id % abortBuffer.byteLength,
+                    1,
+                )
+            }
         })
-        Atomics.store(abortBuffer, message.id % abortBuffer.byteLength, 0)
+        if (abortBuffer !== undefined) {
+            Atomics.store(abortBuffer, message.id % abortBuffer.byteLength, 0)
+        }
         worker.addEventListener('message', onMessage)
         worker.postMessage(message)
     })
