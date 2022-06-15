@@ -1,6 +1,7 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
-import { DBCard, findCard, searchCards } from 'js/database'
+import { DBCard, searchCards } from 'js/database'
+import { Slot } from 'js/deck'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -8,6 +9,7 @@ import Input from './input'
 
 interface Props {
     deck?: string
+    slots: Slot[]
     edit: boolean
     prices: Map<string, number>
     onChange?: (deck: string) => void
@@ -145,7 +147,10 @@ export default class DeckBuilder extends Component<Props, State> {
         let card: DBCard | undefined
         let y = 0
         if (cardElement !== undefined && cardElement.textContent) {
-            card = await findCard(cardElement.textContent)
+            card = this.props.slots.find(
+                s => s.card.name === cardElement.textContent,
+            )?.card
+            // card = await findCard(cardElement.textContent)
             const scrollTop =
                 window.pageYOffset !== undefined
                     ? window.pageYOffset

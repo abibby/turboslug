@@ -78,6 +78,7 @@ export default class EditDeck extends Component<Props, State> {
 
                 <DeckBuilder
                     deck={this.state.deck.cards}
+                    slots={this.state.slots}
                     onChange={this.deckChange}
                     edit={this.canEdit()}
                     prices={this.state.prices}

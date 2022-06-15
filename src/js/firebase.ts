@@ -32,11 +32,7 @@ const provider = new GoogleAuthProvider()
 // enableMultiTabIndexedDbPersistence(firestore)
 
 export async function signIn(): Promise<void> {
-    const result = await signInWithPopup(auth, provider)
-    const user = result.user
-    if (user === null) {
-        return
-    }
+    await signInWithPopup(auth, provider)
 }
 
 export function currentUser(): User | null {

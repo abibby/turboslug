@@ -1,11 +1,11 @@
-import { get, set, Store } from 'idb-keyval'
+import { createStore, get, set } from 'idb-keyval'
 import chunk from 'lodash/chunk'
 import { Card, Cards } from 'scryfall-sdk'
 import { DBCard } from './database'
 import { day } from './time'
 import { notNullish } from './util'
 
-const priceCache = new Store('price-cache')
+const priceCache = createStore('turboslug', 'price-cache')
 
 interface CacheEntry {
     price: number
@@ -65,7 +65,7 @@ export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
 }
 
 async function cachePrice(card: string): Promise<number | undefined> {
-    const price: CacheEntry = await get(card, priceCache)
+    const price = await get<CacheEntry>(card, priceCache)
     if (price === undefined || Date.now() - price.date > day) {
         return
     }
