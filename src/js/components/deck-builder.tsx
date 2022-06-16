@@ -9,16 +9,17 @@ import Input from './input'
 
 interface Props {
     deck?: string
+    filter?: string
     slots: Slot[]
     edit: boolean
     prices: Map<string, number>
     onChange?: (deck: string) => void
+    onFilterChange?: (filter: string) => void
 }
 interface State {
     deck: string
     autocompleteSelected: number
     currentCard: string | undefined
-    filter: string
 
     popupCard?: { card: DBCard; y: number }
 }
@@ -36,10 +37,9 @@ export default class DeckBuilder extends Component<Props, State> {
         super(props)
 
         this.state = {
-            deck: this.props.deck || '',
+            deck: this.props.deck ?? '',
             autocompleteSelected: 0,
             currentCard: undefined,
-            filter: '',
         }
     }
 
@@ -63,7 +63,7 @@ export default class DeckBuilder extends Component<Props, State> {
                     <Input
                         title='Filter'
                         onChange={this.filterChange}
-                        value={this.state.filter}
+                        value={this.props.filter}
                     />
                 )}
                 <div
@@ -102,7 +102,7 @@ export default class DeckBuilder extends Component<Props, State> {
                         <Autocomplete
                             hidden={this.state.currentCard === undefined}
                             name={
-                                this.state.filter +
+                                this.props.filter +
                                     ' ' +
                                     this.state.currentCard || ''
                             }
@@ -330,7 +330,7 @@ export default class DeckBuilder extends Component<Props, State> {
 
     @bind
     private filterChange(value: string): void {
-        this.setState({ filter: value })
+        this.props.onFilterChange?.(value)
     }
 
     private completeCard(state: State): State | undefined {
@@ -446,42 +446,28 @@ export function tokens(src: string): string[] {
 const Deck: FunctionalComponent<{ deck: string }> = props => (
     <div class='deck'>
         {props.deck.split('\n').map((row, i) => (
-            <Row key={i} row={row} even={i % 2 === 0} />
+            <Row key={i} row={row} />
         ))}
     </div>
 )
 
-const Row: FunctionalComponent<{ row: string; even: boolean }> = props => {
+const Row: FunctionalComponent<{ row: string }> = props => {
     if (props.row.startsWith('//')) {
         return (
-            <div class={`row ${props.even ? 'even' : 'odd'}`}>
+            <div class='row'>
                 <span className='comment'>{props.row}</span>
             </div>
         )
     }
     const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
     return (
-        <div class={`row ${props.even ? 'even' : 'odd'}`}>
+        <div class='row'>
             {s1}
             <span class='quantity'>{quantity}</span>
             {s2}
             <span class='card'>{card}</span>
             {s3}
             <Tags tags={tags} />
-            {/* <Async
-            promise={findCard(card)}
-            // tslint:disable-next-line: jsx-no-lambda
-            result={({ loading, error, result }) => {
-                if (loading || error || props.row === '') {
-                    return null
-                }
-
-                if (result) {
-                    return <ManaCost cost={result.mana_cost} class='mana-cost' />
-                }
-                return <span class='mana-cost warning' />
-            }}
-        /> */}
         </div>
     )
 }

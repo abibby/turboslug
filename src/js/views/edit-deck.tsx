@@ -25,6 +25,7 @@ interface State {
     deck: Deck
     savedDeck: string
     savedName: string
+    savedFilter: string
     slots: Slot[]
     user: User | null
     deckUserID?: string
@@ -43,6 +44,7 @@ export default class EditDeck extends Component<Props, State> {
             deck: new Deck(),
             savedDeck: '',
             savedName: '',
+            savedFilter: '',
             slots: [],
             user: currentUser(),
             showCopied: false,
@@ -78,8 +80,10 @@ export default class EditDeck extends Component<Props, State> {
 
                 <DeckBuilder
                     deck={this.state.deck.cards}
+                    filter={this.state.deck.filter}
                     slots={this.state.slots}
                     onChange={this.deckChange}
+                    onFilterChange={this.filterChange}
                     edit={this.canEdit()}
                     prices={this.state.prices}
                 />
@@ -171,6 +175,13 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
+    private async filterChange(filter: string): Promise<void> {
+        const deck = this.state.deck
+        deck.filter = filter
+        this.setState({ deck: deck })
+    }
+
+    @bind
     private titleChange(e: Event): void {
         const input = e.target as HTMLInputElement
         const deck = this.state.deck
@@ -193,6 +204,7 @@ export default class EditDeck extends Component<Props, State> {
                 deck: new Deck(),
                 savedDeck: '',
                 savedName: '',
+                savedFilter: '',
                 slots: [],
             })
             return
@@ -205,6 +217,7 @@ export default class EditDeck extends Component<Props, State> {
                     deck: deck,
                     savedName: deck.name,
                     savedDeck: deck.cards,
+                    savedFilter: deck.filter,
                     deckUserID: deck.userID,
                 })
 
@@ -230,6 +243,7 @@ export default class EditDeck extends Component<Props, State> {
         this.setState({
             savedDeck: this.state.deck.cards,
             savedName: this.state.deck.name,
+            savedFilter: this.state.deck.filter,
         })
     }
 
