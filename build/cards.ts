@@ -55,10 +55,7 @@ function toDBCard(cards: Card[]): DBCard {
     const card = cards[0]
     const id = card.multiverse_ids![0]
 
-    const commonCard: Omit<
-        DBCard,
-        'oracle_text' | 'mana_cost' | 'type' | 'image_urls'
-    > = {
+    const commonCard: Omit<DBCard, 'oracle_text' | 'mana_cost' | 'type'> = {
         id: String(id),
         name: card.name,
         color_identity: card.color_identity,
@@ -71,6 +68,18 @@ function toDBCard(cards: Card[]): DBCard {
         power: card.power ?? null,
         toughness: card.toughness ?? null,
         scryfall_url: card.scryfall_uri,
+        image_urls: Object.fromEntries(
+            cards.map(c => {
+                if (c.image_uris) {
+                    return [c.set, c.image_uris.large]
+                }
+                if (c.card_faces?.[0].image_uris) {
+                    return [c.set, c.card_faces[0].image_uris?.large]
+                }
+
+                return [c.set, '/assets/card-back.jpg']
+            }),
+        ),
     }
     if (card.card_faces) {
         return {
@@ -78,12 +87,6 @@ function toDBCard(cards: Card[]): DBCard {
             oracle_text: card.card_faces[0].oracle_text ?? '',
             mana_cost: card.card_faces[0].mana_cost ?? '',
             type: card.card_faces[0].type_line,
-            image_urls: Object.fromEntries(
-                cards.map(c => [
-                    c.set,
-                    c.card_faces?.[0].image_uris?.large ?? '',
-                ]),
-            ),
         }
     }
 
@@ -92,9 +95,6 @@ function toDBCard(cards: Card[]): DBCard {
         oracle_text: card.oracle_text ?? '',
         mana_cost: card.mana_cost ?? '',
         type: card.type_line ?? '',
-        image_urls: Object.fromEntries(
-            cards.map(c => [c.set, c.image_uris?.large ?? '']),
-        ),
     }
 }
 
