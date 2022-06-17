@@ -65,12 +65,21 @@ function toDBCard(cards: Card[]): DBCard {
             .sort(),
         cmc: card.cmc,
         set: cards.map(c => c.set),
-        image_urls: Object.fromEntries(
-            cards.map(c => [c.set, c.image_uris?.large ?? '']),
-        ),
         power: card.power ?? null,
         toughness: card.toughness ?? null,
         scryfall_url: card.scryfall_uri,
+        image_urls: Object.fromEntries(
+            cards.map(c => {
+                if (c.image_uris) {
+                    return [c.set, c.image_uris.large]
+                }
+                if (c.card_faces?.[0].image_uris) {
+                    return [c.set, c.card_faces[0].image_uris?.large]
+                }
+
+                return [c.set, '/assets/card-back.jpg']
+            }),
+        ),
     }
     if (card.card_faces) {
         return {

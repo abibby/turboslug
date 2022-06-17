@@ -23,14 +23,20 @@ export default class MyDecks extends Component<{}, State> {
         })
     }
     public render(): ComponentChild {
-        return <Layout>
-            <h2>New Deck</h2>
-            <Button type='link' href='/edit/create'>Create</Button>
-            <h2>Decks</h2>
-            <DeckCollection
-                filter
-                query={Deck.builder<Deck>().where('userID', '==', this.state.userID).orderBy('name')}
-            />
-        </Layout>
+        return (
+            <Layout>
+                <h2>New Deck</h2>
+                <Button type='link' href='/edit/create'>
+                    Create
+                </Button>
+                <h2>Decks</h2>
+                <DeckCollection
+                    filter
+                    query={Deck.builder<Deck>()
+                        .where('userID', '==', this.state.userID)
+                        .orderBy('updatedAt', 'desc')}
+                />
+            </Layout>
+        )
     }
 }

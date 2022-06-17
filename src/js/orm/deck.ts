@@ -11,6 +11,8 @@ export default class Deck extends Model {
     public keyImageURL: string = ''
     @Model.field()
     public private: boolean = false
+    @Model.field()
+    public filter: string = ''
 
     @Model.field()
     public userID: string = ''

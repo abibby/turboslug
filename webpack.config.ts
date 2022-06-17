@@ -4,6 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 const paths = {
     src: path.resolve(__dirname, 'src'),
@@ -23,10 +25,7 @@ const config: import('webpack').ConfigurationFactory = (env, argv) => {
                 {
                     test: /\.tsx?$/,
                     exclude: /node_modules/,
-                    loader: [
-                        'ts-loader',
-                        'tslint-loader',
-                    ],
+                    loader: ['ts-loader', 'tslint-loader'],
                 },
                 {
                     test: /\.scss$/,
@@ -49,9 +48,7 @@ const config: import('webpack').ConfigurationFactory = (env, argv) => {
                             loader: 'sass-loader',
                             options: {
                                 sourceMap: true,
-                                includePaths: [
-                                    'node_modules', 'src', '.',
-                                ],
+                                includePaths: ['node_modules', 'src', '.'],
                             },
                         },
                     ],
@@ -60,18 +57,16 @@ const config: import('webpack').ConfigurationFactory = (env, argv) => {
         },
         output: {
             path: paths.dist,
-            filename: (devMode ? '[name].js' : '[name].[hash].js'),
-            chunkFilename: (devMode ? '[id].js' : '[id].[hash].js'),
+            filename: devMode ? '[name].js' : '[name].[hash].js',
+            chunkFilename: devMode ? '[id].js' : '[id].[hash].js',
             publicPath: '/',
         },
         resolve: {
             extensions: ['.tsx', '.ts', '.js', '.scss', '.css'],
-            modules: [
-                'node_modules',
-                paths.src,
-            ],
+            modules: ['node_modules', paths.src],
         },
         plugins: [
+            new CleanWebpackPlugin(),
             new HtmlWebpackPlugin({
                 template: path.join(paths.src, 'index.html'),
                 filename: 'index.html',
@@ -79,15 +74,21 @@ const config: import('webpack').ConfigurationFactory = (env, argv) => {
             new MiniCssExtractPlugin({
                 // Options similar to the same options in webpackOptions.output
                 // both options are optional
-                filename: (devMode ? '[name].css' : '[name].[hash].css'),
-                chunkFilename: (devMode ? '[id].css' : '[id].[hash].css'),
+                filename: devMode ? '[name].css' : '[name].[hash].css',
+                chunkFilename: devMode ? '[id].css' : '[id].[hash].css',
             }),
             new WorkboxPlugin.GenerateSW({
                 navigateFallback: '/index.html',
-                runtimeCaching: [{
-                    urlPattern: /^https:\/\/gatherer.wizards.com\/Handlers\/Image\.ashx\?/,
-                    handler: 'StaleWhileRevalidate',
-                }],
+                runtimeCaching: [
+                    {
+                        urlPattern:
+                            /^https:\/\/gatherer.wizards.com\/Handlers\/Image\.ashx\?/,
+                        handler: 'StaleWhileRevalidate',
+                    },
+                ],
+            }),
+            new CopyPlugin({
+                patterns: [{ from: 'src/res', to: 'assets' }],
             }),
         ],
         optimization: {

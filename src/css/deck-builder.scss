@@ -21,11 +21,22 @@
 
         $line-height: 1.25em;
         position: relative;
+        background-color: $surface;
+
+        @media screen and (max-width: $bp-md-min) {
+            width: calc(100vw - 16px);
+        }
 
         .editor {
             border: solid 1px $border-color;
             padding: 3px;
-            background-color: $surface;
+            background: repeating-linear-gradient(
+                rgba(0, 0, 0, 0),
+                rgba(0, 0, 0, 0) $line-height,
+                rgba($on-surface, 0.03) $line-height,
+                rgba($on-surface, 0.03) $line-height * 2
+            );
+            background-position: 0 29px;
             color: $on-surface;
 
             position: relative;
@@ -35,7 +46,7 @@
             overflow-wrap: break-word;
             box-sizing: border-box;
             padding: 0px;
-            overflow: hidden;
+            overflow-x: auto;
 
             @mixin editor {
                 margin: 0px;
@@ -49,7 +60,6 @@
                 font-variant-ligatures: inherit;
                 font-weight: inherit;
                 letter-spacing: inherit;
-                line-height: inherit;
                 tab-size: inherit;
                 text-indent: inherit;
                 text-rendering: inherit;
@@ -103,10 +113,6 @@
 
                     .comment {
                         color: $light-text-color;
-                    }
-
-                    &.even {
-                        background-color: rgba($on-surface, 0.03);
                     }
                 }
             }
