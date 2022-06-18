@@ -2,6 +2,7 @@ import { getBlob, ref } from 'firebase/storage'
 import { del, get, keys, set } from 'idb-keyval'
 import { Chunk, DBCard } from './database'
 import { storage } from './firebase'
+import { newLoadDB, newSearch } from './newdb'
 
 export type DatabaseMessage =
     | FindCardMessage
@@ -344,6 +345,11 @@ async function loadDB(): Promise<void> {
     for (const cb of onLoaded) {
         cb()
     }
+
+    newLoadDB(allCards)
+    await newSearch({
+        names: ['ava'],
+    })
 }
 
 async function waitForLoad(): Promise<void> {

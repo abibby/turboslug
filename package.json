@@ -52,6 +52,7 @@
     "@zwzn/spicy": "^1.0.1",
     "classnames": "^2.3.1",
     "decko": "^1.2.0",
+    "dexie": "^3.2.2",
     "firebase": "^9.6.11",
     "idb-keyval": "^3.2.0",
     "nord": "^0.2.1",
