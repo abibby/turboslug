@@ -6,8 +6,8 @@
   "hosting": {
     "predeploy": [
       "npm --prefix \"$PROJECT_DIR\" run clean",
-      "npm --prefix \"$PROJECT_DIR\" run cards",
-      "npm --prefix \"$PROJECT_DIR\" run build"
+      "npm --prefix \"$PROJECT_DIR\" run build",
+      "npm --prefix \"$PROJECT_DIR\" run cards"
     ],
     "public": "dist",
     "ignore": [
