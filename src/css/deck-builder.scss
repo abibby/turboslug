@@ -5,7 +5,9 @@
         position: absolute;
         z-index: 100;
         pointer-events: none;
-
+        
+        width: 200px;
+        max-width: calc(100vw - 20px);
         border: solid 1px $border-color;
 
         background-color: $on-surface;
@@ -14,6 +16,7 @@
         &.hidden {
             display: none;
         }
+        
     }
     .editor-wrapper {
         font-family: monospace;
