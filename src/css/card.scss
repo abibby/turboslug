@@ -5,8 +5,10 @@
         position: absolute;
         top: 0;
         color: rgba(0, 0, 0, 0);
-        width: 200px;
-        border-radius: 9px;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 4.2%;
     }
 
     .backup-card {
@@ -19,10 +21,10 @@
         background: white;
         color: black;
         border: solid black 8px;
-        border-radius: 8px;
-        width: 185px;
-        height: 264px;
+        border-radius: 4.2%;
         font-size: 10px;
+        aspect-ratio: 0.68;
+        padding: 5%;
 
         .title {
             grid-area: title;
