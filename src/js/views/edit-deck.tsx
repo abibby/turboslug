@@ -35,7 +35,6 @@ interface State {
 
 export default class EditDeck extends Component<Props, State> {
     private authChangeUnsubscribe: () => void
-    private deckChangeUnsubscribe: (() => void) | undefined
 
     constructor(props: {}) {
         super(props)
@@ -196,9 +195,7 @@ export default class EditDeck extends Component<Props, State> {
         this.setState({ deck: deck })
     }
 
-    private loadDeck(): void {
-        this.deckChangeUnsubscribe?.()
-
+    private async loadDeck(): Promise<void> {
         if (this.props.matches!.id === undefined) {
             this.setState({
                 deck: new Deck(),
@@ -209,23 +206,40 @@ export default class EditDeck extends Component<Props, State> {
             })
             return
         }
+        const deck = await Deck.find<Deck>(this.props.matches!.id)
+        if (deck === null) {
+            return
+        }
+        this.setState({
+            deck: deck,
+            savedName: deck.name,
+            savedDeck: deck.cards,
+            savedFilter: deck.filter,
+            deckUserID: deck.userID,
+        })
+        const slots = await cards(deck.cards)
+        this.setState({ slots: slots })
+        this.loadPrices(slots)
 
-        this.deckChangeUnsubscribe = Deck.subscribe<Deck>(
-            this.props.matches!.id,
-            async deck => {
-                this.setState({
-                    deck: deck,
-                    savedName: deck.name,
-                    savedDeck: deck.cards,
-                    savedFilter: deck.filter,
-                    deckUserID: deck.userID,
-                })
+        // const slots = await cards(deck.cards)
+        // this.setState({ slots: slots })
+        // this.loadPrices(slots)
+        // this.deckChangeUnsubscribe = Deck.subscribe<Deck>(
+        //     this.props.matches!.id,
+        //     async deck => {
+        //         this.setState({
+        //             deck: deck,
+        //             savedName: deck.name,
+        //             savedDeck: deck.cards,
+        //             savedFilter: deck.filter,
+        //             deckUserID: deck.userID,
+        //         })
 
-                const slots = await cards(deck.cards)
-                this.setState({ slots: slots })
-                this.loadPrices(slots)
-            },
-        )
+        //         const slots = await cards(deck.cards)
+        //         this.setState({ slots: slots })
+        //         this.loadPrices(slots)
+        //     },
+        // )
     }
 
     @bind

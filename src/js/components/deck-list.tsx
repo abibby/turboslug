@@ -146,17 +146,23 @@ export default class DeckList extends Component<Props, State> {
     }
 }
 
-const CardList: FunctionalComponent<{ deck: Slot[] }> = props => (
-    <div class='deck-list-group'>
-        {props.deck.map(slot => (
-            <div key={slot.card.id} class='slot'>
-                {slot.quantity > 4 ? (
-                    <div class='quantity'>&times;{slot.quantity}</div>
-                ) : null}
-                {range(Math.min(slot.quantity, 4))
-                    .map(i => <Card key={i} card={slot.card} />)
-                    .toArray()}
-            </div>
-        ))}
-    </div>
-)
+const CardList: FunctionalComponent<{ deck: Slot[] }> = props => {
+    return (
+        <div class='deck-list-group'>
+            {props.deck.map(slot => (
+                <div key={slot.card.id} class='slot'>
+                    {slot.quantity > 4 ? (
+                        <div class='quantity'>&times;{slot.quantity}</div>
+                    ) : null}
+                    {range(Math.min(slot.quantity, 4))
+                        .map(i => (
+                            <div key={i} class='card-wrapper'>
+                                <Card card={slot.card} />
+                            </div>
+                        ))
+                        .toArray()}
+                </div>
+            ))}
+        </div>
+    )
+}

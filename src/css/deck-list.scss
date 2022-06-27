@@ -55,19 +55,21 @@
             padding: 15px;
         }
 
-        .card {
+        .card-wrapper {
             width: $width;
             height: floor(math.div($width, 6.5));
+            pointer-events: none;
 
-            .backup-card {
-                pointer-events: none;
+            .card {
+                width: 100%;
+                // width: $width;
+                // height: floor(math.div($width, 0.72));
             }
-
-            img {
-                width: $width;
-                border-radius: floor(math.div($width, 22));
-                pointer-events: none;
-            }
+            // img {
+            //     width: $width;
+            //     border-radius: floor(math.div($width, 22));
+            //     pointer-events: none;
+            // }
         }
     }
 }
