@@ -220,26 +220,6 @@ export default class EditDeck extends Component<Props, State> {
         const slots = await cards(deck.cards)
         this.setState({ slots: slots })
         this.loadPrices(slots)
-
-        // const slots = await cards(deck.cards)
-        // this.setState({ slots: slots })
-        // this.loadPrices(slots)
-        // this.deckChangeUnsubscribe = Deck.subscribe<Deck>(
-        //     this.props.matches!.id,
-        //     async deck => {
-        //         this.setState({
-        //             deck: deck,
-        //             savedName: deck.name,
-        //             savedDeck: deck.cards,
-        //             savedFilter: deck.filter,
-        //             deckUserID: deck.userID,
-        //         })
-
-        //         const slots = await cards(deck.cards)
-        //         this.setState({ slots: slots })
-        //         this.loadPrices(slots)
-        //     },
-        // )
     }
 
     @bind
