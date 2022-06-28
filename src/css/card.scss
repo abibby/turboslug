@@ -1,47 +1,24 @@
 .card {
-    position: relative;
+    .title {
+        font-size: 3.5px;
+    }
+    .mana-cost {
+        transform: translate(7.2px, 5.2px) scale(17%);
 
-    img {
-        position: absolute;
-        top: 0;
-        color: rgba(0, 0, 0, 0);
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 4.2%;
+        span {
+            text-align: right;
+            width: 100%;
+            display: block;
+        }
     }
 
-    .backup-card {
-        display: grid;
-        grid-template-areas:
-            "title mana-cost"
-            "type type"
-            "text text";
+    .type {
+        font-size: 3px;
+    }
 
-        background: white;
+    .oracle {
+        font-size: 3px;
         color: black;
-        border: solid black 8px;
-        border-radius: 4.2%;
-        font-size: 10px;
-        aspect-ratio: 0.68;
-        padding: 5%;
-
-        .title {
-            grid-area: title;
-        }
-
-        .mana-cost {
-            grid-area: mana-cost;
-
-            text-align: right;
-        }
-
-        .type {
-            grid-area: type;
-        }
-
-        .text {
-            grid-area: text;
-        }
+        text-decoration: none;
     }
 }
