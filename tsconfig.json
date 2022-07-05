@@ -8,6 +8,7 @@
         // "jsx": "preserve",
         "jsx": "react",
         "jsxFactory": "h",
+        "jsxFragmentFactory": "Fragment",
         "paths": {
             "*": ["types/*", "src/*"]
         },

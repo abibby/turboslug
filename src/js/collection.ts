@@ -1,4 +1,3 @@
-
 export class Collection<T> implements Iterable<T> {
     private base: Iterable<T>
 
@@ -10,11 +9,13 @@ export class Collection<T> implements Iterable<T> {
         return this.base[Symbol.iterator]()
     }
 
-    public map<U>(callback: (element: T) => U): Collection<U> {
+    public map<U>(callback: (element: T, index: number) => U): Collection<U> {
         const itr = this
         return build(function* (): IterableIterator<U> {
+            let i = 0
             for (const element of itr) {
-                yield callback(element)
+                yield callback(element, i)
+                i++
             }
         })
     }
@@ -32,17 +33,26 @@ export class Collection<T> implements Iterable<T> {
     }
 
     public reduce<U>(
-        callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U,
+        callbackfn: (
+            previousValue: U,
+            currentValue: T,
+            currentIndex: number,
+            array: T[],
+        ) => U,
         initialValue: U,
     ): U {
         return Array.from(this).reduce<U>(callbackfn, initialValue)
     }
 
-    public groupBy<U>(callback: (element: T) => U): Collection<[U, Collection<T>]> {
+    public groupBy<U>(
+        callback: (element: T) => U,
+    ): Collection<[U, Collection<T>]> {
         return this.multiGroupBy(e => [callback(e)])
     }
 
-    public multiGroupBy<U>(callback: (element: T) => U[]): Collection<[U, Collection<T>]> {
+    public multiGroupBy<U>(
+        callback: (element: T) => U[],
+    ): Collection<[U, Collection<T>]> {
         const m: Map<U, Collection<T>> = new Map()
         for (const element of this) {
             const keys = callback(element)
@@ -92,7 +102,6 @@ export class Collection<T> implements Iterable<T> {
     public toArray(): T[] {
         return Array.from(this)
     }
-
 }
 
 function build<T>(generator: () => IterableIterator<T>): Collection<T> {

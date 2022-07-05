@@ -1,71 +1,137 @@
 import 'css/deck-stats.scss'
 import { collect } from 'js/collection'
-import { Slot } from 'js/deck'
-import { FunctionalComponent, h } from 'preact'
+import { Board, MainBoard, Slot } from 'js/deck'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { Loader } from './loader'
 import { ManaSymbol, splitSymbols } from './mana-cost'
 
 interface Props {
-    deck: Slot[]
+    boards: Board[]
     prices: Map<string, number> | undefined
 }
 
-const DeckStats: FunctionalComponent<Props> = props => <div class='deck-stats'>
-    count: {props.deck.reduce((total, card) => total + card.quantity, 0)} <br />
-    price: {props.prices
-        ? '$' + props.deck
-            .reduce((total, card) => total + ((props.prices?.get(card.card.name) ?? 0) * card.quantity), 0)
-            .toFixed(2)
-        : <Loader />
-    }<br />
-    <table>
-        <tr>
-            <td>Non Land</td>
-            <td>Land</td>
-        </tr>
-        {symbolPercentages(props.deck)
-            .filter(([, nonLand, land]) => nonLand > 0 || land > 0)
-            .map(([symbol, nonLand, land]) => (
-                <tr key={symbol}>
-                    <td><ManaBar symbol={symbol} percentage={nonLand} /></td>
-                    <td><ManaBar symbol={symbol} percentage={land} /></td>
-                </tr>
+const DeckStats: FunctionalComponent<Props> = props => {
+    return (
+        <div class='deck-stats'>
+            {props.boards.map(board => (
+                <BoardStats
+                    key={board.name}
+                    board={board}
+                    prices={props.prices}
+                    showTitle={props.boards.length > 1}
+                    main={board.name === MainBoard}
+                />
             ))}
-    </table>
-    <table>
-        <tr>
-            <th>Tag</th>
-            <th>Quantity</th>
-        </tr>
-        {collect(props.deck)
-            .multiGroupBy(slot => slot.tags)
-            .map(([name, slots]) => <tr key={name}>
-                <td>{name}</td>
-                <td>
-                    {slots.reduce((total, slot) => total + slot.quantity, 0)}
-                </td>
-            </tr>)
-            .toArray()}
-    </table>
-    <ManaCurve deck={props.deck} />
-</div>
+        </div>
+    )
+}
 
 export default DeckStats
 
+interface BoardStatsProps {
+    board: Board
+    prices: Map<string, number> | undefined
+    showTitle: boolean
+    main: boolean
+}
+
+const BoardStats: FunctionalComponent<BoardStatsProps> = props => {
+    return (
+        <div class='board-stats'>
+            {props.showTitle && <h3>{props.board.name}</h3>}
+            count:{' '}
+            {props.board.cards.reduce(
+                (total, card) => total + card.quantity,
+                0,
+            )}{' '}
+            <br />
+            price:{' '}
+            {props.prices ? (
+                '$' +
+                props.board.cards
+                    .reduce(
+                        (total, card) =>
+                            total +
+                            (props.prices?.get(card.card.name) ?? 0) *
+                                card.quantity,
+                        0,
+                    )
+                    .toFixed(2)
+            ) : (
+                <Loader />
+            )}
+            {props.main && (
+                <>
+                    <br />
+                    <table>
+                        <tr>
+                            <td>Non Land</td>
+                            <td>Land</td>
+                        </tr>
+                        {symbolPercentages(props.board.cards)
+                            .filter(
+                                ([, nonLand, land]) => nonLand > 0 || land > 0,
+                            )
+                            .map(([symbol, nonLand, land]) => (
+                                <tr key={symbol}>
+                                    <td>
+                                        <ManaBar
+                                            symbol={symbol}
+                                            percentage={nonLand}
+                                        />
+                                    </td>
+                                    <td>
+                                        <ManaBar
+                                            symbol={symbol}
+                                            percentage={land}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                    </table>
+                    <table>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Quantity</th>
+                        </tr>
+                        {collect(props.board.cards)
+                            .multiGroupBy(slot => slot.tags)
+                            .map(([name, slots]) => (
+                                <tr key={name}>
+                                    <td>{name}</td>
+                                    <td>
+                                        {slots.reduce(
+                                            (total, slot) =>
+                                                total + slot.quantity,
+                                            0,
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                            .toArray()}
+                    </table>
+                    <ManaCurve deck={props.board.cards} />
+                </>
+            )}
+        </div>
+    )
+}
 interface ManaBarProps {
     symbol: string
     percentage: number
 }
-const ManaBar: FunctionalComponent<ManaBarProps> = props => <div
-    class='mana-bar'
-    style={{ marginRight: `${100 - (props.percentage * 100)}%` }}
->
-    <ManaSymbol symbol={props.symbol} />
-    <ManaSymbol symbol={props.symbol} />
-    <ManaSymbol symbol={props.symbol} />
-    <ManaSymbol symbol={props.symbol} />
-    <ManaSymbol symbol={props.symbol} />
-</div>
+const ManaBar: FunctionalComponent<ManaBarProps> = props => (
+    <div
+        class='mana-bar'
+        style={{ marginRight: `${100 - props.percentage * 100}%` }}
+    >
+        <ManaSymbol symbol={props.symbol} />
+        <ManaSymbol symbol={props.symbol} />
+        <ManaSymbol symbol={props.symbol} />
+        <ManaSymbol symbol={props.symbol} />
+        <ManaSymbol symbol={props.symbol} />
+    </div>
+)
 
 const emptySymbols: ReadonlyArray<[string, number]> = [
     ['{W}', 0],
@@ -77,13 +143,21 @@ const emptySymbols: ReadonlyArray<[string, number]> = [
 
 function symbolPercentages(deck: Slot[]): Array<[string, number, number]> {
     const nonLand = nonLandSymbols(deck)
-    const totalNonLand = nonLand.reduce((total: number, [, count]) => total + count, 0)
+    const totalNonLand = nonLand.reduce(
+        (total: number, [, count]) => total + count,
+        0,
+    )
     const land = landSymbols(deck)
-    const totalLand = land.reduce((total: number, [, count]) => total + count, 0)
+    const totalLand = land.reduce(
+        (total: number, [, count]) => total + count,
+        0,
+    )
 
-    return merge(nonLand, land)
-        .map(([symbol, nonLandCount, landCount]) =>
-            [symbol, (nonLandCount / totalNonLand) || 0, (landCount / totalLand) || 0])
+    return merge(nonLand, land).map(([symbol, nonLandCount, landCount]) => [
+        symbol,
+        nonLandCount / totalNonLand || 0,
+        landCount / totalLand || 0,
+    ])
 }
 
 function nonLandSymbols(slots: Slot[]): Array<[string, number]> {
@@ -117,11 +191,17 @@ function landSymbols(slots: Slot[]): Array<[string, number]> {
     return Array.from(manaSymbols)
 }
 
-function incrementMap(manaSymbols: Map<string, number>, symbol: string, quantity: number): void {
+function incrementMap(
+    manaSymbols: Map<string, number>,
+    symbol: string,
+    quantity: number,
+): void {
     manaSymbols.set(symbol, (manaSymbols.get(symbol) || 0) + quantity)
 }
 
-function merge(...args: Array<Array<[string, number]>>): Array<[string, ...number[]]> {
+function merge(
+    ...args: Array<Array<[string, number]>>
+): Array<[string, ...number[]]> {
     const out: Map<string, number[]> = new Map()
     for (const arg of args) {
         for (const [symbol, count] of arg) {
@@ -140,23 +220,39 @@ const ManaCurve: FunctionalComponent<{ deck: Slot[] }> = ({ deck }) => {
         .sort(([a], [b]) => a - b)
         .toArray()
 
-    const max = Math.max(...byCMC.map(([, slots]) => slots.reduce((total, slot) => total + slot.quantity, 0)))
-    return <table class='mana-curve'>
-        <tr>
-            <th>CMC</th>
-            <th>Quantity</th>
-        </tr>
-        {byCMC.map(([cmc, slots]) => <tr key={cmc}>
-            <td>{cmc}</td>
-            <td >
-                <div
-                    class='bar'
-                    style={{
-                        width: `calc(${slots.reduce((total, slot) => total + slot.quantity, 0) / max
-                            } * (100% - ${String(max).length + 1}ch))`,
-                    }}
-                /> {slots.reduce((total, slot) => total + slot.quantity, 0)}
-            </td>
-        </tr>)}
-    </table>
+    const max = Math.max(
+        ...byCMC.map(([, slots]) =>
+            slots.reduce((total, slot) => total + slot.quantity, 0),
+        ),
+    )
+    return (
+        <table class='mana-curve'>
+            <tr>
+                <th>CMC</th>
+                <th>Quantity</th>
+            </tr>
+            {byCMC.map(([cmc, slots]) => (
+                <tr key={cmc}>
+                    <td>{cmc}</td>
+                    <td>
+                        <div
+                            class='bar'
+                            style={{
+                                width: `calc(${
+                                    slots.reduce(
+                                        (total, slot) => total + slot.quantity,
+                                        0,
+                                    ) / max
+                                } * (100% - ${String(max).length + 1}ch))`,
+                            }}
+                        />{' '}
+                        {slots.reduce(
+                            (total, slot) => total + slot.quantity,
+                            0,
+                        )}
+                    </td>
+                </tr>
+            ))}
+        </table>
+    )
 }
