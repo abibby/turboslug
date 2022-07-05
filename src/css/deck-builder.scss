@@ -102,13 +102,16 @@
                     padding: 0 10px;
                     display: block;
 
+                    .board {
+                        color: $success;
+                    }
+
                     .quantity {
                         color: $primary;
                     }
 
-                    .card {
-                        // color: blue;
-                    }
+                    // .card {
+                    // }
 
                     .tag {
                         color: $primary;

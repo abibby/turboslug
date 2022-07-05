@@ -1,7 +1,7 @@
 import 'css/deck-builder.scss'
 import { bind } from 'decko'
 import { DBCard, searchCards } from 'js/database'
-import { Slot } from 'js/deck'
+import { Board } from 'js/deck'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import Async from './async'
 import Card from './card'
@@ -10,7 +10,7 @@ import Input from './input'
 interface Props {
     deck?: string
     filter?: string
-    slots: Slot[]
+    boards: Board[]
     edit: boolean
     prices: Map<string, number>
     onChange?: (deck: string) => void
@@ -147,9 +147,10 @@ export default class DeckBuilder extends Component<Props, State> {
         let card: DBCard | undefined
         let y = 0
         if (cardElement !== undefined && cardElement.textContent) {
-            card = this.props.slots.find(
-                s => s.card.name === cardElement.textContent,
-            )?.card
+            card = this.props.boards
+                .flatMap(b => b.cards)
+                .find(s => s.card.name === cardElement.textContent)?.card
+
             // card = await findCard(cardElement.textContent)
             const scrollTop =
                 window.pageYOffset !== undefined
@@ -199,10 +200,19 @@ export default class DeckBuilder extends Component<Props, State> {
             card = ''
             postCard = currentLine
         } else {
-            const [s1, quantity, s2, cardToken, s3, tags] = tokens(currentLine)
-            preCard = s1 + quantity + s2
+            const {
+                s1 = '',
+                boardName = '',
+                s2 = '',
+                quantity = '',
+                s3 = '',
+                card: cardToken = '',
+                s4 = '',
+                tags = '',
+            } = tokens(currentLine) ?? {}
+            preCard = s1 + boardName + s2 + quantity + s3
             card = cardToken
-            postCard = s3 + tags
+            postCard = s4 + tags
         }
         return {
             lines: lines,
@@ -434,13 +444,36 @@ function bindFunc<AX extends any[]>(
     return () => cb(...args)
 }
 
-const tokenRE = /^(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
-export function tokens(src: string): string[] {
+export interface Tokens {
+    s1: string
+    boardName: string
+    s2: string
+    quantity: string
+    s3: string
+    card: string
+    s4: string
+    tags: string
+}
+
+const tokenRE =
+    /^(\s*)(\[\[[^\]]*\]\])?(\s*)(\d*)(x?\s*)([^\s#]*(?:\s*[^\s#]+)*)(\s*)(.*)$/
+export function tokens(src: string): Tokens | null {
     const matches = tokenRE.exec(src)
     if (!matches) {
-        return []
+        return null
     }
-    return matches.slice(1)
+    const [s1, boardName, s2, quantity, s3, card, s4, tags] = matches.slice(1)
+
+    return {
+        s1: s1,
+        boardName: boardName,
+        s2: s2,
+        quantity: quantity,
+        s3: s3,
+        card: card,
+        s4: s4,
+        tags: tags,
+    }
 }
 
 const Deck: FunctionalComponent<{ deck: string }> = props => (
@@ -459,14 +492,25 @@ const Row: FunctionalComponent<{ row: string }> = props => {
             </div>
         )
     }
-    const [s1, quantity, s2, card, s3, tags] = tokens(props.row)
+    const {
+        s1 = '',
+        boardName = '',
+        s2 = '',
+        quantity = '',
+        s3 = '',
+        card = '',
+        s4 = '',
+        tags = '',
+    } = tokens(props.row) ?? {}
     return (
         <div class='row'>
             {s1}
-            <span class='quantity'>{quantity}</span>
+            <span class='board'>{boardName}</span>
             {s2}
-            <span class='card'>{card}</span>
+            <span class='quantity'>{quantity}</span>
             {s3}
+            <span class='card'>{card}</span>
+            {s4}
             <Tags tags={tags} />
         </div>
     )

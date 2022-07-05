@@ -1,6 +1,8 @@
+import { bind as spicyBind } from '@zwzn/spicy'
 import 'css/edit-deck.scss'
 import { bind } from 'decko'
 import { User } from 'firebase/auth'
+import { collect } from 'js/collection'
 import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
 import DeckBuilder, { tokens } from 'js/components/deck-builder'
@@ -8,11 +10,12 @@ import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
 import Toggle from 'js/components/toggle'
 import { cardImage, findCard, isCustomCard, newCard } from 'js/database'
-import { Slot } from 'js/deck'
+import { Board, MainBoard } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
 import { prices } from 'js/price'
 import { sleep } from 'js/time'
+import { notNullish } from 'js/util'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
@@ -26,7 +29,7 @@ interface State {
     savedDeck: string
     savedName: string
     savedFilter: string
-    slots: Slot[]
+    boards: Board[]
     user: User | null
     deckUserID?: string
     prices?: Map<string, number>
@@ -44,7 +47,7 @@ export default class EditDeck extends Component<Props, State> {
             savedDeck: '',
             savedName: '',
             savedFilter: '',
-            slots: [],
+            boards: [],
             user: currentUser(),
             showCopied: false,
         }
@@ -61,6 +64,8 @@ export default class EditDeck extends Component<Props, State> {
         window.removeEventListener('keydown', this.keydown)
     }
     public render(): ComponentChild {
+        const cards = this.state.boards.flatMap(b => b.cards)
+
         return (
             <Layout class='edit-deck'>
                 {this.canEdit() ? (
@@ -80,7 +85,7 @@ export default class EditDeck extends Component<Props, State> {
                 <DeckBuilder
                     deck={this.state.deck.cards}
                     filter={this.state.deck.filter}
-                    slots={this.state.slots}
+                    boards={this.state.boards}
                     onChange={this.deckChange}
                     onFilterChange={this.filterChange}
                     edit={this.canEdit()}
@@ -116,20 +121,20 @@ export default class EditDeck extends Component<Props, State> {
                             <Button
                                 key='export'
                                 class={this.state.showCopied ? 'copied' : ''}
-                                onClick={this.exportDeck}
+                                onClick={spicyBind(MainBoard, this.exportBoard)}
                             >
                                 Export
                             </Button>,
                         ]}
                         <DeckStats
-                            deck={this.state.slots}
+                            boards={this.state.boards}
                             prices={this.state.prices}
                         />
                     </div>
                 </div>
 
                 <DeckList
-                    deck={this.state.slots}
+                    deck={cards}
                     groupBy={this.props.matches!.type}
                     prices={this.state.prices}
                 />
@@ -152,10 +157,12 @@ export default class EditDeck extends Component<Props, State> {
     }
 
     @bind
-    private async exportDeck(): Promise<void> {
-        const deck = this.state.slots
-            .map(s => `${s.quantity} ${s.card.name}`)
-            .join('\n')
+    private async exportBoard(name: string): Promise<void> {
+        const deck =
+            this.state.boards
+                .find(b => b.name === name)
+                ?.cards.map(s => `${s.quantity} ${s.card.name}`)
+                .join('\n') ?? ''
         await navigator.clipboard.writeText(deck)
         this.setState({ showCopied: true })
         await sleep(600)
@@ -168,9 +175,10 @@ export default class EditDeck extends Component<Props, State> {
         deck.cards = c
         this.setState({ deck: deck })
 
-        const slots = await cards(c)
-        this.setState({ slots: slots })
-        this.loadPrices(slots)
+        const boards = await parseDeck(c)
+
+        this.setState({ boards: boards })
+        this.loadPrices(boards)
     }
 
     @bind
@@ -202,7 +210,7 @@ export default class EditDeck extends Component<Props, State> {
                 savedDeck: '',
                 savedName: '',
                 savedFilter: '',
-                slots: [],
+                boards: [],
             })
             return
         }
@@ -217,9 +225,9 @@ export default class EditDeck extends Component<Props, State> {
             savedFilter: deck.filter,
             deckUserID: deck.userID,
         })
-        const slots = await cards(deck.cards)
-        this.setState({ slots: slots })
-        this.loadPrices(slots)
+        const boards = await parseDeck(deck.cards)
+        this.setState({ boards: boards })
+        this.loadPrices(boards)
     }
 
     @bind
@@ -230,8 +238,8 @@ export default class EditDeck extends Component<Props, State> {
     @bind
     private async save(): Promise<void> {
         this.state.deck.keyImageURL =
-            cardImage(this.state.slots[0]?.card) ??
-            'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=74252&type=card'
+            cardImage(this.state.boards[0]?.cards[0].card) ??
+            '/assets/unknown.jpg'
         await this.state.deck.save()
         route(`/edit/${this.state.deck.id}`)
         this.setState({
@@ -257,10 +265,11 @@ export default class EditDeck extends Component<Props, State> {
             this.save()
         }
     }
-    private async loadPrices(slots: Slot[]): Promise<void> {
+    private async loadPrices(slots: Board[]): Promise<void> {
         this.setState({
             prices: await prices(
                 slots
+                    .flatMap(b => b.cards)
                     .map(slot => slot.card)
                     .filter(card => !isCustomCard(card)),
             ),
@@ -268,23 +277,24 @@ export default class EditDeck extends Component<Props, State> {
     }
 }
 
-async function cards(deck: string): Promise<Slot[]> {
-    let c = deck
+async function parseDeck(deck: string): Promise<Board[]> {
+    let rows = deck
         .split('\n')
         .filter(row => !row.startsWith('//'))
         .map(row => tokens(row))
-        .filter(t => t.length > 0)
-        .map(([, quantity, , card, , tags]) => ({
-            quantity: quantity,
-            card: card,
-            tags: (tags.match(/#[^\s]*/g) || []).map(tag =>
+        .filter(notNullish)
+        .map(row => ({
+            ...row,
+            tags: (row.tags.match(/#[^\s]*/g) || []).map(tag =>
                 tag.slice(1).replace(/_/g, ' '),
             ),
         }))
-
+    let activeBoard = MainBoard
     let groupTags: string[] | undefined
-    for (const row of c) {
-        if (row.card === '' && row.quantity === '') {
+    for (const row of rows) {
+        if (row.boardName) {
+            activeBoard = row.boardName.slice(2, -2).trim()
+        } else if (row.card === '' && row.quantity === '') {
             if (row.tags.length === 0) {
                 groupTags = undefined
             } else {
@@ -293,9 +303,10 @@ async function cards(deck: string): Promise<Slot[]> {
         } else if (groupTags !== undefined) {
             row.tags = row.tags.concat(groupTags)
         }
+        row.boardName = activeBoard
     }
 
-    c = c
+    rows = rows
         .filter(slot => slot.card !== '')
         .map(slot => ({
             ...slot,
@@ -303,12 +314,22 @@ async function cards(deck: string): Promise<Slot[]> {
         }))
 
     const dbCards = await Promise.all(
-        c.map(async card => (await findCard(card.card)) || newCard(card.card)),
+        rows.map(
+            async card => (await findCard(card.card)) || newCard(card.card),
+        ),
     )
-
-    return c.map((card, i) => ({
-        ...card,
-        card: dbCards[i],
-        quantity: card.quantity !== '' ? Number(card.quantity) : 1,
-    }))
+    return collect(rows)
+        .map((card, i) => ({
+            ...card,
+            card: dbCards[i],
+            quantity: card.quantity !== '' ? Number(card.quantity) : 1,
+        }))
+        .groupBy(card => card.boardName)
+        .map(
+            ([boardName, cards]): Board => ({
+                name: boardName,
+                cards: cards.toArray(),
+            }),
+        )
+        .toArray()
 }
