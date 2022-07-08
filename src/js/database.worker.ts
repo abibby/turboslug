@@ -96,7 +96,8 @@ addEventListener('message', async event => {
             postMessage(abortResponse, undefined as any)
             return
         }
-        throw e
+        console.error(e)
+        // throw e
     }
 })
 

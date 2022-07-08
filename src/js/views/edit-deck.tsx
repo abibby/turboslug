@@ -5,7 +5,7 @@ import { User } from 'firebase/auth'
 import { collect } from 'js/collection'
 import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
-import DeckBuilder, { tokens } from 'js/components/deck-builder'
+import DeckBuilder from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
 import Toggle from 'js/components/toggle'
@@ -13,6 +13,7 @@ import { cardImage, findCard, isCustomCard, newCard } from 'js/database'
 import { Board, MainBoard } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
+import { parse } from 'js/parse'
 import { prices } from 'js/price'
 import { sleep } from 'js/time'
 import { notNullish } from 'js/util'
@@ -278,16 +279,17 @@ export default class EditDeck extends Component<Props, State> {
 }
 
 async function parseDeck(deck: string): Promise<Board[]> {
-    let rows = deck
-        .split('\n')
-        .filter(row => !row.startsWith('//'))
-        .map(row => tokens(row))
+    let rows = parse(deck)
+        .filter(row => row.find(node => node.type === 'name'))
         .filter(notNullish)
         .map(row => ({
-            ...row,
-            tags: (row.tags.match(/#[^\s]*/g) || []).map(tag =>
-                tag.slice(1).replace(/_/g, ' '),
-            ),
+            quantity: row.find(node => node.type === 'quantity')?.value ?? '',
+            card: row.find(node => node.type === 'name')?.value ?? '',
+            version: row.find(node => node.type === 'version')?.value,
+            boardName: row.find(node => node.type === 'board')?.value ?? '',
+            tags: row
+                .filter(node => node.type === 'tag')
+                .map(node => node.value.slice(1).replace(/_/g, ' ')),
         }))
     let activeBoard = MainBoard
     let groupTags: string[] | undefined
@@ -322,6 +324,7 @@ async function parseDeck(deck: string): Promise<Board[]> {
         .map((card, i) => ({
             ...card,
             card: dbCards[i],
+            version: card.version?.replace(/^\[/, '').replace(/\]$/, ''),
             quantity: card.quantity !== '' ? Number(card.quantity) : 1,
         }))
         .groupBy(card => card.boardName)

@@ -101,6 +101,7 @@
                 .row {
                     padding: 0 10px;
                     display: block;
+                    height: $line-height;
 
                     .board {
                         color: $success;
@@ -112,6 +113,10 @@
 
                     // .card {
                     // }
+
+                    .version {
+                        color: $nord3;
+                    }
 
                     .tag {
                         color: $primary;

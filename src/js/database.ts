@@ -149,5 +149,15 @@ export function isCustomCard(card: DBCard): boolean {
 }
 
 export function cardImage(card: DBCard, set?: string): string {
-    return card.image_urls[set ?? ''] ?? card.image_urls[card.set[0]]
+    if (set !== undefined && card.image_urls[set] !== undefined) {
+        return card.image_urls[set]
+    }
+
+    return (
+        Object.entries(card.image_urls)
+            .filter(([key]) => key.startsWith(card.set[card.set.length - 1]))
+            .sort(([a], [b]) =>
+                a.localeCompare(b, undefined, { numeric: true }),
+            )?.[0]?.[1] ?? '/assets/card-back.jpg'
+    )
 }

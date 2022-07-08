@@ -70,14 +70,15 @@ function toDBCard(cards: Card[]): DBCard {
         scryfall_url: card.scryfall_uri,
         image_urls: Object.fromEntries(
             cards.map(c => {
+                const key = c.set + '#' + c.collector_number
                 if (c.image_uris) {
-                    return [c.set, c.image_uris.large]
+                    return [key, c.image_uris.large]
                 }
                 if (c.card_faces?.[0].image_uris) {
-                    return [c.set, c.card_faces[0].image_uris?.large]
+                    return [key, c.card_faces[0].image_uris?.large]
                 }
 
-                return [c.set, '/assets/card-back.jpg']
+                return [key, '/assets/card-back.jpg']
             }),
         ),
     }

@@ -1,22 +1,27 @@
 import 'css/card.scss'
 import { cardImage, DBCard } from 'js/database'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import ManaCost from './mana-cost'
 
 interface Props {
     card: DBCard
+    set?: string
 }
 
-const Card: FunctionalComponent<Props> = ({ card }) => {
+const Card: FunctionalComponent<Props> = ({ card, set }) => {
     const [hidden, setHidden] = useState(false)
     const hideImage = useCallback(() => {
         setHidden(true)
     }, [setHidden])
+    const [id, setID] = useState('')
+    useEffect(() => {
+        setID(Math.random().toString().slice(2))
+    }, [])
     return (
         <svg class='card' viewBox='0 0 63 88'>
             <defs>
-                <mask id='mask'>
+                <mask id={`mask-${id}`}>
                     <rect id='rect' width='100%' height='100%' fill='black' />
                     <rect
                         id='rect'
@@ -27,7 +32,7 @@ const Card: FunctionalComponent<Props> = ({ card }) => {
                     />
                 </mask>
             </defs>
-            <g mask='url(#mask)'>
+            <g mask={`url(#mask-${id})`}>
                 <rect id='rect' width='100%' height='100%' fill='black' />
                 <rect x='3' y='3' width='57' height='82' rx='1' fill='white' />
 
@@ -54,7 +59,7 @@ const Card: FunctionalComponent<Props> = ({ card }) => {
                     </div>
                 </foreignObject>
                 <image
-                    href={cardImage(card)}
+                    href={cardImage(card, set)}
                     width='100%'
                     height='100%'
                     x='0'

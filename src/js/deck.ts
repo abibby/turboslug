@@ -10,5 +10,6 @@ export interface Board {
 export interface Slot {
     quantity: number
     card: DBCard
+    version?: string
     tags: string[]
 }
