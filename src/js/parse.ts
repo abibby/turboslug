@@ -23,7 +23,9 @@ export function parseRow(src: string, line: number): Node[] {
     const nodes: Node[] = []
     let current = ''
     for (let i = 0; i < src.length; i++) {
+        const last = src[i - 1]
         const c = src[i]
+        const next = src[i + 1]
 
         switch (state) {
             case 'whitespace':
@@ -50,6 +52,8 @@ export function parseRow(src: string, line: number): Node[] {
                         state = 'version'
                     } else if (/[ \t\n]/.test(c)) {
                         state = 'whitespace'
+                    } else if (c === '=' && next === '=') {
+                        state = 'board'
                     } else {
                         state = 'name'
                     }
@@ -132,6 +136,21 @@ export function parseRow(src: string, line: number): Node[] {
 
             case 'comment':
                 current += c
+                break
+
+            case 'board':
+                current += c
+                if (c === '=' && last === '=' && current.length >= 4) {
+                    nodes.push({
+                        line: line,
+                        column: i - current.length,
+                        value: current,
+                        type: 'board',
+                    })
+
+                    state = 'whitespace'
+                    current = ''
+                }
                 break
         }
     }

@@ -279,7 +279,6 @@ export default class EditDeck extends Component<Props, State> {
 
 async function parseDeck(deck: string): Promise<Board[]> {
     let rows = parse(deck)
-        .filter(row => row.find(node => node.type === 'name'))
         .filter(notNullish)
         .map(row => ({
             quantity: row.find(node => node.type === 'quantity')?.value ?? '',
