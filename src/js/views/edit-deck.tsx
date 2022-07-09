@@ -237,8 +237,6 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
-        console.log(this.state.boards)
-
         this.state.deck.keyImageURL =
             cardImage(this.state.boards[0]?.cards[0].card) ??
             '/assets/unknown.jpg'
@@ -279,7 +277,7 @@ export default class EditDeck extends Component<Props, State> {
 }
 
 async function parseDeck(deck: string): Promise<Board[]> {
-    let rows = parse(deck)
+    const rows = parse(deck)
         .filter(notNullish)
         .map(row => ({
             quantity: row.find(node => node.type === 'quantity')?.value ?? '',

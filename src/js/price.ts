@@ -108,8 +108,7 @@ async function searchCards(cards: Slot[]): Promise<Card[]> {
             .map(card => {
                 const parts = card.version?.split('#') ?? []
                 if (parts.length >= 2) {
-                    const [set, cn] = parts
-                    return `(!"${card.card.name}" set:${set} cn:${cn})`
+                    return `(!"${card.card.name}" set:${parts[0]} cn:${parts[1]})`
                 }
                 return `!"${card.card.name}"`
             })
