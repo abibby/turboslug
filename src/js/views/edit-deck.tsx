@@ -2,10 +2,9 @@ import { bind as spicyBind } from '@zwzn/spicy'
 import 'css/edit-deck.scss'
 import { bind } from 'decko'
 import { User } from 'firebase/auth'
-import { collect } from 'js/collection'
 import Button from 'js/components/button'
 import DeckStats from 'js/components/dack-stats'
-import DeckBuilder, { tokens } from 'js/components/deck-builder'
+import DeckBuilder from 'js/components/deck-builder'
 import DeckList from 'js/components/deck-list'
 import Icon from 'js/components/icon'
 import Toggle from 'js/components/toggle'
@@ -13,6 +12,7 @@ import { cardImage, findCard, isCustomCard, newCard } from 'js/database'
 import { Board, MainBoard } from 'js/deck'
 import { currentUser, onAuthChange } from 'js/firebase'
 import Deck from 'js/orm/deck'
+import { parse } from 'js/parse'
 import { prices } from 'js/price'
 import { sleep } from 'js/time'
 import { notNullish } from 'js/util'
@@ -270,30 +270,38 @@ export default class EditDeck extends Component<Props, State> {
             prices: await prices(
                 slots
                     .flatMap(b => b.cards)
-                    .map(slot => slot.card)
-                    .filter(card => !isCustomCard(card)),
+                    .filter(slot => !isCustomCard(slot.card)),
             ),
         })
     }
 }
 
 async function parseDeck(deck: string): Promise<Board[]> {
-    let rows = deck
-        .split('\n')
-        .filter(row => !row.startsWith('//'))
-        .map(row => tokens(row))
+    const rows = parse(deck)
         .filter(notNullish)
         .map(row => ({
-            ...row,
-            tags: (row.tags.match(/#[^\s]*/g) || []).map(tag =>
-                tag.slice(1).replace(/_/g, ' '),
-            ),
+            quantity: row.find(node => node.type === 'quantity')?.value ?? '',
+            card: row.find(node => node.type === 'name')?.value ?? '',
+            version: row.find(node => node.type === 'version')?.value,
+            boardName: row.find(node => node.type === 'board')?.value ?? '',
+            tags: row
+                .filter(node => node.type === 'tag')
+                .map(node => node.value.slice(1).replace(/_/g, ' ')),
         }))
-    let activeBoard = MainBoard
+
+    let activeBoard: Board = {
+        name: MainBoard,
+        cards: [],
+    }
+    const boards = [activeBoard]
     let groupTags: string[] | undefined
     for (const row of rows) {
         if (row.boardName) {
-            activeBoard = row.boardName.slice(2, -2).trim()
+            activeBoard = {
+                name: row.boardName.slice(2, -2).trim(),
+                cards: [],
+            }
+            boards.push(activeBoard)
         } else if (row.card === '' && row.quantity === '') {
             if (row.tags.length === 0) {
                 groupTags = undefined
@@ -303,33 +311,15 @@ async function parseDeck(deck: string): Promise<Board[]> {
         } else if (groupTags !== undefined) {
             row.tags = row.tags.concat(groupTags)
         }
-        row.boardName = activeBoard
+        if (row.card !== '') {
+            activeBoard.cards.push({
+                card: (await findCard(row.card)) || newCard(row.card),
+                version: row.version?.replace(/^\[/, '').replace(/\]$/, ''),
+                quantity: row.quantity !== '' ? Number(row.quantity) : 1,
+                tags: Array.from(new Set(row.tags)),
+            })
+        }
     }
 
-    rows = rows
-        .filter(slot => slot.card !== '')
-        .map(slot => ({
-            ...slot,
-            tags: Array.from(new Set(slot.tags)),
-        }))
-
-    const dbCards = await Promise.all(
-        rows.map(
-            async card => (await findCard(card.card)) || newCard(card.card),
-        ),
-    )
-    return collect(rows)
-        .map((card, i) => ({
-            ...card,
-            card: dbCards[i],
-            quantity: card.quantity !== '' ? Number(card.quantity) : 1,
-        }))
-        .groupBy(card => card.boardName)
-        .map(
-            ([boardName, cards]): Board => ({
-                name: boardName,
-                cards: cards.toArray(),
-            }),
-        )
-        .toArray()
+    return boards
 }

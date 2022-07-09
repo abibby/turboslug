@@ -13,15 +13,15 @@ interface BulkData {
 }
 
 export async function downloadCards(): Promise<void> {
-    const bulk = (await fetch('https://api.scryfall.com/bulk-data').then(r =>
-        r.json(),
-    )) as BulkData
+    const bulk: BulkData = await fetch(
+        'https://api.scryfall.com/bulk-data',
+    ).then(r => r.json())
 
     const url = bulk.data.find(d => d.type === 'default_cards')?.download_uri
     if (url === undefined) {
         throw new Error('Could not find default cards download URI')
     }
-    const allCards = (await fetch(url).then(r => r.json())) as Card[]
+    const allCards: Card[] = await fetch(url).then(r => r.json())
 
     allCards.sort(
         (a, b) =>
@@ -70,14 +70,15 @@ function toDBCard(cards: Card[]): DBCard {
         scryfall_url: card.scryfall_uri,
         image_urls: Object.fromEntries(
             cards.map(c => {
+                const key = c.set + '#' + c.collector_number
                 if (c.image_uris) {
-                    return [c.set, c.image_uris.large]
+                    return [key, c.image_uris.large]
                 }
                 if (c.card_faces?.[0].image_uris) {
-                    return [c.set, c.card_faces[0].image_uris?.large]
+                    return [key, c.card_faces[0].image_uris?.large]
                 }
 
-                return [c.set, '/assets/card-back.jpg']
+                return [key, '/assets/card-back.jpg']
             }),
         ),
     }

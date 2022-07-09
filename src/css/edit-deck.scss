@@ -13,7 +13,7 @@
         'stats'
         'list';
     @media (min-width: $bp-md-min) {
-        grid-template-columns: auto 300px;
+        grid-template-columns: auto 310px;
         grid-template-areas:
             'title   title'
             'builder stats'

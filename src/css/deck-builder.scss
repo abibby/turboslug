@@ -39,7 +39,7 @@
                 rgba($on-surface, 0.03) $line-height,
                 rgba($on-surface, 0.03) $line-height * 2
             );
-            background-position: 0 29px;
+            background-position: 0 -10px;
             color: $on-surface;
 
             position: relative;
@@ -101,6 +101,11 @@
                 .row {
                     padding: 0 10px;
                     display: block;
+                    height: $line-height;
+
+                    .board {
+                        color: $success;
+                    }
 
                     .board {
                         color: $success;
@@ -110,8 +115,9 @@
                         color: $primary;
                     }
 
-                    // .card {
-                    // }
+                    .version {
+                        color: $nord3;
+                    }
 
                     .tag {
                         color: $primary;

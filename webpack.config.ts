@@ -66,7 +66,14 @@ const config: import('webpack').ConfigurationFactory = (env, argv) => {
             modules: ['node_modules', paths.src],
         },
         plugins: [
-            new CleanWebpackPlugin(),
+            new CleanWebpackPlugin({
+                cleanOnceBeforeBuildPatterns: [
+                    '**/*',
+                    '!cards/**/*',
+                    '!cards/*',
+                    '!cards',
+                ],
+            }),
             new HtmlWebpackPlugin({
                 template: path.join(paths.src, 'index.html'),
                 filename: 'index.html',
