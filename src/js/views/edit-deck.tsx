@@ -290,7 +290,7 @@ async function parseDeck(deck: string): Promise<Board[]> {
                 .filter(node => node.type === 'tag')
                 .map(node => node.value.slice(1).replace(/_/g, ' ')),
         }))
-    // let activeBoard= MainBoard
+
     let activeBoard: Board = {
         name: MainBoard,
         cards: [],
@@ -321,36 +321,7 @@ async function parseDeck(deck: string): Promise<Board[]> {
                 tags: Array.from(new Set(row.tags)),
             })
         }
-        // row.boardName = activeBoard
     }
 
     return boards
-
-    // rows = rows
-    //     .filter(slot => slot.card !== '')
-    //     .map(slot => ({
-    //         ...slot,
-    //         tags: Array.from(new Set(slot.tags)),
-    //     }))
-
-    // const dbCards = await Promise.all(
-    //     rows.map(
-    //         async card => (await findCard(card.card)) || newCard(card.card),
-    //     ),
-    // )
-    // return collect(rows)
-    //     .map((card, i) => ({
-    //         ...card,
-    //         card: dbCards[i],
-    //         version: card.version?.replace(/^\[/, '').replace(/\]$/, ''),
-    //         quantity: card.quantity !== '' ? Number(card.quantity) : 1,
-    //     }))
-    //     .groupBy(card => card.boardName)
-    //     .map(
-    //         ([boardName, cards]): Board => ({
-    //             name: boardName,
-    //             cards: cards.toArray(),
-    //         }),
-    //     )
-    //     .toArray()
 }

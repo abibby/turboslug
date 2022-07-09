@@ -112,7 +112,6 @@ export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
 
 interface CardAutocompleteProps extends BaseProps {
     name: string
-    // onNewResults: (results: DBCard[]) => void
 }
 
 export const CardAutocomplete: FunctionalComponent<
@@ -121,7 +120,6 @@ export const CardAutocomplete: FunctionalComponent<
     const [options, setOptions] = useState<Paginated<DBCard> | null>(null)
 
     const search = props.name
-    // const onNewResults = props.onNewResults
 
     const abort = useRef<AbortController | null>(null)
     useEffect(() => {
@@ -132,7 +130,6 @@ export const CardAutocomplete: FunctionalComponent<
             .then(c => {
                 abort.current = null
                 setOptions(c)
-                // onNewResults(c.results)
             })
             .catch(e => {
                 abort.current = null
@@ -146,7 +143,6 @@ export const CardAutocomplete: FunctionalComponent<
 interface VersionAutocompleteProps extends BaseProps {
     search: string
     card?: string
-    // onNewResults: (results: DBCard[]) => void
 }
 export const VersionAutocomplete: FunctionalComponent<
     VersionAutocompleteProps
@@ -188,7 +184,6 @@ export const VersionAutocomplete: FunctionalComponent<
                         ] as const,
                 )
             setOptions(opt)
-            // onNewResults(opt.map(([, c]) => c))
         } else {
             setOptions(null)
         }
