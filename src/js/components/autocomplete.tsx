@@ -47,16 +47,30 @@ export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
 
                 case 'ArrowLeft':
                 case 'ArrowRight':
+                case 'Escape':
                     props.onSelect(null)
                     break
 
                 case 'Enter':
                 case 'Tab':
-                    props.onSelect(props.options?.[selected][0] ?? null)
+                    const result = props.options?.[selected][0] ?? null
+                    if (result !== null) {
+                        e.preventDefault()
+                    }
+                    props.onSelect(result)
                     break
             }
         },
         [props.hidden, props.options, selected, props.onSelect],
+    )
+
+    useEventTarget(
+        props.textArea,
+        'click',
+        (e: Event) => {
+            props.onSelect(null)
+        },
+        [props.onSelect],
     )
 
     if (props.options === null) {

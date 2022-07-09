@@ -1,7 +1,8 @@
 import { createStore, get, set } from 'idb-keyval'
 import chunk from 'lodash/chunk'
 import { Card, Cards } from 'scryfall-sdk'
-import { DBCard } from './database'
+import { collect } from './collection'
+import { Slot } from './deck'
 import { day } from './time'
 import { notNullish } from './util'
 
@@ -13,23 +14,23 @@ interface CacheEntry {
 }
 
 // TODO: use versions for price information
-export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
+export async function prices(slots: Slot[]): Promise<Map<string, number>> {
     const cachePriceMap = new Map<string, number>(
         (
             await Promise.all(
-                cards.map(async card => {
-                    const price = await cachePrice(card.name)
+                slots.map(async slot => {
+                    const price = await cachePrice(slot)
                     if (price === undefined) {
                         return undefined
                     }
-                    return [card.name, price] as const
+                    return [slot.card.name, price] as const
                 }),
             )
         ).filter(notNullish),
     )
 
     const fullCards = await searchCards(
-        cards.filter(card => cachePriceMap.get(card.name) === undefined),
+        slots.filter(slot => cachePriceMap.get(slot.card.name) === undefined),
     )
 
     await Promise.all(
@@ -38,24 +39,24 @@ export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
             if (price === undefined) {
                 return
             }
-            await setCachePrice(card.name, Number(price))
+            await setCachePrice(card, Number(price))
         }),
     )
 
     return new Map(
-        cards
-            .map((card): [string, number] | undefined => {
-                const fullCard = fullCards.find(c => c.name === card.name)
+        slots
+            .map((slot): [string, number] | undefined => {
+                const fullCard = fullCards.find(c => c.name === slot.card.name)
                 const price =
                     fullCard?.prices?.usd ??
                     fullCard?.prices?.usd_foil ??
                     undefined
                 if (price !== undefined) {
-                    return [card.name, Number(price)]
+                    return [slot.card.name, Number(price)]
                 }
-                const cPrice = cachePriceMap.get(card.name)
+                const cPrice = cachePriceMap.get(slot.card.name)
                 if (cPrice !== undefined) {
-                    return [card.name, cPrice]
+                    return [slot.card.name, cPrice]
                 }
                 return undefined
             })
@@ -63,8 +64,24 @@ export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
     )
 }
 
-async function cachePrice(card: string): Promise<number | undefined> {
-    const price = await get<CacheEntry>(card, priceCache)
+function cacheKey(slot: Slot | Card, withVersion: boolean): string {
+    if ('card' in slot) {
+        if (slot.version !== undefined && withVersion) {
+            return slot.card.name + '|' + slot.version
+        }
+        return slot.card.name
+    }
+    if (withVersion) {
+        return slot.name + '|' + slot.set + '#' + slot.collector_number
+    }
+    return slot.name
+}
+
+async function cachePrice(
+    slot: Slot | Card,
+    withVersion = true,
+): Promise<number | undefined> {
+    const price = await get<CacheEntry>(cacheKey(slot, withVersion), priceCache)
     if (price === undefined || Date.now() - price.date > day) {
         return
     }
@@ -72,20 +89,51 @@ async function cachePrice(card: string): Promise<number | undefined> {
     return price.price
 }
 
-async function setCachePrice(card: string, price: number): Promise<void> {
+async function setCachePrice(slot: Slot | Card, price: number): Promise<void> {
     const data: CacheEntry = {
         price: price,
         date: Date.now(),
     }
-    await set(card, data, priceCache)
+    await set(cacheKey(slot, true), data, priceCache)
+    const cp = await cachePrice(slot, false)
+    if (price < (cp ?? Number.MAX_VALUE)) {
+        await set(cacheKey(slot, false), data, priceCache)
+    }
 }
 
-async function searchCards(cards: DBCard[]): Promise<Card[]> {
+async function searchCards(cards: Slot[]): Promise<Card[]> {
     const fullCards: Card[] = []
     for (const cs of chunk(cards, 30)) {
-        const query = cs.map(card => `!"${card.name}"`).join(' or ')
-        fullCards.push(...(await Cards.search(query).waitForAll()))
+        const query = cs
+            .map(card => {
+                if (card.version !== undefined) {
+                    return `(!"${card.card.name}" and set:${
+                        card.version.split('#')[0]
+                    })`
+                }
+                return `!"${card.card.name}"`
+            })
+            .join(' or ')
+        fullCards.push(
+            ...(await Cards.search(
+                query + ' usd>0 unique:prints',
+            ).waitForAll()),
+        )
     }
-
-    return fullCards
+    return collect(fullCards)
+        .groupBy(c => c.name)
+        .map(([, groupedCards]) => {
+            let card: Card | undefined
+            for (const c of groupedCards) {
+                if (
+                    (c.prices.usd ?? 0) <
+                    (card?.prices?.usd ?? Number.MAX_VALUE)
+                ) {
+                    card = c
+                }
+            }
+            return card
+        })
+        .filter(notNullish)
+        .toArray()
 }

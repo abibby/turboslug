@@ -271,8 +271,7 @@ export default class EditDeck extends Component<Props, State> {
             prices: await prices(
                 slots
                     .flatMap(b => b.cards)
-                    .map(slot => slot.card)
-                    .filter(card => !isCustomCard(card)),
+                    .filter(slot => !isCustomCard(slot.card)),
             ),
         })
     }

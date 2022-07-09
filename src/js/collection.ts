@@ -88,6 +88,10 @@ export class Collection<T> implements Iterable<T> {
         })
     }
 
+    public filter<S extends T>(
+        callback: (value: T) => value is S,
+    ): Collection<S>
+    public filter(callback: (element: T) => boolean): Collection<T>
     public filter(callback: (element: T) => boolean): Collection<T> {
         const itr = this
         return build(function* (): IterableIterator<T> {
