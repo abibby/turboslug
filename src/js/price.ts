@@ -12,21 +12,20 @@ interface CacheEntry {
     date: number
 }
 
+// TODO: use versions for price information
 export async function prices(cards: DBCard[]): Promise<Map<string, number>> {
     const cachePriceMap = new Map<string, number>(
         (
             await Promise.all(
-                cards.map(
-                    async (card): Promise<[string, number] | undefined> => {
-                        const price = await cachePrice(card.name)
-                        if (price === undefined) {
-                            return undefined
-                        }
-                        return [card.name, price]
-                    },
-                ),
+                cards.map(async card => {
+                    const price = await cachePrice(card.name)
+                    if (price === undefined) {
+                        return undefined
+                    }
+                    return [card.name, price] as const
+                }),
             )
-        ).filter((price): price is [string, number] => price !== undefined),
+        ).filter(notNullish),
     )
 
     const fullCards = await searchCards(

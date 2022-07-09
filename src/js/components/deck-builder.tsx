@@ -298,9 +298,6 @@ export default class DeckBuilder extends Component<Props, State> {
             const start = this.textarea?.selectionStart ?? 0
             const end = this.textarea?.selectionEnd ?? 0
 
-            let newDeck = ''
-            let i = 0
-
             let before = newState.deck.slice(0, start).split('\n')
             let during = newState.deck.slice(start, end).split('\n')
             let after = newState.deck.slice(end).split('\n')

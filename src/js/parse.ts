@@ -46,10 +46,12 @@ export function parseRow(src: string, line: number): Node[] {
                         state = 'quantity'
                     } else if (c === ';') {
                         state = 'comment'
-                    } else if (/[a-zA-Z]/.test(c)) {
-                        state = 'name'
                     } else if (c === '[') {
                         state = 'version'
+                    } else if (/[ \t\n]/.test(c)) {
+                        state = 'whitespace'
+                    } else {
+                        state = 'name'
                     }
                 }
                 break
