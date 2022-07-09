@@ -103,10 +103,10 @@ async function setCachePrice(slot: Slot | Card, price: number): Promise<void> {
 
 async function searchCards(cards: Slot[]): Promise<Card[]> {
     const fullCards: Card[] = []
-    for (const cs of chunk(cards, 30)) {
+    for (const cs of chunk(cards, 20)) {
         const query = cs
             .map(card => {
-                if (card.version !== undefined) {
+                if (card.version !== undefined && card.version.length > 3) {
                     return `(!"${card.card.name}" and set:${
                         card.version.split('#')[0]
                     })`
