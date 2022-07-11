@@ -1,6 +1,5 @@
 import { bind } from '@zwzn/spicy'
 import { DBCard, findCard, searchCards } from 'js/database'
-import { Paginated } from 'js/database.worker'
 import { useEventTarget } from 'js/hooks/use-event-target'
 import { FunctionalComponent, h } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
@@ -18,7 +17,6 @@ interface CardWithSet extends DBCard {
 
 interface AutocompleteProps extends BaseProps {
     options: Array<readonly [string, CardWithSet]> | null
-    name: string
 }
 
 export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
@@ -73,6 +71,10 @@ export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
         [props.onSelect],
     )
 
+    useEffect(() => {
+        setSelected(0)
+    }, [props.options])
+
     if (props.options === null) {
         return (
             <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`}>
@@ -117,7 +119,9 @@ interface CardAutocompleteProps extends BaseProps {
 export const CardAutocomplete: FunctionalComponent<
     CardAutocompleteProps
 > = props => {
-    const [options, setOptions] = useState<Paginated<DBCard> | null>(null)
+    const [options, setOptions] = useState<Array<
+        readonly [string, DBCard]
+    > | null>(null)
 
     const search = props.name
 
@@ -129,15 +133,14 @@ export const CardAutocomplete: FunctionalComponent<
         searchCards(search, {}, abort.current)
             .then(c => {
                 abort.current = null
-                setOptions(c)
+                setOptions(c?.results.map(c => [c.name, c] as const))
             })
             .catch(e => {
                 abort.current = null
             })
-    }, [search, setOptions])
+    }, [search])
 
-    const results = options?.results.map(c => [c.name, c] as const)
-    return <Autocomplete {...props} options={results ?? null} />
+    return <Autocomplete {...props} options={options} />
 }
 
 interface VersionAutocompleteProps extends BaseProps {
@@ -189,7 +192,5 @@ export const VersionAutocomplete: FunctionalComponent<
         }
     }, [search, dbCard])
 
-    return (
-        <Autocomplete {...props} name={card ?? ''} options={options ?? null} />
-    )
+    return <Autocomplete {...props} options={options ?? null} />
 }
