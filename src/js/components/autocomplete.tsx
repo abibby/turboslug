@@ -1,12 +1,16 @@
 import { bind } from '@zwzn/spicy'
 import { DBCard, findCard, searchCards } from 'js/database'
+import { Board } from 'js/deck'
 import { useEventTarget } from 'js/hooks/use-event-target'
-import { FunctionalComponent, h } from 'preact'
+import { Node } from 'js/parse'
+import { unique } from 'js/util'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import Card from './card'
 
+type Options = Array<readonly [string, CardWithSet]> | Array<readonly [string]>
+
 interface BaseProps {
-    hidden: boolean
     onSelect: (value: string | null) => void
     textArea: HTMLTextAreaElement | null
 }
@@ -15,19 +19,16 @@ interface CardWithSet extends DBCard {
     setKey?: string
 }
 
-interface AutocompleteProps extends BaseProps {
-    options: Array<readonly [string, CardWithSet]> | null
+interface BaseAutocompleteProps extends BaseProps {
+    options: Options | null
 }
 
-export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
+const BaseAutocomplete: FunctionalComponent<BaseAutocompleteProps> = props => {
     const [selected, setSelected] = useState(0)
     useEventTarget(
         props.textArea,
         'keydown',
         (e: KeyboardEvent) => {
-            if (props.hidden) {
-                return
-            }
             const len = props.options?.length ?? 1
             if (len === 0) {
                 props.onSelect(null)
@@ -59,7 +60,7 @@ export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
                     break
             }
         },
-        [props.hidden, props.options, selected, props.onSelect],
+        [props.options, selected, props.onSelect],
     )
 
     useEventTarget(
@@ -76,30 +77,24 @@ export const Autocomplete: FunctionalComponent<AutocompleteProps> = props => {
     }, [props.options])
 
     if (props.options === null) {
-        return (
-            <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`}>
-                Loading...
-            </div>
-        )
+        return <div class='autocomplete'>Loading...</div>
     }
 
     if (props.options.length === 0) {
-        return (
-            <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`}>
-                No cards
-            </div>
-        )
+        return <div class='autocomplete'>No cards</div>
     }
 
     const selectedCard = props.options[selected % props.options.length][1]
 
     return (
-        <div class={`autocomplete ${props.hidden ? 'hidden' : ''}`}>
-            <Card card={selectedCard} set={selectedCard.setKey} />
+        <div class='autocomplete'>
+            {selectedCard !== undefined && (
+                <Card card={selectedCard} set={selectedCard.setKey} />
+            )}
             <div class='options'>
                 {props.options.map(([title, c], i) => (
                     <div
-                        key={c.id}
+                        key={c?.id ?? title}
                         class={`option ${i === selected ? 'selected' : ''}`}
                         onClick={bind(title, props.onSelect)}
                         onMouseEnter={bind(i, setSelected)}
@@ -119,9 +114,7 @@ interface CardAutocompleteProps extends BaseProps {
 export const CardAutocomplete: FunctionalComponent<
     CardAutocompleteProps
 > = props => {
-    const [options, setOptions] = useState<Array<
-        readonly [string, DBCard]
-    > | null>(null)
+    const [options, setOptions] = useState<Options | null>(null)
 
     const search = props.name
 
@@ -140,7 +133,7 @@ export const CardAutocomplete: FunctionalComponent<
             })
     }, [search])
 
-    return <Autocomplete {...props} options={options} />
+    return <BaseAutocomplete {...props} options={options} />
 }
 
 interface VersionAutocompleteProps extends BaseProps {
@@ -151,9 +144,7 @@ export const VersionAutocomplete: FunctionalComponent<
     VersionAutocompleteProps
 > = ({ card, search, ...props }) => {
     const [dbCard, setDBCard] = useState<DBCard | undefined>(undefined)
-    const [options, setOptions] = useState<Array<
-        readonly [string, CardWithSet]
-    > | null>(null)
+    const [options, setOptions] = useState<Options | null>(null)
     useEffect(() => {
         if (card !== undefined) {
             findCard(card.trim()).then(c => {
@@ -192,5 +183,49 @@ export const VersionAutocomplete: FunctionalComponent<
         }
     }, [search, dbCard])
 
-    return <Autocomplete {...props} options={options ?? null} />
+    return <BaseAutocomplete {...props} options={options ?? null} />
+}
+
+interface TagAutocompleteProps extends BaseProps {
+    search: string
+    boards: Board[]
+}
+export const TagAutocomplete: FunctionalComponent<TagAutocompleteProps> = ({
+    boards,
+    search,
+    ...props
+}) => {
+    const [options, setOptions] = useState<Options | null>(null)
+
+    useEffect(() => {
+        const tags = boards
+            .flatMap(b => b.cards.flatMap(c => c.tags))
+            .sort()
+            .filter(unique)
+            .filter(t => t !== '')
+            .map(t => ['#' + t] as const)
+        setOptions(tags)
+    }, [search, boards])
+
+    return <BaseAutocomplete {...props} options={options} />
+}
+
+interface AutocompleteProps extends BaseProps {
+    node: Node | undefined
+    boards: Board[]
+}
+export const Autocomplete: FunctionalComponent<AutocompleteProps> = ({
+    node,
+    ...props
+}) => {
+    if (node?.type === 'name') {
+        return <CardAutocomplete {...props} name={node.value} />
+    }
+    if (node?.type === 'version') {
+        return <VersionAutocomplete {...props} search={node.value} />
+    }
+    if (node?.type === 'tag') {
+        return <TagAutocomplete {...props} search={node.value} />
+    }
+    return <></>
 }

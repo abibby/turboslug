@@ -40,3 +40,7 @@ export function byKey<T>(
         return ret
     }
 }
+
+export function unique<T>(item: T, pos: number, ary: T[]) {
+    return !pos || item != ary[pos - 1]
+}
