@@ -135,7 +135,7 @@ async function searchCards(
     let count = 0
     let sortedCards = allCards
 
-    if (options.sort !== 'name') {
+    if (!(options.sort === 'name' && options.order === 'asc')) {
         sortedCards = allCards.sort(byKey(options.sort, options.order, true))
     }
 

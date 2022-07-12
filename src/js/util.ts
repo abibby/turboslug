@@ -8,27 +8,34 @@ export function byKey<T>(
     order: 'asc' | 'desc' = 'asc',
     naturalSort = false,
 ): (a: T, b: T) => number {
+    const subSort = strings(order, naturalSort)
+    return (a, b): number => {
+        return subSort(a[col], b[col])
+    }
+}
+
+export function strings<T>(
+    order: 'asc' | 'desc' = 'asc',
+    naturalSort = false,
+): (a: T, b: T) => number {
     return (a, b): number => {
         let ret = 0
         if (naturalSort) {
-            const aCol = a[col]
-            const bCol = b[col]
-
-            if (aCol === bCol) {
+            if (a === b) {
                 return 0
             }
-            if (aCol === undefined || aCol === null) {
+            if (a === undefined || a === null) {
                 return 1
             }
-            if (bCol === undefined || bCol === null) {
+            if (b === undefined || b === null) {
                 return -1
             }
 
-            ret = collator.compare(String(aCol), String(bCol))
+            ret = collator.compare(String(a), String(b))
         } else {
-            if (a[col] === b[col]) {
+            if (a === b) {
                 return 0
-            } else if (a[col] > b[col]) {
+            } else if (a > b) {
                 ret = 1
             } else {
                 ret = -1
@@ -41,6 +48,6 @@ export function byKey<T>(
     }
 }
 
-export function unique<T>(item: T, pos: number, ary: T[]) {
-    return !pos || item != ary[pos - 1]
+export function unique<T>(item: T, pos: number, ary: T[]): boolean {
+    return !pos || item !== ary[pos - 1]
 }

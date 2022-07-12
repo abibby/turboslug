@@ -3,7 +3,7 @@ import { DBCard, findCard, searchCards } from 'js/database'
 import { Board } from 'js/deck'
 import { useEventTarget } from 'js/hooks/use-event-target'
 import { Node } from 'js/parse'
-import { unique } from 'js/util'
+import { strings, unique } from 'js/util'
 import { Fragment, FunctionalComponent, h } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import Card from './card'
@@ -124,9 +124,13 @@ export const CardAutocomplete: FunctionalComponent<
         abort.current = new AbortController()
 
         searchCards(search, {}, abort.current)
-            .then(c => {
+            .then(paginatedCards => {
                 abort.current = null
-                setOptions(c?.results.map(c => [c.name, c] as const))
+                setOptions(
+                    paginatedCards?.results.map(
+                        card => [card.name, card] as const,
+                    ),
+                )
             })
             .catch(e => {
                 abort.current = null
@@ -200,9 +204,15 @@ export const TagAutocomplete: FunctionalComponent<TagAutocompleteProps> = ({
     useEffect(() => {
         const tags = boards
             .flatMap(b => b.cards.flatMap(c => c.tags))
-            .sort()
+            .sort(strings('asc', true))
             .filter(unique)
-            .filter(t => t !== '')
+            .map(t => t.replace(' ', '_'))
+            .filter(t => t !== '' && t !== search.slice(1))
+            .filter(
+                t =>
+                    search === '' ||
+                    t.toLowerCase().includes(search.slice(1).toLowerCase()),
+            )
             .map(t => ['#' + t] as const)
         setOptions(tags)
     }, [search, boards])
