@@ -3,7 +3,7 @@ import { bind } from 'decko'
 import { Board, Slot } from 'js/deck'
 import { Node, parse, parseRow, stringifyDeck } from 'js/parse'
 import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
-import { CardAutocomplete, VersionAutocomplete } from './autocomplete'
+import { Autocomplete } from './autocomplete'
 import Card from './card'
 import Input from './input'
 
@@ -30,6 +30,7 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     private textarea: HTMLTextAreaElement | null = null
+    private wrapper: HTMLDivElement | null = null
 
     private lastCardID?: string = undefined
 
@@ -82,7 +83,7 @@ export default class DeckBuilder extends Component<Props, State> {
                         .get(this.state.popupCard?.slot.card.name ?? '')
                         ?.toFixed(2)}
                 </div>
-                <div class='editor-wrapper'>
+                <div class='editor-wrapper' ref={e => (this.wrapper = e)}>
                     <div
                         className='editor'
                         onMouseMove={this.mouseMove}
@@ -103,22 +104,9 @@ export default class DeckBuilder extends Component<Props, State> {
                         )}
                     </div>
                     {this.props.edit && (
-                        <CardAutocomplete
-                            hidden={this.state.activeNode?.type !== 'name'}
-                            name={
-                                this.props.filter +
-                                    ' ' +
-                                    this.state.currentCard || ''
-                            }
-                            onSelect={this.autocompleteSelect}
-                            textArea={this.textarea}
-                        />
-                    )}
-                    {this.props.edit && (
-                        <VersionAutocomplete
-                            hidden={this.state.activeNode?.type !== 'version'}
-                            card={this.state.currentCard}
-                            search={this.state.currentVersion ?? ''}
+                        <Autocomplete
+                            node={this.state.activeNode}
+                            boards={this.props.boards}
                             onSelect={this.autocompleteSelect}
                             textArea={this.textarea}
                         />
@@ -260,7 +248,6 @@ export default class DeckBuilder extends Component<Props, State> {
         const card = nodes.find(node => node.type === 'name')
         const version = nodes.find(node => node.type === 'version')
         let activeNode: Node | undefined
-
         for (const node of nodes) {
             if (
                 columnNumber > node.column &&
@@ -270,11 +257,9 @@ export default class DeckBuilder extends Component<Props, State> {
             }
         }
 
-        const autocompletes =
-            document.querySelectorAll<HTMLElement>('.autocomplete')
-        for (const autocomplete of autocompletes) {
-            autocomplete.style.setProperty('--x', String(columnNumber))
-            autocomplete.style.setProperty('--y', String(lineNumber))
+        if (this.wrapper) {
+            this.wrapper.style.setProperty('--x', String(columnNumber))
+            this.wrapper.style.setProperty('--y', String(lineNumber))
         }
 
         this.props.onChange?.(deck)
