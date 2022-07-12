@@ -223,16 +223,20 @@ export const TagAutocomplete: FunctionalComponent<TagAutocompleteProps> = ({
 interface AutocompleteProps extends BaseProps {
     node: Node | undefined
     boards: Board[]
+    card: string | undefined
 }
 export const Autocomplete: FunctionalComponent<AutocompleteProps> = ({
     node,
+    card,
     ...props
 }) => {
     if (node?.type === 'name') {
         return <CardAutocomplete {...props} name={node.value} />
     }
     if (node?.type === 'version') {
-        return <VersionAutocomplete {...props} search={node.value} />
+        return (
+            <VersionAutocomplete {...props} card={card} search={node.value} />
+        )
     }
     if (node?.type === 'tag') {
         return <TagAutocomplete {...props} search={node.value} />

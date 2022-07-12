@@ -109,6 +109,7 @@ export default class DeckBuilder extends Component<Props, State> {
                             boards={this.props.boards}
                             onSelect={this.autocompleteSelect}
                             textArea={this.textarea}
+                            card={this.state.currentCard}
                         />
                     )}
                 </div>

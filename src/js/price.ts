@@ -62,6 +62,7 @@ export async function prices(slots: Slot[]): Promise<Map<string, number>> {
             })
             .filter(notNullish),
     )
+    // return new Map()
 }
 
 function cacheKey(slot: Slot | Card, withVersion: boolean): string {
@@ -113,11 +114,7 @@ async function searchCards(cards: Slot[]): Promise<Card[]> {
                 return `!"${card.card.name}"`
             })
             .join(' or ')
-        fullCards.push(
-            ...(await Cards.search(
-                query + ' usd>0 unique:prints',
-            ).waitForAll()),
-        )
+        fullCards.push(...(await Cards.search(query + ' usd>0').waitForAll()))
     }
     return collect(fullCards)
         .groupBy(c => c.name)
