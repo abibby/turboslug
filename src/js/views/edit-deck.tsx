@@ -279,6 +279,13 @@ export default class EditDeck extends Component<Props, State> {
 async function parseDeck(deck: string): Promise<Board[]> {
     const rows = parse(deck)
         .filter(notNullish)
+        .filter(
+            row =>
+                row.filter(
+                    node =>
+                        node.type !== 'comment' && node.type !== 'whitespace',
+                ).length > 0,
+        )
         .map(row => ({
             quantity: row.find(node => node.type === 'quantity')?.value ?? '',
             card: row.find(node => node.type === 'name')?.value ?? '',
@@ -304,6 +311,8 @@ async function parseDeck(deck: string): Promise<Board[]> {
             boards.push(activeBoard)
         } else if (row.card === '' && row.quantity === '') {
             if (row.tags.length === 0) {
+                console.log(row)
+
                 groupTags = undefined
             } else {
                 groupTags = row.tags
