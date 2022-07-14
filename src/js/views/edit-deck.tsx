@@ -311,8 +311,6 @@ async function parseDeck(deck: string): Promise<Board[]> {
             boards.push(activeBoard)
         } else if (row.card === '' && row.quantity === '') {
             if (row.tags.length === 0) {
-                console.log(row)
-
                 groupTags = undefined
             } else {
                 groupTags = row.tags
