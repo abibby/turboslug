@@ -281,10 +281,11 @@ async function parseDeck(deck: string): Promise<Board[]> {
         .filter(notNullish)
         .filter(
             row =>
-                row.filter(
+                row.find(node => node.type === 'comment') === undefined ||
+                row.find(
                     node =>
                         node.type !== 'comment' && node.type !== 'whitespace',
-                ).length > 0,
+                ) !== undefined,
         )
         .map(row => ({
             quantity: row.find(node => node.type === 'quantity')?.value ?? '',
