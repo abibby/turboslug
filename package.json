@@ -36,7 +36,7 @@
     "prettier": "^2.6.1",
     "sass": "^1.49.9",
     "sass-loader": "^7.3.1",
-    "scryfall-sdk": "^1.6.4",
+    "scryfall-sdk": "^3.2.1",
     "ts-loader": "^6.2.2",
     "ts-node": "^8.10.2",
     "tslint": "^5.20.1",
