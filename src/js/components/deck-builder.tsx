@@ -106,6 +106,7 @@ export default class DeckBuilder extends Component<Props, State> {
                     {this.props.edit && (
                         <Autocomplete
                             node={this.state.activeNode}
+                            globalFilter={this.props.filter}
                             boards={this.props.boards}
                             onSelect={this.autocompleteSelect}
                             textArea={this.textarea}

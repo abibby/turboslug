@@ -224,22 +224,38 @@ interface AutocompleteProps extends BaseProps {
     node: Node | undefined
     boards: Board[]
     card: string | undefined
+    globalFilter?: string
 }
 export const Autocomplete: FunctionalComponent<AutocompleteProps> = ({
     node,
     card,
+    globalFilter = '',
     ...props
 }) => {
     if (node?.type === 'name') {
-        return <CardAutocomplete {...props} name={node.value} />
+        return (
+            <CardAutocomplete
+                {...props}
+                name={globalFilter + ' ' + node.value}
+            />
+        )
     }
     if (node?.type === 'version') {
         return (
-            <VersionAutocomplete {...props} card={card} search={node.value} />
+            <VersionAutocomplete
+                {...props}
+                card={card}
+                search={globalFilter + ' ' + node.value}
+            />
         )
     }
     if (node?.type === 'tag') {
-        return <TagAutocomplete {...props} search={node.value} />
+        return (
+            <TagAutocomplete
+                {...props}
+                search={globalFilter + ' ' + node.value}
+            />
+        )
     }
     return <></>
 }
