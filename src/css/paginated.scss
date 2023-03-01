@@ -3,12 +3,18 @@
 .paginated-list {
     .paginator-buttons {
         margin: 10px 0;
+        font-size: 0.8em;
 
         .page-link {
             border: none;
             outline: none;
             background: none;
             color: $primary;
+            min-width: 2em;
+            font-size: inherit;
+            text-align: center;
+            margin: 0;
+            padding: 0 2px;
 
             &.active {
                 background-color: $primary;
@@ -17,7 +23,10 @@
         }
 
         .ellipsis {
+            display: inline-block;
             color: $primary;
+            min-width: 2em;
+            text-align: center;
         }
     }
 }

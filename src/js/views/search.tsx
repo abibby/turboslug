@@ -14,7 +14,7 @@ export const Search: FunctionalComponent = () => {
     const [search, setSearch] = useQueryState('query', '')
     const [sort, setSort] = useQueryState('sort', 'name')
     const [order, setOrder] = useQueryState('order', 'asc')
-    const [pageStr, setPage] = useQueryState('page', '0')
+    const [pageStr, setPage] = useQueryState('page', '1')
     const page = Number(pageStr)
     const perPage = 16
     const [cards, setCards] = useState<Paginated<DBCard>>({
@@ -30,7 +30,7 @@ export const Search: FunctionalComponent = () => {
             search,
             {
                 take: perPage,
-                skip: page * perPage,
+                skip: (page - 1) * perPage,
                 sort: sort as keyof DBCard,
                 order: order as 'asc' | 'desc',
             },
@@ -47,7 +47,7 @@ export const Search: FunctionalComponent = () => {
     const inputChange = useCallback(
         (query: string) => {
             setSearch(query)
-            setPage(0)
+            setPage(1)
         },
         [setSearch, setPage],
     )

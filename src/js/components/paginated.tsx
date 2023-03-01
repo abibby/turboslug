@@ -2,7 +2,7 @@ import { bind } from '@zwzn/spicy'
 import classNames from 'classnames'
 import 'css/paginated.scss'
 import { Paginated } from 'js/database.worker'
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 
 export interface PaginatedListProps {
     paginator: Paginated<unknown>
@@ -13,7 +13,6 @@ export interface PaginatedListProps {
 
 export const PaginatedList: FunctionalComponent<PaginatedListProps> = props => {
     const pageCount = Math.ceil(props.paginator.total / props.perPage)
-
     return (
         <div class='paginated-list'>
             <PaginatorButtons
@@ -38,44 +37,78 @@ interface PaginatorButtonsProps {
 }
 
 const PaginatorButtons: FunctionalComponent<PaginatorButtonsProps> = props => {
-    const pages = [0]
-
-    const around = 3
-    for (let i = props.page - around; i <= props.page + around; i++) {
-        if (i > 0 && i < props.pageCount - 1) {
-            pages.push(i)
-        }
-    }
-    if (props.pageCount > 1) {
-        pages.push(props.pageCount - 1)
-    }
+    const pageGroups = getPageGroups(props.page, props.pageCount)
     return (
         <div class='paginator-buttons'>
-            {/* maybe use links instead of buttons */}
-            {pages.flatMap((p, i) => {
-                const button = (
-                    <button
-                        key={p}
-                        onClick={bind(p, props.onPageChange)}
-                        class={classNames('page-link', {
-                            active: p === props.page,
-                        })}
-                        disabled={p === props.page}
-                    >
-                        {p + 1}
-                    </button>
-                )
-                const lastPage = pages[i - 1]
-                if (lastPage !== undefined && lastPage !== p - 1) {
-                    return [
-                        <span key={p - 0.5} class='ellipsis'>
-                            ...
-                        </span>,
-                        button,
-                    ]
-                }
-                return button
-            })}
+            <button
+                onClick={bind(props.page - 1, props.onPageChange)}
+                class='page-link'
+                disabled={props.page <= 1}
+            >
+                &lt;
+            </button>
+            {pageGroups.map((pages, i) => (
+                <Fragment key={i}>
+                    {i !== 0 && <span class='ellipsis'>...</span>}
+                    {pages.map(p => (
+                        <button
+                            key={p}
+                            onClick={bind(p, props.onPageChange)}
+                            class={classNames('page-link', {
+                                active: p === props.page,
+                            })}
+                            disabled={p === props.page}
+                        >
+                            {p}
+                        </button>
+                    ))}
+                </Fragment>
+            ))}
+            <button
+                onClick={bind(props.page + 1, props.onPageChange)}
+                class='page-link'
+                disabled={props.page >= props.pageCount}
+            >
+                &gt;
+            </button>
         </div>
     )
+}
+
+function range(start: number, end: number): number[] {
+    if (start > end) {
+        return []
+    }
+    return new Array(end - start + 1).fill(undefined).map((_, i) => i + start)
+}
+
+function getPageGroups(currentPage: number, pageCount: number): number[][] {
+    const totalCount = 9
+    const startCount = 1
+    const endCount = 1
+    const midCount = totalCount - startCount - endCount - 2
+
+    const midStart = currentPage - Math.ceil(midCount / 2) + 1
+    const midEnd = currentPage + Math.floor(midCount / 2)
+
+    if (pageCount <= totalCount) {
+        return [range(1, pageCount)]
+    }
+    if (midStart < startCount + 3) {
+        return [
+            range(1, totalCount - endCount - 1),
+            range(pageCount - endCount + 1, pageCount),
+        ]
+    }
+    if (midEnd >= pageCount - endCount - 1) {
+        return [
+            range(1, startCount),
+            range(pageCount - totalCount + endCount + 2, pageCount),
+        ]
+    }
+    return [
+        range(1, startCount),
+        range(midStart, midEnd),
+        range(pageCount - endCount + 1, pageCount),
+    ]
 }

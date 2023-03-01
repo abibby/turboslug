@@ -54,7 +54,7 @@ export default class DeckList extends Component<Props, State> {
                     return ['Gold']
             }
         },
-        CMC: slot => [String(slot.card.cmc)],
+        'Mana Value': slot => [String(slot.card.cmc)],
         None: slot => ['Cards'],
         Tags: slot => slot.tags || [],
         Price: slot => {

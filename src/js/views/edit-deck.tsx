@@ -64,8 +64,6 @@ export default class EditDeck extends Component<Props, State> {
         window.removeEventListener('keydown', this.keydown)
     }
     public render(): ComponentChild {
-        const cards = this.state.boards.flatMap(b => b.cards)
-
         return (
             <Layout class='edit-deck'>
                 {this.canEdit() ? (
@@ -134,7 +132,7 @@ export default class EditDeck extends Component<Props, State> {
                 </div>
 
                 <DeckList
-                    deck={cards}
+                    deck={this.state.boards[0]?.cards ?? []}
                     groupBy={this.props.matches!.type}
                     prices={this.state.prices}
                 />
