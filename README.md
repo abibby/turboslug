@@ -1,5 +1,7 @@
 # Turbo Slug
 
+[![Publish](https://github.com/abibby/turboslug/actions/workflows/publish.yml/badge.svg)](https://github.com/abibby/turboslug/actions/workflows/publish.yml)
+
 Turbo Slug is a free and open source deck builder for Magic: The Gathering.
 
 ![Deck Editor](.github/readme-images/deck-edit.png)
