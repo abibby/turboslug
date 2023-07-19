@@ -28,7 +28,7 @@ export async function downloadCards(): Promise<void> {
             Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!),
     )
     const chunks: Chunk[] = []
-    await mkdir('dist/cards', { recursive: true })
+    await mkdir('public/cards', { recursive: true })
     const collectedCards = Object.values(
         groupBy(Object.values(allCards).filter(validCard), 'name'),
     ).map(toDBCard)
@@ -37,9 +37,9 @@ export async function downloadCards(): Promise<void> {
 
     let i = 0
     for (const [set, cards] of cardsBySet) {
-        const path = `cards/${i}.json`
+        const path = `/cards/${i}.json`
         const content = JSON.stringify(cards)
-        await writeFile('dist/' + path, content)
+        await writeFile('public' + path, content)
 
         chunks.push({
             hash: createHash('sha256').update(content).digest('hex'),
@@ -48,7 +48,7 @@ export async function downloadCards(): Promise<void> {
         })
         i++
     }
-    await writeFile('dist/cards/chunks.json', JSON.stringify(chunks))
+    await writeFile('public/cards/chunks.json', JSON.stringify(chunks))
 }
 
 function toDBCard(cards: Card[]): DBCard {

@@ -3,3 +3,4 @@ dist
 .vscode
 .firebase
 firebase-debug.log
+public/cards

@@ -5,8 +5,8 @@
         "moduleResolution": "node",
         "target": "es2019",
         "baseUrl": "./",
-        // "jsx": "preserve",
-        "jsx": "react",
+        "jsx": "preserve",
+        // "jsx": "react",
         "jsxFactory": "h",
         "jsxFragmentFactory": "Fragment",
         "paths": {
@@ -18,5 +18,6 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "strict": true
+        // "skipLibCheck": true
     }
 }

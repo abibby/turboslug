@@ -1,5 +1,5 @@
-import DatabaseWorker from 'worker-loader!./database.worker'
-import {
+// import DatabaseWorker from './database.worker?worker'
+import type {
     DatabaseMessage,
     DatabaseResponse,
     Paginated,
@@ -27,8 +27,10 @@ export interface Chunk {
     hash: string
     path: string
 }
-
-const worker = new DatabaseWorker()
+const worker = new Worker(new URL('./database.worker.ts', import.meta.url), {
+    type: 'module',
+})
+// const worker = new DatabaseWorker()
 let abortBuffer: Uint8Array | undefined
 if (crossOriginIsolated) {
     const sharedAbortBuffer = new SharedArrayBuffer(256)
