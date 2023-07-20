@@ -6,6 +6,7 @@ import { Component, ComponentChild, FunctionalComponent, h } from 'preact'
 import { Autocomplete } from './autocomplete'
 import Card from './card'
 import Input from './input'
+import { log } from 'console'
 
 interface Props {
     deck?: string
@@ -59,6 +60,8 @@ export default class DeckBuilder extends Component<Props, State> {
     }
 
     public render(): ComponentChild {
+        const cols = Math.max(...this.state.deck.split('\n').map(l => l.length))
+
         return (
             <div class='deck-builder'>
                 {this.props.edit && (
@@ -100,6 +103,7 @@ export default class DeckBuilder extends Component<Props, State> {
                                 onKeyDown={this.keydown}
                                 value={this.state.deck}
                                 spellcheck={false}
+                                style={{ '--columns': cols }}
                             />
                         )}
                     </div>
