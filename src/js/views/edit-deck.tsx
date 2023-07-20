@@ -19,6 +19,7 @@ import { notNullish } from 'js/util'
 import Layout from 'js/views/layout'
 import { Component, ComponentChild, h } from 'preact'
 import { route } from 'preact-router'
+import unknown from 'res/unknown.jpg'
 
 interface Props {
     matches?: { id?: string; type?: string }
@@ -235,9 +236,13 @@ export default class EditDeck extends Component<Props, State> {
 
     @bind
     private async save(): Promise<void> {
+        console.log(this.state.boards[0]?.cards[0]?.card)
+
         this.state.deck.keyImageURL =
-            cardImage(this.state.boards[0]?.cards[0].card) ??
-            '/assets/unknown.jpg'
+            cardImage(this.state.boards[0]?.cards[0]?.card) ?? unknown
+        if (this.state.deck.name === undefined) {
+            this.state.deck.name = 'New Deck'
+        }
         await this.state.deck.save()
         route(`/edit/${this.state.deck.id}`)
         this.setState({

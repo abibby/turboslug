@@ -346,7 +346,7 @@ const Row: FunctionalComponent<{ row: Node[] }> = props => {
     return (
         <div class='row'>
             {props.row.map(node => (
-                <span key={node.column} class={node.type}>
+                <span key={node.column + node.type} class={node.type}>
                     {node.value}
                 </span>
             ))}

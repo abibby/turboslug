@@ -1,10 +1,10 @@
-// import DatabaseWorker from './database.worker?worker'
 import type {
     DatabaseMessage,
     DatabaseResponse,
     Paginated,
     SearchCardsMessage,
 } from './database.worker'
+import cardBack from 'res/card-back.jpg'
 
 export interface DBCard {
     id: string
@@ -150,7 +150,13 @@ export function isCustomCard(card: DBCard): boolean {
     return card.id === 'custom-' + card.name
 }
 
-export function cardImage(card: DBCard, set?: string): string {
+export function cardImage(
+    card: DBCard | undefined,
+    set?: string,
+): string | undefined {
+    if (card === undefined) {
+        return undefined
+    }
     if (set !== undefined && card.image_urls[set] !== undefined) {
         return card.image_urls[set]
     }
@@ -160,6 +166,6 @@ export function cardImage(card: DBCard, set?: string): string {
             .filter(([key]) => key.startsWith(card.set[card.set.length - 1]))
             .sort(([a], [b]) =>
                 a.localeCompare(b, undefined, { numeric: true }),
-            )?.[0]?.[1] ?? '/assets/card-back.jpg'
+            )?.[0]?.[1] ?? cardBack
     )
 }
