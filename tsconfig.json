@@ -20,5 +20,10 @@
         "strict": true,
         "skipLibCheck": true,
         "module": "ES2022"
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs"
+        }
     }
 }
