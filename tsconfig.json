@@ -5,8 +5,8 @@
         "moduleResolution": "node",
         "target": "es2019",
         "baseUrl": "./",
-        // "jsx": "preserve",
-        "jsx": "react",
+        "jsx": "preserve",
+        // "jsx": "react",
         "jsxFactory": "h",
         "jsxFragmentFactory": "Fragment",
         "paths": {
@@ -17,6 +17,8 @@
         "strictNullChecks": true,
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "strict": true
+        "strict": true,
+        "skipLibCheck": true,
+        "module": "ES2022"
     }
 }

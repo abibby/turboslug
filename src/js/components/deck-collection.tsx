@@ -57,11 +57,17 @@ export default class DeckCollection extends Component<Props, State> {
             <div class='deck-collection'>
                 {filter}
                 {this.state.decks
-                    .filter(deck =>
-                        deck.name
-                            .toLowerCase()
-                            .includes(this.state.filter.toLowerCase()),
-                    )
+                    .filter(deck => {
+                        if (deck.name === undefined) {
+                            console.log(deck)
+                        }
+                        return (
+                            deck.name
+                                ?.toLowerCase()
+                                .includes(this.state.filter.toLowerCase()) ??
+                            true
+                        )
+                    })
                     .map(deck => (
                         <DeckElement key={deck.id} deck={deck} />
                     ))}

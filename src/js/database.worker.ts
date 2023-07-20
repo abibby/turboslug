@@ -304,7 +304,7 @@ async function waitForLoad(): Promise<void> {
 }
 
 async function loadNetwork(): Promise<void> {
-    const chunks: Chunk[] = await readFile('cards/chunks.json')
+    const chunks: Chunk[] = await readFile('/cards/chunks.json')
     const localChunks: Chunk[] = await getChunks()
     const newChunks: Chunk[] = []
     let i = 0

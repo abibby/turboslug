@@ -1,11 +1,11 @@
-@import "./variables";
+@import './variables';
 
 .deck-builder {
     .popup {
         position: absolute;
         z-index: 100;
         pointer-events: none;
-        
+
         width: 200px;
         max-width: calc(100vw - 20px);
         border: solid 1px $border-color;
@@ -16,7 +16,6 @@
         &.hidden {
             display: none;
         }
-        
     }
     .editor-wrapper {
         font-family: monospace;
@@ -82,12 +81,14 @@
                 top: 0px;
                 left: 0px;
                 height: 100%;
-                width: 100%;
+                width: calc(var(--columns) * 1ch + 20px);
+                min-width: 100%;
                 resize: none;
                 color: inherit;
                 overflow: hidden;
                 -webkit-font-smoothing: antialiased;
                 -webkit-text-fill-color: transparent;
+                white-space: nowrap;
             }
 
             .deck {
