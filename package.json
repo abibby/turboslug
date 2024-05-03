@@ -28,7 +28,7 @@
         "eslint-plugin-preact": "^0.1.0",
         "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "firebase-tools": "^11.16.1",
+        "firebase-tools": "^13.6.0",
         "lodash": "^4.17.21",
         "node-fetch": "^2.6.7",
         "prettier": "^2.6.1",
