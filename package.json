@@ -44,7 +44,7 @@
         "@zwzn/spicy": "^1.0.1",
         "classnames": "^2.3.1",
         "decko": "^1.2.0",
-        "firebase": "^9.8.3",
+        "firebase": "^10.9.0",
         "idb-keyval": "^6.1.0",
         "nord": "^0.2.1",
         "preact": "^10.16.0",
