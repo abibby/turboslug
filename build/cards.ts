@@ -23,10 +23,7 @@ export async function downloadCards(): Promise<void> {
     }
     const allCards: Card[] = await fetch(url).then(r => r.json())
 
-    allCards.sort(
-        (a, b) =>
-            Math.min(...a.multiverse_ids!) - Math.min(...b.multiverse_ids!),
-    )
+    allCards.sort((a, b) => a.released_at.localeCompare(b.released_at))
     const chunks: Chunk[] = []
     await mkdir('public/cards', { recursive: true })
     const collectedCards = Object.values(
@@ -35,9 +32,8 @@ export async function downloadCards(): Promise<void> {
 
     const cardsBySet = Object.entries(groupBy(collectedCards, a => a.set[0]))
 
-    let i = 0
     for (const [set, cards] of cardsBySet) {
-        const path = `/cards/${i}.json`
+        const path = `/cards/${set}.json`
         const content = JSON.stringify(cards)
         await writeFile('public' + path, content)
 
@@ -46,17 +42,16 @@ export async function downloadCards(): Promise<void> {
             path: path,
             index: set,
         })
-        i++
     }
     await writeFile('public/cards/chunks.json', JSON.stringify(chunks))
 }
 
 function toDBCard(cards: Card[]): DBCard {
     const card = cards[0]
-    const id = card.multiverse_ids![0]
+    const id = createHash('md5').update(card.name).digest('base64')
 
     const commonCard: Omit<DBCard, 'oracle_text' | 'mana_cost' | 'type'> = {
-        id: String(id),
+        id: id,
         name: card.name,
         color_identity: card.color_identity,
         legalities: Object.entries(card.legalities)
@@ -71,11 +66,11 @@ function toDBCard(cards: Card[]): DBCard {
         image_urls: Object.fromEntries(
             cards.map(c => {
                 const key = c.set + '#' + c.collector_number
-                if (c.image_uris) {
-                    return [key, c.image_uris.large]
-                }
-                if (c.card_faces?.[0].image_uris) {
-                    return [key, c.card_faces[0].image_uris?.large]
+                const url = imageURL(c)
+                if (url) {
+                    const u = new URL(url)
+                    u.search = ''
+                    return [key, u.toString()]
                 }
 
                 return [key, '/assets/card-back.jpg']
@@ -100,9 +95,18 @@ function toDBCard(cards: Card[]): DBCard {
 }
 
 function validCard(c: Card): boolean {
-    return !!c.multiverse_ids && c.multiverse_ids.length !== 0
+    return c.type_line !== 'Card' && c.type_line !== 'Card // Card'
 }
 
 if (typeof require !== 'undefined' && require.main === module) {
     downloadCards()
+}
+
+function imageURL(c: Card): string | undefined {
+    if (c.image_uris) {
+        return c.image_uris.large
+    }
+    if (c.card_faces?.[0].image_uris) {
+        return c.card_faces[0].image_uris?.large
+    }
 }

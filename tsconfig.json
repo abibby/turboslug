@@ -3,7 +3,7 @@
         "sourceMap": true,
         "noImplicitAny": true,
         "moduleResolution": "node",
-        "target": "es2019",
+        "target": "esnext",
         "baseUrl": "./",
         "jsx": "preserve",
         // "jsx": "react",
